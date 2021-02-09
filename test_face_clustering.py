@@ -6,7 +6,8 @@ from collections import OrderedDict
 from GHSOM import GHSOM
 from matplotlib import pyplot as plt
 
-data_shape = 8
+#data_shape = 8
+data_shape = 64
 
 
 
@@ -48,6 +49,7 @@ def __plot_child_with_labels(e, gmap, level, data, labels, associations):
             interactive_plot_with_labels(neuron.child_map, dataset=data[assc], labels=labels[assc],
                                          num=str(coords), level=level+1)
 
+
 def interactive_plot_with_labels(gmap, dataset, labels, num='root', level=1):
     colors = ["#E52B50", "#FFBF00", "#4B0082", "#FBCEB1", "#7FFFD4",
               "#007FFF", "#00FF00", "#9966CC", "#CD7F32", "#89CFF0"]
@@ -67,14 +69,55 @@ def interactive_plot_with_labels(gmap, dataset, labels, num='root', level=1):
         r, c = winner_neuron.position
         mapping[r][c].append(idx)
 
-        ax.plot(c*data_shape+data_shape/2, r*data_shape+data_shape/2, 'o', markerfacecolor='None',
-                markeredgecolor=colors[label], markersize=sizes[label], markeredgewidth=1.5, label=label)
+        ax.plot(c*data_shape+data_shape/2, r*data_shape+data_shape/2, 'o', markerfacecolor='None', markeredgewidth=1.5, label=label)
     legend_handles, legend_labels = plt.gca().get_legend_handles_labels()
     by_label = OrderedDict(zip(legend_labels, legend_handles))
     plt.legend(by_label.values(), by_label.keys(), loc='center left', bbox_to_anchor=(1.1, 0.5), borderaxespad=0.,
                mode='expand', labelspacing=int((gmap.map_shape()[0]/9)*data_shape))
     fig.show()
 
+
+
+'''
+def interactive_plot_with_labels(gmap, dataset, labels, num='root', level=1):
+    colors = {}
+    colors['opel'] = "#E52B50"
+    colors['saab'] = "#FFBF00"
+    colors['bus'] = "#4B0082"
+    colors['van'] = "#9966CC"
+
+    index = {}
+    index['opel'] = 0
+    index['saab'] = 1
+    index['bus'] = 2
+    index['van'] = 3
+
+
+    #sizes = np.arange(0, 40, 4) + 0.5
+    sizes = np.arange(0, 60, 6) + 0.5
+    mapping = [[list() for _ in range(gmap.map_shape()[1])] for _ in range(gmap.map_shape()[0])]
+
+    _num = "level {} -- parent pos {}".format(level, num)
+    fig, ax = plt.subplots(num=_num)
+    ax.imshow(__gmap_to_matrix(gmap.weights_map), cmap='bone_r', interpolation='sinc')
+    fig.canvas.mpl_connect('button_press_event', lambda event: __plot_child_with_labels(event, gmap, level,
+                                                                                        dataset, labels, mapping))
+    plt.axis('off')
+
+    for idx, label in enumerate(labels):
+        winner_neuron = gmap.winner_neuron(dataset[idx])[0][0]
+        r, c = winner_neuron.position
+        mapping[r][c].append(idx)
+
+        ax.plot(c*data_shape+data_shape/2, r*data_shape+data_shape/2, 'o', markerfacecolor='None',
+                markeredgecolor=colors[label], markersize=sizes[index[label]], markeredgewidth=1.5, label=label)
+    legend_handles, legend_labels = plt.gca().get_legend_handles_labels()
+    by_label = OrderedDict(zip(legend_labels, legend_handles))
+    plt.legend(by_label.values(), by_label.keys(), loc='center left', bbox_to_anchor=(1.1, 0.5), borderaxespad=0.,
+               mode='expand', labelspacing=int((gmap.map_shape()[0]/9)*data_shape))
+    fig.show()
+
+'''
 
 def mean_data_centroid_activation(ghsom, dataset):
     distances = list()
@@ -120,15 +163,29 @@ def dispersion_rate(ghsom, dataset):
 
 if __name__ == '__main__':
     
-    
+    '''
     digits = load_digits()
     data = digits.data
     n_samples, n_features = data.shape
     n_digits = len(np.unique(digits.target))
     labels = digits.target
+    '''
+
+    digits = fetch_olivetti_faces()
+    data = digits.data
+    n_samples, n_features = data.shape
+    n_digits = len(np.unique(digits.target))
+    labels = digits.target
+    
     
 
-
+    '''
+    mnist = fetch_openml('vehicle')
+    data = mnist.data[:,:-2]
+    n_samples, n_features = data.shape
+    n_digits = len(np.unique(mnist.target))
+    labels = mnist.target
+    '''
 
     print("dataset length: {}".format(n_samples))
     print("features per example: {}".format(n_features))
@@ -138,9 +195,10 @@ if __name__ == '__main__':
     print("Training...")
     zero_unit = ghsom.train(epochs_number=15, dataset_percentage=0.50, min_dataset_size=30, seed=0, grow_maxiter=10)
 
-    #print(zero_unit)
-    #print(mean_data_centroid_activation(zero_unit, data))
-    #print(dispersion_rate(zero_unit, data))
+    print(zero_unit)
+    print(mean_data_centroid_activation(zero_unit, data))
+    print(dispersion_rate(zero_unit, data))
     interactive_plot_with_labels(zero_unit.child_map, data, labels)
+    #interactive_plot_with_labels(zero_unit.child_map, data, labels)
 
     plt.show()

@@ -7,6 +7,19 @@ from multiprocessing import Pool
 
 
 class GHSOM:
+    """Clase de GHSOm
+
+    Attributes:
+        input_dataset(numpy array): input array data (atributes)
+        t1: (tau_1) ratio between global GHSOM  deepness/shallownes
+        t2: (tau_2) minimun precision ratio every sigle neuron must  accomplish
+        learning_rate:
+        decay: 
+        gaussian_sigma: neighborhood funtion
+        growing_metric:
+
+
+    """
     def __init__(self, input_dataset, t1, t2, learning_rate, decay, gaussian_sigma, growing_metric="qe"):
         self.__input_dataset = input_dataset
         self.__input_dimension = input_dataset.shape[1]
@@ -20,6 +33,18 @@ class GHSOM:
         self.__neuron_builder = NeuronBuilder(t2, growing_metric)
 
     def train(self, epochs_number=15, dataset_percentage=0.25, min_dataset_size=1, seed=None, grow_maxiter=100):
+        """Train metho
+
+        Attributes:
+            epochs_number: number of epochs default = 15
+            dataset_percentage:
+            min_dataset_size:
+            seed:
+            grow_maxiter:
+
+        Returns:
+            zero_unit: GHSOM structure
+        """
         zero_unit = self.__init_zero_unit(seed=seed)
 
         neuron_queue = Queue()
