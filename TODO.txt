@@ -1,0 +1,20 @@
+#INTERFAZ
+404 con flask 
+
+
+
+
+
+
+#FUNCIONALIDAD
+guardar/cargar soms entrenados
+
+
+
+
+
+
+
+
+#mejorar?
+    Improving performance with memoization
