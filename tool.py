@@ -10,7 +10,8 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 from views.app import app
-from views import main
+from views import callbacks
+from views import main,training_selection
 
 
 
@@ -26,8 +27,8 @@ def display_page(pathname):
     if pathname == '/':
         #raise PreventUpdate
         return main.layout
-    #elif pathname == '/training_selection':
-    #    return training_selection.layout
+    elif pathname == '/training_selection':
+       return training_selection.layout
     else:
         return '404'
 

@@ -33,7 +33,7 @@ class GHSOM:
         self.__neuron_builder = NeuronBuilder(t2, growing_metric)
 
     def train(self, epochs_number=15, dataset_percentage=0.25, min_dataset_size=1, seed=None, grow_maxiter=100):
-        """Train metho
+        """Train method
 
         Attributes:
             epochs_number: number of epochs default = 15

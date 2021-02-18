@@ -1,31 +1,38 @@
 # -*- coding: utf-8 -*-
 
-import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output, State
-from dash.exceptions import PreventUpdate
+import dash_bootstrap_components as dbc
 
-import plotly.express as px
-
-from datetime import datetime
-
-
-from views.app import app
+import  views.elements as elements
 
 #VENTANA PRINCIPAL 
 
 
 
-#################Layout###############################
 layout = html.Div(children=[
 
     html.Div(id="hidden_div_for_redirect_callback"),
+    elements.navigation_bar,
+    elements.cabecera,
+    '''
+    second_card = dbc.Card(
+    dbc.CardBody(
+        [
+            html.H5("Card title", className="card-title"),
+            html.P(
+                "This card also has some text content and not much else, but "
+                "it is twice as wide as the first card."
+            ),
+            dbc.Button("Go somewhere", color="primary"),
+        ]
+    ),
+    '''
 
-    html.H1(children='Herramienta de análisis de datos con Mapas Auto-organizados'),
+    html.H2('Seleccionar dataset'),
+
     html.Hr(),
-    
-
+    html.H4('Archivo Local', style={'textAlign': 'center'} ),
     dcc.Upload( id='upload-data',
         children=html.Div([
             'Arrastrar y soltar o  ',
@@ -44,47 +51,40 @@ layout = html.Div(children=[
         # Allow multiple files to be uploaded
         multiple=False
     ),
+    html.Div( 
+        [dbc.Button("Analizar Datos", id="continue-button",disabled= True,external_link='/training_selection', className="mr-2", color="primary",)],
+        style={'textAlign': 'center'}
+    ),
+    
+
+    html.Hr(),
+    html.H4('URL',style={'textAlign': 'center'} ),
+    dbc.Input(type= 'url', placeholder="Link del dataset", bs_size="md", className="mb-3"),
+    html.Div( 
+        [dbc.Button("Analizar Datos", id="continue-button-url",disabled= True,external_link='/training_selection', className="mr-2", color="primary",)],
+        style={'textAlign': 'center'}
+    ),
+    html.Hr(),
+
+
+    html.H2('Cargar modelo pre-entrenado'),
+
+
+
 
     html.Div(id='output-data-upload_1',style={'textAlign': 'center'} ),
     html.Div(id='output-data-upload_2',style={'textAlign': 'center'} ),
-    html.Hr(),
+    html.Div(id='n_samples',style={'textAlign': 'center'} ),
+    html.Div(id='n_features',style={'textAlign': 'center'} ),
+    html.Hr()
 
-    html.Button('Analizar Datos',id='continue-button',disabled= True, formTarget='/training_selection')
+    
 
 ])
-#################################################################
 
 
 
-'''
-def guarda_dataframe(contents):
-    pass
-    #almacenar aqui la info de contentes, qeu seria el dataset
-'''
 
 
-
-@app.callback(Output('hidden_div_for_redirect_callback', 'children'),
-              Input('continue-button', 'n_clicks'), prevent_initial_call=True )
-def redirect_to_training_selection(n_clicks):
-     return dcc.Location(pathname="/training_selection", id="redirect")
-
-
-
-@app.callback(Output('output-data-upload_1', 'children'),
-              Output('output-data-upload_2', 'children'),
-              Output('continue-button','disabled'),
-              Input('upload-data', 'contents'),
-              State('upload-data', 'filename'),
-              State('upload-data', 'last_modified'))
-def update_output(contents, filename, last_modified):
-    if contents is not None:
-        output_1= 'Archivo: ' + filename
-        output_2= 'Última Modificación: ' +  datetime.utcfromtimestamp(last_modified).strftime('%d/%m/%Y %H:%M:%S')
-        #guarda_dataframe(contents)
-
-        return output_1, output_2,False
-    else:
-        return '','',True
 
 
