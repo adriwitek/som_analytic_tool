@@ -18,6 +18,7 @@ import io
 from GHSOM import GHSOM
 from views.app import app
 from views.session_data import Sesion
+import  views.elements as elements
 
 
 sesion = None
@@ -29,7 +30,7 @@ sesion = None
 @app.callback(Output('hidden_div_for_redirect_callback', 'children'),
               Input('continue-button', 'n_clicks'), prevent_initial_call=True )
 def redirect_to_training_selection(n_clicks):
-     return dcc.Location(pathname="/training_selection", id="redirect")
+    return dcc.Location(pathname="/training_selection", id="redirect")
 
 
 @app.callback(Output('output-data-upload_1', 'children'),
@@ -37,12 +38,13 @@ def redirect_to_training_selection(n_clicks):
               Output('continue-button','disabled'),
               Output('n_samples','children'),
               Output('n_features','children'),
-
-              
+              Output('session_data','data'),
               Input('upload-data', 'contents'),
               State('upload-data', 'filename'),
-              State('upload-data', 'last_modified'), prevent_initial_call=True)
-def update_output(contents, filename, last_modified):
+              State('upload-data', 'last_modified'), 
+              State('session_data', 'data'),
+                prevent_initial_call=True)
+def update_output(contents, filename, last_modified,session_data):
     '''Carga el dataset en los elementos adecuados
 
     '''
@@ -72,9 +74,18 @@ def update_output(contents, filename, last_modified):
         n_samples, n_features=data.shape
         cadena_1 = 'Número de datos: ' + str(n_samples)
         cadena_2 =  'Número de Atributos: ' + str(n_features - 1)
-        return output_1, output_2,False,cadena_1,cadena_2
+        #elements.session_data['n_samples'] = n_samples
+        #elements.session_data['n_features'] = n_features
+
+        # Give a default data dict with 0 clicks if there's no data.
+        session_data = {}
+
+        session_data['n_samples'] = n_samples
+        session_data['n_features'] = n_features
+        
+        return output_1, output_2,False,cadena_1,cadena_2, session_data
     else:
-        return '','',True,'',''
+        return '','',True,'','','',{}
 
 
 
@@ -84,6 +95,15 @@ def update_output(contents, filename, last_modified):
 
 ###################  TRAINING_SELECTION.PY CALLBACKS ######################
 
+
+
+@app.callback(Output('table_info_n_samples', 'children'),
+              Output('table_info_n_features', 'children'),
+              Input('session_data','modified_timestamp'),
+              State('session_data', 'data'),
+              prevent_initial_call=False)
+def update_dataset_info_table( data, session_data):
+    return session_data['n_samples'] ,session_data['n_features']
 
 @app.callback(Output('ghsom_tree_structure', 'figure'),
               Input('train-button', 'n_clicks'),
@@ -99,13 +119,13 @@ def train_data_with_ghsom(n_clicks, tau1, tau2, tasa_aprendizaje, decadencia, si
     ghsom = GHSOM(input_dataset=sesion.data , t1=tau1, t2=tau2, learning_rate=tasa_aprendizaje, decay=decadencia, gaussian_sigma=sigma)
     sesion.set_modelo(ghsom)
 
-
+# Sync slider tau1
 @app.callback(
     Output("tau1", "value"),
     Output("tau1_slider", "value"),
     Input("tau1", "value"),
     Input("tau1_slider", "value"), prevent_initial_call=True)
-def callback(tau1, slider_value):
+def sync_slider_tau1(tau1, slider_value):
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
     value = tau1 if trigger_id == "tau1" else slider_value
