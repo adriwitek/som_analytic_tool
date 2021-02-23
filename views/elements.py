@@ -20,13 +20,16 @@ PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
 
 
 
-
 # Html elements
 cabecera = html.Div(className='jumbotron'  ,children=[
+    html.Div(id="hidden_div_for_redirect_callback"),
     html.H1(children=APP_NAME),
     html.P(children = 'Herramienta de análisis de datos con Mapas Auto-organizados'),
     html.Hr()
 ])
+
+
+
 
 
 navigation_bar = dbc.Navbar(
@@ -48,3 +51,29 @@ navigation_bar = dbc.Navbar(
         dbc.NavbarToggler(id="navbar-toggler")    
     ],
     color="white")
+
+
+model_selector = dbc.DropdownMenu(
+    id='selector_modelo',
+    label="Modelo",
+    color="primary",
+    direction="right",
+    children=[
+        dbc.DropdownMenuItem("SOM", id='seleccion_modelo_som',href= '/train-som'),
+        dbc.DropdownMenuItem("GSOM",id='seleccion_modelo_gsom',href= '/train-gsom'),
+        dbc.DropdownMenuItem("GHSOM",id='seleccion_modelo_ghsom',href= '/train-ghsom')
+    ])
+
+
+
+#DATASET INFO TABLE
+table_header = [
+    html.Thead(html.Tr([html.Th("Número de muestras"), html.Th("Número de características")]))
+]
+row1 = html.Tr([html.Td(id = 'id_15',children = html.Div(id='table_info_n_samples' ), ), html.Td(id= 'table_info_n_features')])
+table_body = [html.Tbody([row1])]
+
+table = dbc.Table(table_header + table_body, bordered=True)
+
+
+   
