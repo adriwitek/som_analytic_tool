@@ -53,16 +53,20 @@ navigation_bar = dbc.Navbar(
     color="white")
 
 
-model_selector = dbc.DropdownMenu(
+model_selector = html.Div(children=[
+    dbc.DropdownMenu(
     id='selector_modelo',
     label="Modelo",
     color="primary",
-    direction="right",
+    direction="down",
     children=[
         dbc.DropdownMenuItem("SOM", id='seleccion_modelo_som',href= '/train-som'),
         dbc.DropdownMenuItem("GSOM",id='seleccion_modelo_gsom',href= '/train-gsom'),
         dbc.DropdownMenuItem("GHSOM",id='seleccion_modelo_ghsom',href= '/train-ghsom')
-    ])
+    ]),
+    dbc.Badge("aaa",id= 'label_selected_model', color="info", className="mr-1",pill = True),
+
+])
 
 
 

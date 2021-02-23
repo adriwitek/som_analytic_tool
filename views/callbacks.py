@@ -49,21 +49,22 @@ def update_app_content_view(n1,n2,n3,n4):
 '''
 
 #Dropdown selector modelo
-@app.callback(Output('selector_modelo', 'label'),
+@app.callback(Output('label_selected_model', 'children'),
               Input('seleccion_modelo_som','n_clicks'),
               Input('seleccion_modelo_gsom','n_clicks'),
               Input('seleccion_modelo_ghsom','n_clicks'),
-              prevent_initial_call=True )
-def dropdown_update_training_selection(n1,n2,n3):
+              Input('url', 'pathname') )
+def dropdown_update_training_selection(n1,n2,n3,url):
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
-    if (trigger_id == "seleccion_modelo_som"):
-        return 'SOM'
-    elif(trigger_id == "seleccion_modelo_gsom"):
+
+    if (trigger_id == "seleccion_modelo_ghsom" or 'ghsom' in url ):
+        return 'GHSOM'
+    elif (trigger_id == "seleccion_modelo_gsom" or 'gsom' in url ):
         return 'GSOM'
     else:
-        return 'GHSOM'
+        return 'SOM' 
 
 
 
@@ -147,6 +148,36 @@ def update_dataset_info_table( data, session_data):
 
 
 
+#Habilitar boton train som
+@app.callback(Output('train_button_som','disabled'),
+              Input('tam_eje_x', 'value'),
+              Input('tam_eje_y', 'value'),
+              Input('tasa_aprendizaje_som', 'value'),
+              Input('dropdown_vecindad', 'value'),
+              Input('dropdown_topology', 'value'),
+              Input('dropdown_distance', 'value'),
+              Input('sigma', 'value'))
+def enable_train_som_button(tam_eje_x,tam_eje_y,tasa_aprendizaje,vecindad, topology, distance,sigma):
+
+    if all(i is not None for i in [tam_eje_x,tam_eje_y,tasa_aprendizaje,vecindad, topology, distance,sigma]):
+        return False
+    else:
+        return True
+
+
+'''
+@app.callback(Output('hidden_div_for_redirect_callback', 'children'),
+              Input('continue-train_button_som', 'n_clicks'),
+              State('tam_eje_x', 'value'),
+              State('tam_eje_y', 'value'),
+              State('tasa_aprendizaje_som', 'value'),
+              State('dropdown_vecindad', 'value'),
+              State('dropdown_topology', 'value'),
+              State('dropdown_distance', 'value'),
+              State('sigma', 'value'),
+              prevent_initial_call=True )
+def train_som(n_clicks,tam_eje_x,tam_eje_y,tasa_aprendizaje,vecindad, topology, distance,sigma):
+'''
 
 
 

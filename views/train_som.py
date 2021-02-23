@@ -22,37 +22,46 @@ def train_som_view():
 
 
                         html.H5(children='Función de vecindad'),
-                        dbc.DropdownMenu(
-                            label="Gaussiana",
-                            id= 'dropdown_sigma_gaussiana_som',
-                            children=[
-                                dbc.DropdownMenuItem("Gaussiana"),
-                                dbc.DropdownMenuItem("Sombrero Mejicano"),
-                                dbc.DropdownMenuItem("Burbuja"),
-                                dbc.DropdownMenuItem("Triángulo"),
+                        dcc.Dropdown(
+                            id='dropdown_vecindad',
+                            options=[
+                                {'label': 'Gaussiana', 'value': 'gaussian'},
+                                {'label': 'Sombrero Mejicano', 'value': 'mexican_hat'},
+                                {'label': 'Burbuja', 'value': 'bubble'},
+                                {'label': 'Triángulo', 'value': 'triangle'}
                             ],
+                            value='gaussian',
+                            searchable=False
                         ),
+               
 
                         html.H5(children='Topologia del mapa'),
-                        dbc.DropdownMenu(
-                            label="Rectangular",
-                            children=[
-                                dbc.DropdownMenuItem("Rectangular"),
-                                dbc.DropdownMenuItem("Hexagonal"),
+                        dcc.Dropdown(
+                            id='dropdown_topology',
+                            options=[
+                                {'label': 'Rectangular', 'value': 'rectangular'},
+                                {'label': 'Hexagonal', 'value': 'hexagonal'}
                             ],
+                            value='rectangular',
+                            searchable=False
                         ),
+                     
 
 
                         html.H5(children='Función de distancia'),
-                        dbc.DropdownMenu(
-                            label="Euclidea",
-                            children=[
-                                dbc.DropdownMenuItem("Euclidea"),
-                                dbc.DropdownMenuItem("Coseno"),
-                                dbc.DropdownMenuItem("Manhattan"),
-                                dbc.DropdownMenuItem("Chebyshev"),
+                        dcc.Dropdown(
+                            id='dropdown_distance',
+                            options=[
+                                {'label': 'Euclidea', 'value': 'euclidean'},
+                                {'label': 'Coseno', 'value': 'cosine'},
+                                {'label': 'Manhattan', 'value': 'manhattan'},
+                                {'label': 'Chebyshev', 'value': 'chebyshev'}
                             ],
+                            value='euclidean',
+                            searchable=False
                         ),
+
+                
 
 
                         html.H5(children='Sigma gaussiana:'),
@@ -62,8 +71,7 @@ def train_som_view():
                         html.Div( 
                             [dbc.Button("Entrenar", id="train_button_som",disabled= True, className="mr-2", color="primary")],
                             style={'textAlign': 'center'}
-                        ),
-                        html.P(id='test_element')
+                        )
 
                     ])
 
