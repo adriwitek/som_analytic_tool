@@ -14,20 +14,27 @@ from datetime import datetime
 from pandas import read_csv
 import base64
 import io
-
+from io import BytesIO
 from views.app import app
 from views.session_data import Sesion
-from   views.elements import model_selector
+from views.elements import model_selector
 from views.train_ghsom import layout as layout_train_ghsom
 
-from models.ghsom import GHSOM,GSOM
+#from models.ghsom import GHSOM,GSOM
+from models.som import minisom
+import numpy as np
 
-sesion = None
+
+
+import matplotlib.pyplot as plt
+
 
 #############################################################
 ###################  MAIN.PY CALLBACKS ######################
 #############################################################
 '''
+ESTO HACERLO PARA CUANDO EL DATASET ES NONE REDIRIGIR A HOME!!!!!!!!!!!!!!!!!!
+
 @app.callback(Output('hidden_div_for_redirect_callback', 'children'),
               Input('continue-button', 'n_clicks'),
               prevent_initial_call=True )
@@ -96,7 +103,8 @@ def update_output(contents, filename, last_modified,session_data):
                 content_type, content_string = contents.split(',')
                 decoded = base64.b64decode(content_string)
                 data = read_csv(io.StringIO(decoded.decode('utf-8')))
-                sesion = Sesion(data)
+                
+
             #elif 'xls' in filename:
                 # Assume that the user uploaded an excel file
             #    df = pd.read_excel(io.BytesIO(decoded))
@@ -108,6 +116,9 @@ def update_output(contents, filename, last_modified,session_data):
 
         data = data.to_numpy()
         n_samples, n_features=data.shape
+
+        Sesion.data = data
+        Sesion.n_samples, Sesion.n_features=  n_samples, n_features
         cadena_1 = 'Número de datos: ' + str(n_samples)
         cadena_2 =  'Número de Atributos: ' + str(n_features - 1)
         #elements.session_data['n_samples'] = n_samples
@@ -142,11 +153,11 @@ def update_dataset_info_table( data, session_data):
     return session_data['n_samples'] ,session_data['n_features']
 
 
+
+
 ####################################################
                     #SOM
 ####################################################
-
-
 
 #Habilitar boton train som
 @app.callback(Output('train_button_som','disabled'),
@@ -165,9 +176,39 @@ def enable_train_som_button(tam_eje_x,tam_eje_y,tasa_aprendizaje,vecindad, topol
         return True
 
 
-'''
-@app.callback(Output('hidden_div_for_redirect_callback', 'children'),
-              Input('continue-train_button_som', 'n_clicks'),
+
+
+
+
+
+
+
+
+
+
+
+
+
+def fig_to_uri(in_fig, close_all=True, **save_args):
+    # type: (plt.Figure) -> str
+    """
+    Save a figure as a URI
+    :param in_fig:
+    :return:
+    """
+    out_img = BytesIO()
+    in_fig.savefig(out_img, format='png', **save_args)
+    if close_all:
+        in_fig.clf()
+        plt.close('all')
+    out_img.seek(0)  # rewind file
+    encoded = base64.b64encode(out_img.read()).decode("ascii").replace("\n", "")
+    return "data:image/png;base64,{}".format(encoded)
+
+
+
+@app.callback(Output('som_entrenado', 'children'),
+              Input('train_button_som', 'n_clicks'),
               State('tam_eje_x', 'value'),
               State('tam_eje_y', 'value'),
               State('tasa_aprendizaje_som', 'value'),
@@ -176,14 +217,32 @@ def enable_train_som_button(tam_eje_x,tam_eje_y,tasa_aprendizaje,vecindad, topol
               State('dropdown_distance', 'value'),
               State('sigma', 'value'),
               prevent_initial_call=True )
-def train_som(n_clicks,tam_eje_x,tam_eje_y,tasa_aprendizaje,vecindad, topology, distance,sigma):
-'''
+def train_som(n_clicks,x,y,tasa_aprendizaje,vecindad, topology, distance,sigma):
 
+    tasa_aprendizaje=float(tasa_aprendizaje)
+    sigma = float(sigma)
+    print('\ntest-0')
 
+    dataset = Sesion.data
+    dataset_sin_target = dataset[:,:-1]
+    print('\ntest-00')
+    n_features = dataset.shape[1]
+    target = dataset[:,n_features:]
 
+    som = minisom.MiniSom(x=x, y=y, input_len=dataset_sin_target.shape[1], sigma=sigma, learning_rate=tasa_aprendizaje,
+                neighborhood_function=vecindad, topology=topology,
+                 activation_distance=distance, random_seed=None)
+    
+    print('\ntest-1')
+    som.pca_weights_init(dataset_sin_target)
+    print('\ntest-2')
 
+    som.train(dataset_sin_target, 1000, verbose=True)  # random training
+    print('test-3')
 
-
+    #VISUALIZACION
+    return 'entrenando'
+   
 
 
 
@@ -225,8 +284,8 @@ def sync_slider_tau2(tau2, slider_value):
               Input('tasa_aprendizaje','value'),
               Input('decadencia','value'),
               Input('sigma','value'))
-def update_output(tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana):
-    '''Carga el dataset en los elementos adecuados
+def enable_train_ghsom_button(tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana):
+    '''Habilita el boton de train del ghsom
 
     '''
     if all(i is not None for i in [tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana]):
@@ -247,7 +306,7 @@ def update_output(tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana):
               prevent_initial_call=True )
 def train_ghsom(n_clicks,tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana):
 
-    dataset = sesion.data
+    #dataset = esion.data
     '''
     sesion.set_modelo(ghsom)
     

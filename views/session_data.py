@@ -3,7 +3,7 @@
     
     MEJORAR TODO ESTO!!!!!!!!!!
 '''
-
+import numpy as np
 
 class Sesion():
     
@@ -14,10 +14,12 @@ class Sesion():
     modelo = None
 
     def __init__(self,data):
-        self.data = data
+        data = np.copy(data)
         self.n_samples, self.n_features=data.shape
         self.modelo = None
 
+    def get_data(self):
+        return self.data
     def set_modelo(self,modelo):
         self.modelo = modelo
     def get_modelo(self):

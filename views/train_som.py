@@ -69,9 +69,11 @@ def train_som_view():
                         html.Hr(),
 
                         html.Div( 
-                            [dbc.Button("Entrenar", id="train_button_som",disabled= True, className="mr-2", color="primary")],
+                            [dbc.Button("Entrenar", id="train_button_som",href='analyze-som-data',disabled= True, className="mr-2", color="primary")],
                             style={'textAlign': 'center'}
-                        )
+                        ),
+                        html.Div(id='som_entrenado')
+
 
                     ])
 

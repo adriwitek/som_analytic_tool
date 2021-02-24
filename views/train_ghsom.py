@@ -32,8 +32,9 @@ formulario_ghsom =  dbc.ListGroupItem([
                     html.Div( 
                         [dbc.Button("Entrenar", id="train_button_ghsom",disabled= True, className="mr-2", color="primary")],
                         style={'textAlign': 'center'}
-                    ),
-                    html.P(id='test_element')
+                    )
+                    
+
 
                 ])
 

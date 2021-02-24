@@ -5,7 +5,8 @@ sincronizar slider y valores
 filtrar por tipo de archivo y leerlo en consecuencia bien, no solo csv
 dash_bootstrap_components en dependencias
 train ghsom aádir parametros interfaz como epocas etc
-
+numero de interaciones al formulario del som
+cambiar href por macros
 
 
 #PREGUNTAS

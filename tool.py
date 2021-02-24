@@ -14,7 +14,8 @@ from views.app import app
 from views import callbacks
 from views.home import Home
 from views.train_som import train_som_view
-from views import train_ghsom,train_gsom,train_som
+from views.analyze_som_data import analyze_som_data
+from views import train_ghsom,train_gsom
 
 # Dynamic Layout
 def get_layout():
@@ -39,6 +40,8 @@ def display_page(pathname):
         return train_gsom.layout
     elif pathname == '/train-som':
         return train_som_view()
+    elif pathname == '/analyze-som-data':
+        return analyze_som_data()
     else:
         return '404'
 
