@@ -24,3 +24,18 @@ class Sesion():
         self.modelo = modelo
     def get_modelo(self):
         return self.modelo
+
+
+
+
+#MEJOR ASII
+def session_data_dict():
+
+        session_data = {}
+
+        session_data['n_samples'] = 0
+        session_data['n_features'] = 0
+        session_data['som_tam_eje_x'] = 0 
+        session_data['som_tam_eje_y'] = 0 
+
+        return session_data          

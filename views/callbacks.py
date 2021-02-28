@@ -12,21 +12,23 @@ import dash_html_components as html
 
 from datetime import datetime
 from pandas import read_csv
+import pandas as pd
 import base64
 import io
 from io import BytesIO
 from views.app import app
-from views.session_data import Sesion
+from views.session_data import Sesion,session_data_dict
 from views.elements import model_selector
 from views.train_ghsom import layout as layout_train_ghsom
 
 #from models.ghsom import GHSOM,GSOM
 from models.som import minisom
 import numpy as np
+import json
 
+import  plotly.express as px
+import plotly.graph_objects as go
 
-
-import matplotlib.pyplot as plt
 
 
 #############################################################
@@ -114,6 +116,8 @@ def update_output(contents, filename, last_modified,session_data):
             return html.Div([ 'There was an error processing this file.'])
         
 
+       
+
         data = data.to_numpy()
         n_samples, n_features=data.shape
 
@@ -121,14 +125,17 @@ def update_output(contents, filename, last_modified,session_data):
         Sesion.n_samples, Sesion.n_features=  n_samples, n_features
         cadena_1 = 'Número de datos: ' + str(n_samples)
         cadena_2 =  'Número de Atributos: ' + str(n_features - 1)
-        #elements.session_data['n_samples'] = n_samples
-        #elements.session_data['n_features'] = n_features
-
-        # Give a default data dict with 0 clicks if there's no data.
-        session_data = {}
-
+ 
+        
+        session_data = session_data_dict()
         session_data['n_samples'] = n_samples
         session_data['n_features'] = n_features
+        with open('data_session.json', 'w') as outfile:
+            json.dump(session_data, outfile)
+
+        # Give a default data dict with 0 clicks if there's no data.
+        
+        
         
         return output_1, output_2,False,cadena_1,cadena_2, session_data
     else:
@@ -155,9 +162,16 @@ def update_dataset_info_table( data, session_data):
 
 
 
-####################################################
+
+
+
+
+
+
+############################################################################################################################################################
                     #SOM
-####################################################
+############################################################################################################################################################
+
 
 #Habilitar boton train som
 @app.callback(Output('train_button_som','disabled'),
@@ -178,35 +192,6 @@ def enable_train_som_button(tam_eje_x,tam_eje_y,tasa_aprendizaje,vecindad, topol
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-def fig_to_uri(in_fig, close_all=True, **save_args):
-    # type: (plt.Figure) -> str
-    """
-    Save a figure as a URI
-    :param in_fig:
-    :return:
-    """
-    out_img = BytesIO()
-    in_fig.savefig(out_img, format='png', **save_args)
-    if close_all:
-        in_fig.clf()
-        plt.close('all')
-    out_img.seek(0)  # rewind file
-    encoded = base64.b64encode(out_img.read()).decode("ascii").replace("\n", "")
-    return "data:image/png;base64,{}".format(encoded)
-
-
-
 @app.callback(Output('som_entrenado', 'children'),
               Input('train_button_som', 'n_clicks'),
               State('tam_eje_x', 'value'),
@@ -221,35 +206,116 @@ def train_som(n_clicks,x,y,tasa_aprendizaje,vecindad, topology, distance,sigma):
 
     tasa_aprendizaje=float(tasa_aprendizaje)
     sigma = float(sigma)
-    print('\ntest-0')
 
+
+
+    # TRAINING
     dataset = Sesion.data
-    dataset_sin_target = dataset[:,:-1]
-    print('\ntest-00')
-    n_features = dataset.shape[1]
-    target = dataset[:,n_features:]
 
-    som = minisom.MiniSom(x=x, y=y, input_len=dataset_sin_target.shape[1], sigma=sigma, learning_rate=tasa_aprendizaje,
+    #Plasmamos datos en el json
+    with open('data_session.json') as json_file:
+        session_data = json.load(json_file)
+
+    session_data['som_tam_eje_x'] = x
+    session_data['som_tam_eje_y'] = y
+
+    with open('data_session.json', 'w') as outfile:
+        json.dump(session_data, outfile)
+
+
+    data = dataset[:,:-1]
+    targets = dataset[:,-1:]
+    n_samples = dataset.shape[0]
+    n_features = dataset.shape[1]
+
+    som = minisom.MiniSom(x=x, y=y, input_len=data.shape[1], sigma=sigma, learning_rate=tasa_aprendizaje,
                 neighborhood_function=vecindad, topology=topology,
                  activation_distance=distance, random_seed=None)
     
-    print('\ntest-1')
-    som.pca_weights_init(dataset_sin_target)
-    print('\ntest-2')
+    som.pca_weights_init(data)
+    som.train(data, 1000, verbose=True)  # random training
+    Sesion.modelo = som
+    print('ENTRENAMIENTO FINALIZADO')
 
-    som.train(dataset_sin_target, 1000, verbose=True)  # random training
-    print('test-3')
+    return 'entrenadoooooo000000000000000000000oooooooo',session_data
 
-    #VISUALIZACION
-    return 'entrenando'
    
 
 
 
+@app.callback(Output('winners_map', 'figure'),
+              Input('ver', 'n_clicks'),
+              prevent_initial_call=True )
+def update_som_fig(n_clicks):
 
-####################################################
+    print('\nVISUALIZACION clicked\n')
+
+    #Plasmamos datos en el json
+    with open('data_session.json') as json_file:
+        session_data = json.load(json_file)
+
+    tam_eje_x = session_data['som_tam_eje_x'] 
+    tam_eje_y = session_data['som_tam_eje_y'] 
+
+
+    som = Sesion.modelo
+    dataset = Sesion.data
+    data = dataset[:,:-1]
+    targets = dataset[:,-1:]
+    n_samples = dataset.shape[0]
+    n_features = dataset.shape[1]
+
+    # VISUALIZACION   
+
+   
+    
+    #print('targets',[t for t in targets])
+    targets_list = [t[0] for t in targets.tolist()]
+    #print('targetssss',targets_list)
+    labels_map = som.labels_map(data, targets_list)
+    data_to_plot = np.empty([tam_eje_x ,tam_eje_y],dtype=object)
+    
+
+    for position in labels_map.keys():
+        label_fracs = [ labels_map[position][t] for t in targets_list]
+        max_value= max(label_fracs)
+        winner_class_index = label_fracs.index(max_value)
+        data_to_plot[position[0]][position[1]] = targets_list[winner_class_index]
+
+    #print(data_to_plot)
+
+    fig = go.Figure(data=go.Heatmap(
+                       z=data_to_plot,
+                       x=np.arange(tam_eje_x),
+                       y=np.arange(tam_eje_y),
+                       hoverongaps = True,
+                       colorscale='Viridis'))
+   
+
+
+    fig.update_xaxes(side="top")
+
+    
+    print('\nVISUALIZACION:renderfinalizado\n')
+
+    return fig
+
+
+
+
+
+
+
+
+
+
+
+
+
+########################################################################################################
                     #GHSOM
-####################################################
+########################################################################################################
+
 
 # Sync slider tau1
 @app.callback(

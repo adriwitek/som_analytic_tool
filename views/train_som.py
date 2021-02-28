@@ -12,10 +12,10 @@ def train_som_view():
                         html.H4('Elección de parámetros',className="card-title"  ),
 
                         html.H5(children='Tamaño del grid(eje X):'),
-                        dcc.Input(id="tam_eje_x", type="number", value=2,step=1,min=1),
+                        dcc.Input(id="tam_eje_x", type="number", value=8,step=1,min=1),
 
                         html.H5(children='Tamaño del grid(eje Y):'),
-                        dcc.Input(id="tam_eje_y", type="number", value=2,step=1,min=1),
+                        dcc.Input(id="tam_eje_y", type="number", value=8,step=1,min=1),
 
                         html.H5(children='Tasa de aprendizaje:'),
                         dcc.Input(id="tasa_aprendizaje_som", type="number", value="0.5",step=0.01,min=0,max=5),
