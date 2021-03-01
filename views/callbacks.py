@@ -259,7 +259,7 @@ def update_som_fig(n_clicks):
     tam_eje_x = session_data['som_tam_eje_x'] 
     tam_eje_y = session_data['som_tam_eje_y'] 
 
-    '''
+    
     som = Sesion.modelo
     dataset = Sesion.data
     data = dataset[:,:-1]
@@ -284,11 +284,11 @@ def update_som_fig(n_clicks):
          
     #print('data antes del remplazo',data_to_plot)
 
-    '''
+    
 
     #TESTIN DATA
     #PARA NO TENER QUE RECARGAR EL DATASET EN LAS PRUEBAS
-    
+    '''
     data_to_plot = [[np.nan ,np.nan ,np.nan, np.nan, np.nan ,np.nan ,np.nan, 0],
                     [np.nan ,np.nan, np.nan ,5 ,np.nan, np.nan ,np.nan ,np.nan],
                     [np.nan ,np.nan, np.nan ,np.nan, np.nan, np.nan, np.nan, np.nan],
@@ -297,7 +297,7 @@ def update_som_fig(n_clicks):
                     [np.nan ,np.nan, np.nan ,np.nan, np.nan, np.nan, np.nan, np.nan],
                     [np.nan ,np.nan, np.nan, np.nan, np.nan, np.nan, np.nan ,np.nan],
                     [np.nan ,np.nan, 0, np.nan, np.nan, np.nan, np.nan, 0]]
-    '''
+    
     data_to_plot = [[None ,None ,None, None, None ,None ,None, 0],
                     [None ,None, None ,5 ,None, None ,None ,None],
                     [None ,None, None ,None, None, None, None, None],
@@ -329,13 +329,13 @@ def update_som_fig(n_clicks):
     #colorscale=[[np.nan, 'rgb(255,255,255)']]
     #fig = ff.create_annotated_heatmap(
     fig = custom_heatmap(
-        x= x_ticks,
-        y= y_ticks,
+        #x= x_ticks,
+        #y= y_ticks,
         z=data_to_plot,
         zmin=np.nanmin(data_to_plot),
         zmax=np.nanmax(data_to_plot),
-        xgap=5,
-        ygap=5,
+        #xgap=5,
+        #ygap=5,
         colorscale='Viridis',
         #colorscale=colorscale,
         #font_colors=font_colors,
@@ -343,7 +343,7 @@ def update_som_fig(n_clicks):
         showscale=True #leyenda de colores
         )
     fig.update_layout(title_text='Clases ganadoras por neurona')
-    #fig['layout'].update(plot_bgcolor='white')
+    fig['layout'].update(plot_bgcolor='white')
 
 
 

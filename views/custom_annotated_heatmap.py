@@ -293,12 +293,13 @@ class _AnnotatedHeatmap(object):
         #print('min',self.zmin)
         #print('mid',self.zmid)
         #print('max',self.zmax)
+        #print('texto',self.annotation_text[0][0])
         for n, row in enumerate(self.z):
             for m, val in enumerate(row):
-                font_color = min_text_color if (val is np.nan or val < self.zmid ) else max_text_color
+                font_color = min_text_color if ( val < self.zmid ) else max_text_color
                 annotations.append(
                     graph_objs.layout.Annotation(
-                        text=str(self.annotation_text[n][m]),
+                        text= '.' if (np.isnan(val) ) else str(self.annotation_text[n][m]) ,
                         x=self.x[m],
                         y=self.y[n],
                         xref="x1",
