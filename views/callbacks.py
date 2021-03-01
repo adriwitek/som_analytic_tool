@@ -28,6 +28,8 @@ import json
 
 import  plotly.express as px
 import plotly.graph_objects as go
+import plotly.figure_factory as ff
+from views.custom_annotated_heatmap import create_annotated_heatmap as custom_heatmap
 
 
 
@@ -257,15 +259,13 @@ def update_som_fig(n_clicks):
     tam_eje_x = session_data['som_tam_eje_x'] 
     tam_eje_y = session_data['som_tam_eje_y'] 
 
-
+    '''
     som = Sesion.modelo
     dataset = Sesion.data
     data = dataset[:,:-1]
     targets = dataset[:,-1:]
     n_samples = dataset.shape[0]
     n_features = dataset.shape[1]
-
-    # VISUALIZACION   
 
    
     
@@ -274,26 +274,78 @@ def update_som_fig(n_clicks):
     #print('targetssss',targets_list)
     labels_map = som.labels_map(data, targets_list)
     data_to_plot = np.empty([tam_eje_x ,tam_eje_y],dtype=object)
-    
+    data_to_plot[:] = np.nan#labeled heatmap does not support nonetypes
 
     for position in labels_map.keys():
         label_fracs = [ labels_map[position][t] for t in targets_list]
         max_value= max(label_fracs)
         winner_class_index = label_fracs.index(max_value)
         data_to_plot[position[0]][position[1]] = targets_list[winner_class_index]
+         
+    #print('data antes del remplazo',data_to_plot)
 
+    '''
+
+    #TESTIN DATA
+    #PARA NO TENER QUE RECARGAR EL DATASET EN LAS PRUEBAS
+    
+    data_to_plot = [[np.nan ,np.nan ,np.nan, np.nan, np.nan ,np.nan ,np.nan, 0],
+                    [np.nan ,np.nan, np.nan ,5 ,np.nan, np.nan ,np.nan ,np.nan],
+                    [np.nan ,np.nan, np.nan ,np.nan, np.nan, np.nan, np.nan, np.nan],
+                    [np.nan ,np.nan, np.nan ,np.nan, np.nan, np.nan, np.nan, np.nan],
+                    [8 ,np.nan ,np.nan ,np.nan, np.nan, np.nan ,np.nan ,np.nan],
+                    [np.nan ,np.nan, np.nan ,np.nan, np.nan, np.nan, np.nan, np.nan],
+                    [np.nan ,np.nan, np.nan, np.nan, np.nan, np.nan, np.nan ,np.nan],
+                    [np.nan ,np.nan, 0, np.nan, np.nan, np.nan, np.nan, 0]]
+    '''
+    data_to_plot = [[None ,None ,None, None, None ,None ,None, 0],
+                    [None ,None, None ,5 ,None, None ,None ,None],
+                    [None ,None, None ,None, None, None, None, None],
+                    [None ,None, None ,None, None, None, None, None],
+                    [8 ,None ,None ,None, None, None ,None ,None],
+                    [None ,None, None ,None, None, None, None, None],
+                    [None ,None, None, None, None, None, None ,None],
+                    [None ,None, 0, None, None, None, None, 0]]
+
+    '''
     #print(data_to_plot)
-
+    '''
     fig = go.Figure(data=go.Heatmap(
                        z=data_to_plot,
                        x=np.arange(tam_eje_x),
                        y=np.arange(tam_eje_y),
                        hoverongaps = True,
                        colorscale='Viridis'))
-   
-
-
     fig.update_xaxes(side="top")
+    '''
+
+
+    x_ticks = np.linspace(0, tam_eje_x,tam_eje_x, dtype= int,endpoint=False).tolist()
+    y_ticks = np.linspace(0, tam_eje_y,tam_eje_y,dtype= int, endpoint=False ).tolist()
+    font_colors = ['white']
+    colorscale = [[0, 'navy'], [1, 'plum'],[np.nan, 'White']]
+
+   
+    #colorscale=[[np.nan, 'rgb(255,255,255)']]
+    #fig = ff.create_annotated_heatmap(
+    fig = custom_heatmap(
+        x= x_ticks,
+        y= y_ticks,
+        z=data_to_plot,
+        zmin=np.nanmin(data_to_plot),
+        zmax=np.nanmax(data_to_plot),
+        xgap=5,
+        ygap=5,
+        colorscale='Viridis',
+        #colorscale=colorscale,
+        #font_colors=font_colors,
+        
+        showscale=True #leyenda de colores
+        )
+    fig.update_layout(title_text='Clases ganadoras por neurona')
+    #fig['layout'].update(plot_bgcolor='white')
+
+
 
     
     print('\nVISUALIZACION:renderfinalizado\n')
