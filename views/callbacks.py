@@ -183,10 +183,14 @@ def update_dataset_info_table( data, session_data):
               Input('dropdown_vecindad', 'value'),
               Input('dropdown_topology', 'value'),
               Input('dropdown_distance', 'value'),
-              Input('sigma', 'value'))
-def enable_train_som_button(tam_eje_x,tam_eje_y,tasa_aprendizaje,vecindad, topology, distance,sigma):
-
-    if all(i is not None for i in [tam_eje_x,tam_eje_y,tasa_aprendizaje,vecindad, topology, distance,sigma]):
+              Input('sigma', 'value'),
+              Input('iteracciones', 'value'),
+              Input('dropdown_inicializacion_pesos','value')
+            )
+def enable_train_som_button(tam_eje_x,tam_eje_y,tasa_aprendizaje,vecindad, topology, distance,
+                            sigma,iteracciones,dropdown_inicializacion_pesos):
+    if all(i is not None for i in [tam_eje_x,tam_eje_y,tasa_aprendizaje,vecindad, topology, distance,
+                                    sigma,iteracciones,dropdown_inicializacion_pesos]):
         return False
     else:
         return True
@@ -203,12 +207,14 @@ def enable_train_som_button(tam_eje_x,tam_eje_y,tasa_aprendizaje,vecindad, topol
               State('dropdown_topology', 'value'),
               State('dropdown_distance', 'value'),
               State('sigma', 'value'),
+              State('iteracciones', 'value'),
+              State('dropdown_inicializacion_pesos','value'),
               prevent_initial_call=True )
-def train_som(n_clicks,x,y,tasa_aprendizaje,vecindad, topology, distance,sigma):
+def train_som(n_clicks,x,y,tasa_aprendizaje,vecindad, topology, distance,sigma,iteracciones,pesos_init):
 
     tasa_aprendizaje=float(tasa_aprendizaje)
     sigma = float(sigma)
-
+    iteracciones = int(iteracciones)
 
 
     # TRAINING
@@ -234,12 +240,18 @@ def train_som(n_clicks,x,y,tasa_aprendizaje,vecindad, topology, distance,sigma):
                 neighborhood_function=vecindad, topology=topology,
                  activation_distance=distance, random_seed=None)
     
-    som.pca_weights_init(data)
-    som.train(data, 1000, verbose=True)  # random training
+    if(pesos_init == 'pca'):
+        som.pca_weights_init(data)
+    elif(pesos_init == 'random'):   
+        som.random_weights_init(data)
+
+
+
+    som.train(data, iteracciones, verbose=True)  # random training                                                          #quitar el verbose
     Sesion.modelo = som
     print('ENTRENAMIENTO FINALIZADO')
 
-    return 'entrenadoooooo000000000000000000000oooooooo',session_data
+    return 'Entrenamiento completado',session_data
 
    
 
