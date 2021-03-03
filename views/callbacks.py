@@ -274,7 +274,7 @@ def update_som_fig(n_clicks):
     #print('targetssss',targets_list)
     labels_map = som.labels_map(data, targets_list)
     data_to_plot = np.empty([tam_eje_x ,tam_eje_y],dtype=object)
-    data_to_plot[:] = np.nan#labeled heatmap does not support nonetypes
+    #data_to_plot[:] = np.nan#labeled heatmap does not support nonetypes
 
     for position in labels_map.keys():
         label_fracs = [ labels_map[position][t] for t in targets_list]
@@ -323,11 +323,12 @@ def update_som_fig(n_clicks):
     x_ticks = np.linspace(0, tam_eje_x,tam_eje_x, dtype= int,endpoint=False).tolist()
     y_ticks = np.linspace(0, tam_eje_y,tam_eje_y,dtype= int, endpoint=False ).tolist()
     font_colors = ['white']
-    colorscale = [[0, 'navy'], [1, 'plum'],[np.nan, 'White']]
 
-   
+    ######################################
+    # ANNOTATED HEATMAPD LENTO
     #colorscale=[[np.nan, 'rgb(255,255,255)']]
     #fig = ff.create_annotated_heatmap(
+    '''
     fig = custom_heatmap(
         #x= x_ticks,
         #y= y_ticks,
@@ -344,10 +345,60 @@ def update_som_fig(n_clicks):
         )
     fig.update_layout(title_text='Clases ganadoras por neurona')
     fig['layout'].update(plot_bgcolor='white')
+    '''
 
+    ######################################
+    # ANNOTATED HEATMAPD RAPIDOOO
 
+    #type= heatmap para mas precision
+    #heatmapgl
+    trace = dict(type='heatmap', z=data_to_plot, colorscale = 'Jet')
+    data=[trace]
 
+    # Here's the key part - Scattergl text! 
+    '''
+    data.append({'type': 'scattergl',
+                    'mode': 'text',
+                    #'x': x_ticks,
+                    #'y': y_ticks,
+                    'text': 'a'
+                    })
+    '''
+
+    layout = {}
+    layout['xaxis'] = {'range': [-0.5, tam_eje_x]}
+    layout['width'] = 700
+    layout['height']= 700
+
+   
+
+    annotations = []
+
+    fig = dict(data=data, layout=layout)
+
+    #condition_Nones = not(val is None)
+    #condition_nans= not(np.isnan(val))
+
+    #Improved vers. for quick annotations by me
+    print('Etiquetando....')
+    for n, row in enumerate(data_to_plot):
+            for m, val in enumerate(row):
+                 #font_color = min_text_color if ( val < self.zmid ) else max_text_color    esto lo haria aun mas lento
+                if( not(val is None) ):
+                    annotations.append(
+                        go.layout.Annotation(
+                           text= str(val) ,
+                           x=m,
+                           y=n,
+                           #xref="x1",
+                           #yref="y1",
+                           #font=dict(color=font_color),
+                           showarrow=False,
+                        )
+                    )
+    layout['annotations'] = annotations
     
+
     print('\nVISUALIZACION:renderfinalizado\n')
 
     return fig

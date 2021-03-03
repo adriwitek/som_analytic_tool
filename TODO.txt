@@ -8,7 +8,8 @@ train ghsom aádir parametros interfaz como epocas etc
 numero de interaciones al formulario del som
 cambiar href por macros
 mirar que el numeo de datos cogidos es el correcto
-separar datos discretos de continuos(calses sobretodo)
+separar datos discretos de continuos(calses sobretodoc)
+controlar varios cliks al visualizar porque se fatidias todo
 
 
 #PREGUNTAS
