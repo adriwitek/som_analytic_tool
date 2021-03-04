@@ -33,6 +33,29 @@ from views.custom_annotated_heatmap import create_annotated_heatmap as custom_he
 
 
 
+ #TESTIN DATA
+#PARA NO TENER QUE RECARGAR EL DATASET EN LAS PRUEBAS
+data_to_plot = [[np.nan ,np.nan ,np.nan, np.nan, np.nan ,np.nan ,np.nan, 0],
+                [np.nan ,np.nan, np.nan ,5 ,np.nan, np.nan ,np.nan ,np.nan],
+                [np.nan ,np.nan, np.nan ,np.nan, np.nan, np.nan, np.nan, np.nan],
+                [np.nan ,np.nan, np.nan ,np.nan, np.nan, np.nan, np.nan, np.nan],
+                [8 ,np.nan ,np.nan ,np.nan, np.nan, np.nan ,np.nan ,np.nan],
+                [np.nan ,np.nan, np.nan ,np.nan, np.nan, np.nan, np.nan, np.nan],
+                [np.nan ,np.nan, np.nan, np.nan, np.nan, np.nan, np.nan ,np.nan],
+                [np.nan ,np.nan, 0, np.nan, np.nan, np.nan, np.nan, 0]]
+
+data_to_plot = [[None ,None ,None, None, None ,None ,None, 0],
+                [None ,None, None ,5 ,None, None ,None ,None],
+                [None ,None, None ,None, None, None, None, None],
+                [None ,None, None ,None, None, None, None, None],
+                [8 ,None ,None ,None, None, None ,None ,None],
+                [None ,None, None ,None, None, None, None, None],
+                [None ,None, None, None, None, None, None ,None],
+                [None ,None, 0, None, None, None, None, 0]]
+                    
+
+
+
 #############################################################
 ###################  MAIN.PY CALLBACKS ######################
 #############################################################
@@ -240,15 +263,15 @@ def train_som(n_clicks,x,y,tasa_aprendizaje,vecindad, topology, distance,sigma,i
                 neighborhood_function=vecindad, topology=topology,
                  activation_distance=distance, random_seed=None)
     
+    #Weigh init
     if(pesos_init == 'pca'):
         som.pca_weights_init(data)
     elif(pesos_init == 'random'):   
         som.random_weights_init(data)
 
-
-
     som.train(data, iteracciones, verbose=True)  # random training                                                          #quitar el verbose
     Sesion.modelo = som
+
     print('ENTRENAMIENTO FINALIZADO')
 
     return 'Entrenamiento completado',session_data
@@ -271,7 +294,7 @@ def update_som_fig(n_clicks):
     tam_eje_x = session_data['som_tam_eje_x'] 
     tam_eje_y = session_data['som_tam_eje_y'] 
 
-    
+    #TODO : cambiar esto por guardado bien del dataset
     som = Sesion.modelo
     dataset = Sesion.data
     data = dataset[:,:-1]
@@ -288,40 +311,24 @@ def update_som_fig(n_clicks):
     data_to_plot = np.empty([tam_eje_x ,tam_eje_y],dtype=object)
     #data_to_plot[:] = np.nan#labeled heatmap does not support nonetypes
 
-    for position in labels_map.keys():
-        label_fracs = [ labels_map[position][t] for t in targets_list]
-        max_value= max(label_fracs)
-        winner_class_index = label_fracs.index(max_value)
-        data_to_plot[position[0]][position[1]] = targets_list[winner_class_index]
-         
-    #print('data antes del remplazo',data_to_plot)
+    if(session_data['discrete_data'] ):
+        #showing the class more represented in each neuron
+        for position in labels_map.keys():
+            label_fracs = [ labels_map[position][t] for t in targets_list]
+            max_value= max(label_fracs)
+            winner_class_index = label_fracs.index(max_value)
+            data_to_plot[position[0]][position[1]] = targets_list[winner_class_index]
+    else: #continuos data: mean of the mapped values in each neuron
+        for position in labels_map.keys():
+            #fractions
+            label_fracs = [ labels_map[position][t] for t in targets_list]
+            data_to_plot[position[0]][position[1]] = np.mean(label_fracs)
 
     
 
-    #TESTIN DATA
-    #PARA NO TENER QUE RECARGAR EL DATASET EN LAS PRUEBAS
-    '''
-    data_to_plot = [[np.nan ,np.nan ,np.nan, np.nan, np.nan ,np.nan ,np.nan, 0],
-                    [np.nan ,np.nan, np.nan ,5 ,np.nan, np.nan ,np.nan ,np.nan],
-                    [np.nan ,np.nan, np.nan ,np.nan, np.nan, np.nan, np.nan, np.nan],
-                    [np.nan ,np.nan, np.nan ,np.nan, np.nan, np.nan, np.nan, np.nan],
-                    [8 ,np.nan ,np.nan ,np.nan, np.nan, np.nan ,np.nan ,np.nan],
-                    [np.nan ,np.nan, np.nan ,np.nan, np.nan, np.nan, np.nan, np.nan],
-                    [np.nan ,np.nan, np.nan, np.nan, np.nan, np.nan, np.nan ,np.nan],
-                    [np.nan ,np.nan, 0, np.nan, np.nan, np.nan, np.nan, 0]]
-    
-    data_to_plot = [[None ,None ,None, None, None ,None ,None, 0],
-                    [None ,None, None ,5 ,None, None ,None ,None],
-                    [None ,None, None ,None, None, None, None, None],
-                    [None ,None, None ,None, None, None, None, None],
-                    [8 ,None ,None ,None, None, None ,None ,None],
-                    [None ,None, None ,None, None, None, None, None],
-                    [None ,None, None, None, None, None, None ,None],
-                    [None ,None, 0, None, None, None, None, 0]]
+   
 
-    '''
-    #print(data_to_plot)
-    '''
+   
     fig = go.Figure(data=go.Heatmap(
                        z=data_to_plot,
                        x=np.arange(tam_eje_x),
@@ -334,12 +341,12 @@ def update_som_fig(n_clicks):
 
     x_ticks = np.linspace(0, tam_eje_x,tam_eje_x, dtype= int,endpoint=False).tolist()
     y_ticks = np.linspace(0, tam_eje_y,tam_eje_y,dtype= int, endpoint=False ).tolist()
-    font_colors = ['white']
 
     ######################################
     # ANNOTATED HEATMAPD LENTO
     #colorscale=[[np.nan, 'rgb(255,255,255)']]
     #fig = ff.create_annotated_heatmap(
+    '''
     '''
     fig = custom_heatmap(
         #x= x_ticks,
@@ -359,31 +366,30 @@ def update_som_fig(n_clicks):
     fig['layout'].update(plot_bgcolor='white')
     '''
 
-    ######################################
+    
+    #########################################################
     # ANNOTATED HEATMAPD RAPIDOOO
-
+    
     #type= heatmap para mas precision
     #heatmapgl
     trace = dict(type='heatmap', z=data_to_plot, colorscale = 'Jet')
     data=[trace]
 
     # Here's the key part - Scattergl text! 
-    '''
+    
+
+
     data.append({'type': 'scattergl',
                     'mode': 'text',
                     #'x': x_ticks,
                     #'y': y_ticks,
                     'text': 'a'
                     })
-    '''
-
+    
     layout = {}
     layout['xaxis'] = {'range': [-0.5, tam_eje_x]}
     layout['width'] = 700
     layout['height']= 700
-
-   
-
     annotations = []
 
     fig = dict(data=data, layout=layout)
@@ -391,9 +397,13 @@ def update_som_fig(n_clicks):
     #condition_Nones = not(val is None)
     #condition_nans= not(np.isnan(val))
 
+
+
+    #EIQUETANDO EL HEATMAP(solo los datos discretos)
     #Improved vers. for quick annotations by me
-    print('Etiquetando....')
-    for n, row in enumerate(data_to_plot):
+    if(session_data['discrete_data'] ):
+        print('Etiquetando....')
+        for n, row in enumerate(data_to_plot):
             for m, val in enumerate(row):
                  #font_color = min_text_color if ( val < self.zmid ) else max_text_color    esto lo haria aun mas lento
                 if( not(val is None) ):
@@ -408,6 +418,10 @@ def update_som_fig(n_clicks):
                            showarrow=False,
                         )
                     )
+        
+
+    
+    
     layout['annotations'] = annotations
     
 

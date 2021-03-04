@@ -304,7 +304,7 @@ class _AnnotatedHeatmap(object):
                         y=self.y[n],
                         xref="x1",
                         yref="y1",
-                        font=dict(color=font_color),
+                        font=dict(size= 6),
                         showarrow=False,
                     )
                 )
