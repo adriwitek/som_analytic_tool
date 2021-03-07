@@ -129,7 +129,7 @@ def update_output(contents, filename, last_modified,session_data):
                 # Assume that the user uploaded a CSV file
                 content_type, content_string = contents.split(',')
                 decoded = base64.b64decode(content_string)
-                data = read_csv(io.StringIO(decoded.decode('utf-8')))
+                dataset = read_csv(io.StringIO(decoded.decode('utf-8')))
                 
 
             #elif 'xls' in filename:
@@ -143,18 +143,22 @@ def update_output(contents, filename, last_modified,session_data):
 
        
 
-        data = data.to_numpy()
+        data = dataset.to_numpy()
+        #N_FEATURES = N-1 because of the target column
         n_samples, n_features=data.shape
 
         Sesion.data = data
-        Sesion.n_samples, Sesion.n_features=  n_samples, n_features
+        Sesion.n_samples, Sesion.n_features=  n_samples, n_features-1
         cadena_1 = 'Número de datos: ' + str(n_samples)
         cadena_2 =  'Número de Atributos: ' + str(n_features - 1)
  
         
         session_data = session_data_dict()
         session_data['n_samples'] = n_samples
-        session_data['n_features'] = n_features
+        session_data['n_features'] = n_features-1
+        session_data['columns_names'] = list(dataset.head())
+
+        
         with open('data_session.json', 'w') as outfile:
             json.dump(session_data, outfile)
 

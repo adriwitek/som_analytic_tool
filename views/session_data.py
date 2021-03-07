@@ -37,7 +37,9 @@ def session_data_dict():
         session_data['n_samples'] = 0
         session_data['n_features'] = 0
         session_data['discrete_data'] = False
+        session_data['columns_names'] = []
 
+        
 
         #SOM Params
         session_data['som_tam_eje_x'] = 0 

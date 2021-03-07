@@ -10,7 +10,7 @@ cambiar href por macros
 mirar que el numeo de datos cogidos es el correcto
 separar datos discretos de continuos(calses sobretodoc)
 controlar varios cliks al visualizar porque se fatidias todo
-
+boton logout que borre el json
 
 #PREGUNTAS
 rango de la tasa de aprendizaje?

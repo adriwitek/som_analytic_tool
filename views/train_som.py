@@ -15,10 +15,10 @@ def train_som_view():
                         children=[
 
                             html.H5(children='Tamaño del grid(eje X):'),
-                            dcc.Input(id="tam_eje_x", type="number", value=8,step=1,min=1),
+                            dcc.Input(id="tam_eje_x", type="number", value=2,step=1,min=1),
 
                             html.H5(children='Tamaño del grid(eje Y):'),
-                            dcc.Input(id="tam_eje_y", type="number", value=8,step=1,min=1),
+                            dcc.Input(id="tam_eje_y", type="number", value=2,step=1,min=1),
 
                             html.H5(children='Tasa de aprendizaje:'),
                             dcc.Input(id="tasa_aprendizaje_som", type="number", value="0.5",step=0.01,min=0,max=5),
@@ -88,8 +88,9 @@ def train_som_view():
                             ),
                             html.Hr(),
 
-                            html.Div( 
-                                [dbc.Button("Entrenar", id="train_button_som",href='analyze-som-data',disabled= True, className="mr-2", color="primary")],
+                            html.Div(children=[
+                                dbc.Button("Entrenar", id="train_button_som",href='analyze-som-data',disabled= True, className="mr-2", color="primary"),
+                                dbc.Spinner(id='spinner_training',color="primary",fullscreen=False)],
                                 style={'textAlign': 'center'}
                             ),
                             html.H6(id='som_entrenado')
