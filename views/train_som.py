@@ -89,9 +89,9 @@ def train_som_view():
                             html.Hr(),
 
                             html.Div(children=[
-                                dbc.Button("Entrenar", id="train_button_som",href='analyze-som-data',disabled= True, className="mr-2", color="primary"),
-                                dbc.Spinner(id='spinner_training',color="primary",fullscreen=False)],
-                                style={'textAlign': 'center'}
+                                dbc.Button("Entrenar", id="train_button_som",href='analyze-som-data',disabled= True, className="mr-2", color="primary")]
+                                #,dbc.Spinner(id='spinner_training',color="primary",fullscreen=False)],
+                                #    style={'textAlign': 'center'}
                             ),
                             html.H6(id='som_entrenado')
 

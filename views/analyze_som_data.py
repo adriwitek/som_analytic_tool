@@ -63,7 +63,7 @@ def analyze_som_data():
                             style={'textAlign': 'center'}
                         ),
                         html.Div([dcc.Graph(id='mapa_componentes_fig',figure=fig)],
-                          style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}
+                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}
                         )
 
                     ]),
@@ -129,6 +129,8 @@ def get_nombres_atributos():
     atribs= nombres[0:len(nombres)-1]
     options = []  # must be a list of dicts per option
 
+    options.append({'label' : 'Seleccionar todos', 'value': 'all'})
+
     for n in atribs:
         options.append({'label' : n, 'value': n})
 
@@ -178,7 +180,7 @@ def enable_ver_mapas_componentes_button(values):
 
 
 
-#Habilitar boton ver_mapas_componentes_button
+#Actualizar mapas de componentes
 @app.callback(Output('mapa_componentes_fig','figure'),
               Input('ver_mapas_componentes_button','n_clicks'),
               State('dropdown_atrib_names','value'),
@@ -219,8 +221,14 @@ def update_mapa_componentes_fig(click,names):
     nombres_columnas = session_data['columns_names']
     nombres_atributos = nombres_columnas[0:len(nombres_columnas)-1]
     lista_de_indices = []
-    for n in names:
-        lista_de_indices.append(nombres_atributos.index(n) )
+
+
+
+    if('all' in names ):# Seleccionar todos marcado
+        lista_de_indices = [x for x in range(0,len(nombres_atributos))]
+    else:
+        for n in names:
+            lista_de_indices.append(nombres_atributos.index(n) )
     
 
     pesos = som.get_weights()
@@ -231,8 +239,8 @@ def update_mapa_componentes_fig(click,names):
     fig = make_subplots(rows=rows, 
                         cols=4, 
                         shared_xaxes=False, 
-                        horizontal_spacing=0.1, 
-                        vertical_spacing=0.05, 
+                        #horizontal_spacing=1, 
+                        #vertical_spacing=1, 
                         subplot_titles=names, 
                         column_widths=None, 
                         row_heights=None)
@@ -257,22 +265,29 @@ def update_mapa_componentes_fig(click,names):
             else:
                 break
     
-
-  
     #not working:
     #fig.add_traces(traces)
 
-    '''
-        [go.Heatmap(z=pesos[:,:,i].tolist())]
-                    #zmax=zmax, 
-                    #zmin=zmin, 
-                    #coloraxis = 'coloraxis2')],
-                    #rows=[i // math.ceil(math.sqrt(data.shape[1])) + 1 ],
-                    #cols=[i % math.ceil(math.sqrt(data.shape[1])) + 1 ]
-        )
-    '''
+    # Experimental height optimus for visualitation 300px per row
+    fig.update_layout(height=300*rows, width=1200)
 
-     
+
+
     print('render finalizado')
     return fig
   
+
+
+
+# Checklist seleccionar todos
+'''
+@app.callback(
+    Output('dropdown_atrib_names','value'),
+    Input("checklist_seleccionar_todos", "value"),
+    
+    )
+def on_form_change(checklist_seleccionar_todos, checklist_value, switches_value):
+
+    if(checklist_seleccionar_todos == 1):
+    else:
+'''
