@@ -62,8 +62,8 @@ def analyze_som_data():
                             [dbc.Button("Ver Mapas de Componentes", id="ver_mapas_componentes_button", className="mr-2", color="primary")],
                             style={'textAlign': 'center'}
                         ),
-                        html.Div([dcc.Graph(id='mapa_componentes_fig',figure=fig)],
-                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}
+                        html.Div(id='component_plans_figures_div', children=[''],
+                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
                         )
 
                     ]),
@@ -75,7 +75,7 @@ def analyze_som_data():
             #Card: Component plans
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("3333",color="link",id="button_collapse_3"))
+                    html.H2(dbc.Button("Matriz U",color="link",id="button_collapse_3"))
                 ),
                 dbc.Collapse(id="collapse_3",children=
                     dbc.CardBody(
@@ -181,35 +181,12 @@ def enable_ver_mapas_componentes_button(values):
 
 
 #Actualizar mapas de componentes
-@app.callback(Output('mapa_componentes_fig','figure'),
+@app.callback(Output('component_plans_figures_div','children'),
               Input('ver_mapas_componentes_button','n_clicks'),
               State('dropdown_atrib_names','value'),
               prevent_initial_call=True 
               )
 def update_mapa_componentes_fig(click,names):
-
-    '''
-    prueba para ver si dibuja esto
-    z=[[1, 20, 30],
-        [20, 1, 60],
-        [30, 60, 1]]
-
-
-    trace = dict(type='heatmap', z=z, colorscale = 'Jet')
-    data=[trace]
-
-    
-    layout = {}
-    
-    layout['xaxis'] = {'range': [-0.5, 100]}
-    layout['width'] = 700
-    layout['height']= 700
-    fig = dict(data=data, layout=layout)
-
-    print('test_render_finalizadosooo')
-    return fig
-    '''
-
 
 
     som = Sesion.modelo
@@ -234,48 +211,44 @@ def update_mapa_componentes_fig(click,names):
     pesos = som.get_weights()
 
 
-    rows = ceil(len(lista_de_indices)/4)
-    # rows*4 matrix for visualization
-    fig = make_subplots(rows=rows, 
-                        cols=4, 
-                        shared_xaxes=False, 
-                        #horizontal_spacing=1, 
-                        #vertical_spacing=1, 
-                        subplot_titles=names, 
-                        column_widths=None, 
-                        row_heights=None)
 
     traces = []
+
+
+
+
+
+
     for i in lista_de_indices:
-        #print('\n Atrib ',i, )
-        #print(pesos[:,:,i].tolist())
-        traces.append(go.Heatmap(z=pesos[:,:,i].tolist())
-                    #zmax=zmax, 
-                    #zmin=zmin, 
-                    #coloraxis = 'coloraxis2')],
-                    #rows=[i // math.ceil(math.sqrt(data.shape[1])) + 1 ],
-                    #cols=[i % math.ceil(math.sqrt(data.shape[1])) + 1 ])
-                    
-                    )
-    
-    for i in range(1,rows+1):
-        for j in range(1,5):
-            if( (i+j-2) < len(lista_de_indices) ):
-                fig.append_trace(traces[i+j-2],row=i,col=j)
-            else:
-                break
-    
-    #not working:
-    #fig.add_traces(traces)
+        
+
+
+        figure= go.Figure(layout= {"height": 300,'width' : 300},
+                          data=go.Heatmap(z=pesos[:,:,i].tolist(),showscale= True)                                                      
+        ) 
+
+        id ='graph-{}'.format(i)
+
+        traces.append(
+            html.Div(children= dcc.Graph(id=id,figure=figure)
+            ) 
+        )
+
 
     # Experimental height optimus for visualitation 300px per row
-    fig.update_layout(height=300*rows, width=1200)
-
+    #fig.update_layout(height=300*rows, width=1200)
 
 
     print('render finalizado')
-    return fig
+    return traces
   
+
+
+
+
+
+
+
 
 
 
