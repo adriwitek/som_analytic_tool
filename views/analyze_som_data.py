@@ -13,6 +13,11 @@ from plotly.subplots import make_subplots
 from math import ceil
 import numpy as np
 
+
+from views.session_data import Sesion
+
+
+
 fig = go.Figure()
 
 
@@ -43,6 +48,33 @@ def analyze_som_data():
                     ]),
                 ),
             ]),
+
+
+
+
+
+            #Card: Frecuencias de activacion
+            dbc.Card([
+                dbc.CardHeader(
+                    html.H2(dbc.Button("Mapa de frecencias de activacion",color="link",id="button_collapse_4"))
+                ),
+                dbc.Collapse(id="collapse_4",children=
+                    dbc.CardBody(children=[
+                        html.H5("Fecuencias de activacion:"),
+
+                        html.Div([dcc.Graph(id='frequency_map',figure=fig)],
+                          style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}
+                        ),
+                        html.Div( 
+                            [dbc.Button("Ver", id="frequency_map_button", className="mr-2", color="primary")],
+                            style={'textAlign': 'center'}
+                        )
+                        
+                    ]),
+                ),
+            ]),
+
+
 
 
             #Card: Component plans
@@ -147,11 +179,11 @@ def get_nombres_atributos():
 ##################################################################
 
 @app.callback(
-    [Output(f"collapse_{i}", "is_open") for i in range(1, 4)],
-    [Input(f"button_collapse_{i}", "n_clicks") for i in range(1, 4)],
-    [State(f"collapse_{i}", "is_open") for i in range(1, 4)],
+    [Output(f"collapse_{i}", "is_open") for i in range(1, 5)],
+    [Input(f"button_collapse_{i}", "n_clicks") for i in range(1, 5)],
+    [State(f"collapse_{i}", "is_open") for i in range(1, 5)],
     prevent_initial_call=True)
-def toggle_accordion(n1, n2,n3, is_open1, is_open2,is_open3):
+def toggle_accordion(n1, n2,n3,n4, is_open1, is_open2,is_open3,is_open4):
     ctx = dash.callback_context
 
     if not ctx.triggered:
@@ -160,12 +192,14 @@ def toggle_accordion(n1, n2,n3, is_open1, is_open2,is_open3):
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
     if button_id == "button_collapse_1" and n1:
-        return not is_open1, False, False
+        return not is_open1, is_open2, is_open3,is_open4
     elif button_id == "button_collapse_2" and n2:
-        return False, not is_open2, False
+        return is_open1, not is_open2, is_open3,is_open4
     elif button_id == "button_collapse_3" and n3:
-        return False, False, not is_open3
-    return False, False, False
+        return is_open1, is_open2, not is_open3,is_open4
+    elif button_id == "button_collapse_4" and n4:
+        return is_open1, is_open2, is_open3, not is_open4
+    return False, False, False,False
 
 
 #Habilitar boton ver_mapas_componentes_button
@@ -238,7 +272,7 @@ def update_mapa_componentes_fig(click,names):
 
 
 
-# Checklist seleccionar todos
+# Checklist seleccionar todos mapas de componentes
 @app.callback(
     Output('dropdown_atrib_names','value'),
     Input("check_seleccionar_todos_mapas", "value"),
@@ -260,4 +294,36 @@ def on_form_change(check):
 
 
     
+    ############################################
+    #               MAPA DE FRECUENCIAS
+
+
     
+#Actualizar mapas de frecuencias
+@app.callback(Output('frequency_map','figure'),
+              Input('frequency_map_button','n_clicks'),
+              prevent_initial_call=True 
+              )
+def update_mapa_frecuencias_fig(click):
+
+    som = Sesion.modelo
+    dataset = Sesion.data
+    data = dataset[:,:-1]
+ 
+
+    #frequencies is a np matrix
+    frequencies = som.activation_response(data)
+
+    
+    figure= go.Figure(layout= {'title': 'Mapa de frecuencias absolutas'},
+                          data=go.Heatmap(z=frequencies.tolist(),showscale= True)                              
+    ) 
+    return figure
+    grafo = dcc.Graph(id='mapa_frecuencias',figure=figure)
+            
+
+
+
+    print('render finalizado')
+    return grafo
+  
