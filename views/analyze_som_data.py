@@ -108,19 +108,28 @@ def analyze_som_data():
 
 
 
-            #Card: Component plans
+            #Card: U Matrix
             dbc.Card([
                 dbc.CardHeader(
                     html.H2(dbc.Button("Matriz U",color="link",id="button_collapse_3"))
                 ),
                 dbc.Collapse(id="collapse_3",children=
-                    dbc.CardBody(
+                    dbc.CardBody(children=[
                         #METER AQUI LO QUE SEAA
+                    html.H5("U-Matrix"),
+                    html.H6("Returns the distance map of the weights.Each cell is the normalised sum of the distances betweena neuron and its neighbours. Note that this method usesthe euclidean distance"),
+                    html.Div( 
+                            [dbc.Button("Ver", id="umatrix_button", className="mr-2", color="primary")],
+                            style={'textAlign': 'center'}
+                    ),
 
+                    html.Div(id='umatrix_figure_div', children=[''],
+                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+                    )
 
+                    ])
 
                     ),
-                ),
             ])
 
 
@@ -310,20 +319,31 @@ def update_mapa_frecuencias_fig(click):
     dataset = Sesion.data
     data = dataset[:,:-1]
  
-
     #frequencies is a np matrix
     frequencies = som.activation_response(data)
-
-    
     figure= go.Figure(layout= {'title': 'Mapa de frecuencias absolutas'},
                           data=go.Heatmap(z=frequencies.tolist(),showscale= True)                              
     ) 
     return figure
-    grafo = dcc.Graph(id='mapa_frecuencias',figure=figure)
-            
+   
+  
 
+
+      
+#Actualizar mapas de frecuencias
+@app.callback(Output('umatrix_figure_div','children'),
+              Input('umatrix_button','n_clicks'),
+              prevent_initial_call=True 
+              )
+def update_umatrix(click):
+
+    som = Sesion.modelo
+    umatrix = som.distance_map()
+ 
+    figure= go.Figure(layout= {'title': 'Matriz U'},
+                          data=go.Heatmap(z=umatrix.tolist(),showscale= True)                              
+    ) 
 
 
     print('render finalizado')
-    return grafo
-  
+    return  html.Div(children= dcc.Graph(id='graph_u_matrix',figure=figure))
