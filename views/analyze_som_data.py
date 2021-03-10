@@ -59,7 +59,11 @@ def analyze_som_data():
                             multi=True
                         ),
                         html.Div( 
-                            [dbc.Button("Ver Mapas de Componentes", id="ver_mapas_componentes_button", className="mr-2", color="primary")],
+                            [dbc.Checklist(
+                                options=[{"label": "Seleccionar todos", "value": 1}],
+                                value=[],
+                                id="check_seleccionar_todos_mapas"),
+                            dbc.Button("Ver Mapas de Componentes", id="ver_mapas_componentes_button", className="mr-2", color="primary")],
                             style={'textAlign': 'center'}
                         ),
                         html.Div(id='component_plans_figures_div', children=[''],
@@ -128,8 +132,6 @@ def get_nombres_atributos():
     nombres = session_data['columns_names']
     atribs= nombres[0:len(nombres)-1]
     options = []  # must be a list of dicts per option
-
-    options.append({'label' : 'Seleccionar todos', 'value': 'all'})
 
     for n in atribs:
         options.append({'label' : n, 'value': n})
@@ -200,30 +202,17 @@ def update_mapa_componentes_fig(click,names):
     lista_de_indices = []
 
 
-
-    if('all' in names ):# Seleccionar todos marcado
-        lista_de_indices = [x for x in range(0,len(nombres_atributos))]
-    else:
-        for n in names:
-            lista_de_indices.append(nombres_atributos.index(n) )
+    for n in names:
+        lista_de_indices.append(nombres_atributos.index(n) )
     
 
     pesos = som.get_weights()
 
-
-
     traces = []
-
-
-
-
-
 
     for i in lista_de_indices:
         
-
-
-        figure= go.Figure(layout= {"height": 300,'width' : 300},
+        figure= go.Figure(layout= {"height": 300,'width' : 300, 'title': nombres_atributos[i] },
                           data=go.Heatmap(z=pesos[:,:,i].tolist(),showscale= True)                                                      
         ) 
 
@@ -234,9 +223,6 @@ def update_mapa_componentes_fig(click,names):
             ) 
         )
 
-
-    # Experimental height optimus for visualitation 300px per row
-    #fig.update_layout(height=300*rows, width=1200)
 
 
     print('render finalizado')
@@ -253,14 +239,25 @@ def update_mapa_componentes_fig(click,names):
 
 
 # Checklist seleccionar todos
-'''
 @app.callback(
     Output('dropdown_atrib_names','value'),
-    Input("checklist_seleccionar_todos", "value"),
-    
+    Input("check_seleccionar_todos_mapas", "value"),
+    prevent_initial_call=True
     )
-def on_form_change(checklist_seleccionar_todos, checklist_value, switches_value):
+def on_form_change(check):
 
-    if(checklist_seleccionar_todos == 1):
+    if(check):
+        with open('data_session.json') as json_file:
+            session_data = json.load(json_file)
+
+        nombres = session_data['columns_names']
+        atribs= nombres[0:len(nombres)-1]
+        return atribs
     else:
-'''
+        return []
+
+
+
+
+    
+    
