@@ -36,7 +36,7 @@ def session_data_dict():
         #Dataset
         session_data['n_samples'] = 0
         session_data['n_features'] = 0
-        session_data['discrete_data'] = False
+        session_data['discrete_data'] = True
         session_data['columns_names'] = []
 
         

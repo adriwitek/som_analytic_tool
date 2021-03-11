@@ -13,6 +13,7 @@ controlar varios cliks al visualizar porque se fatidias todo
 boton logout que borre el json
 si ALL esta en names en mapas de componentes los subtitulos fallan
 quitar opcion de mapa hexagonal en som?
+variable global para el nombre del archivo
 
 
 

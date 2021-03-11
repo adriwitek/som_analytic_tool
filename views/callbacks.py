@@ -10,19 +10,13 @@ from dash.exceptions import PreventUpdate
 import dash_core_components as dcc
 import dash_html_components as html
 
-from datetime import datetime
-from pandas import read_csv
 import pandas as pd
-import base64
-import io
-from io import BytesIO
+
 from views.app import app
-from views.session_data import Sesion,session_data_dict
 from views.elements import model_selector
 from views.train_ghsom import layout as layout_train_ghsom
 
 #from models.ghsom import GHSOM,GSOM
-from models.som import minisom
 import numpy as np
 import json
 
@@ -31,6 +25,7 @@ import plotly.graph_objects as go
 import plotly.figure_factory as ff
 from views.custom_annotated_heatmap import create_annotated_heatmap as custom_heatmap
 
+from views.session_data import Sesion,session_data_dict
 
 
  #TESTIN DATA
@@ -103,72 +98,6 @@ def dropdown_update_training_selection(n1,n2,n3,url):
 
 
 
-@app.callback(Output('output-data-upload_1', 'children'),
-              Output('output-data-upload_2', 'children'),
-              Output('continue-button','disabled'),
-              Output('n_samples','children'),
-              Output('n_features','children'),
-              Output('session_data','data'),
-              Input('upload-data', 'contents'),
-              State('upload-data', 'filename'),
-              State('upload-data', 'last_modified'), 
-              State('session_data', 'data'),
-                prevent_initial_call=True)
-def update_output(contents, filename, last_modified,session_data):
-    '''Carga el dataset en los elementos adecuados
-
-    '''
-    if contents is not None:
-        output_1= 'Archivo: ' + filename
-        output_2= 'Última Modificación: ' +  datetime.utcfromtimestamp(last_modified).strftime('%d/%m/%Y %H:%M:%S')
-
-        #guarda_dataframe(contents)
-        #Esta carga necesita ser asi
-        try:
-            if 'csv' in filename:
-                # Assume that the user uploaded a CSV file
-                content_type, content_string = contents.split(',')
-                decoded = base64.b64decode(content_string)
-                dataset = read_csv(io.StringIO(decoded.decode('utf-8')))
-                
-
-            #elif 'xls' in filename:
-                # Assume that the user uploaded an excel file
-            #    df = pd.read_excel(io.BytesIO(decoded))
-
-        except Exception as e:
-            print(e)
-            return html.Div([ 'There was an error processing this file.'])
-        
-
-       
-
-        data = dataset.to_numpy()
-        #N_FEATURES = N-1 because of the target column
-        n_samples, n_features=data.shape
-
-        Sesion.data = data
-        Sesion.n_samples, Sesion.n_features=  n_samples, n_features-1
-        cadena_1 = 'Número de datos: ' + str(n_samples)
-        cadena_2 =  'Número de Atributos: ' + str(n_features - 1)
- 
-        
-        session_data = session_data_dict()
-        session_data['n_samples'] = n_samples
-        session_data['n_features'] = n_features-1
-        session_data['columns_names'] = list(dataset.head())
-
-        
-        with open('data_session.json', 'w') as outfile:
-            json.dump(session_data, outfile)
-
-        # Give a default data dict with 0 clicks if there's no data.
-        
-        
-        
-        return output_1, output_2,False,cadena_1,cadena_2, session_data
-    else:
-        return '','',True,'','','',{}
 
 
 
@@ -178,7 +107,7 @@ def update_output(contents, filename, last_modified,session_data):
 
 ###################  TRAINING_SELECTION.PY CALLBACKS ######################
 
-
+# TODO BORRAR ESTA FUNCION
 #Actualizar tabla info dataset
 @app.callback(Output('table_info_n_samples', 'children'),
               Output('table_info_n_features', 'children'),
@@ -202,83 +131,12 @@ def update_dataset_info_table( data, session_data):
 ############################################################################################################################################################
 
 
-#Habilitar boton train som
-@app.callback(Output('train_button_som','disabled'),
-              Input('tam_eje_x', 'value'),
-              Input('tam_eje_y', 'value'),
-              Input('tasa_aprendizaje_som', 'value'),
-              Input('dropdown_vecindad', 'value'),
-              Input('dropdown_topology', 'value'),
-              Input('dropdown_distance', 'value'),
-              Input('sigma', 'value'),
-              Input('iteracciones', 'value'),
-              Input('dropdown_inicializacion_pesos','value')
-            )
-def enable_train_som_button(tam_eje_x,tam_eje_y,tasa_aprendizaje,vecindad, topology, distance,
-                            sigma,iteracciones,dropdown_inicializacion_pesos):
-    if all(i is not None for i in [tam_eje_x,tam_eje_y,tasa_aprendizaje,vecindad, topology, distance,
-                                    sigma,iteracciones,dropdown_inicializacion_pesos]):
-        return False
-    else:
-        return True
 
 
 
 
-@app.callback(Output('som_entrenado', 'children'),
-              Input('train_button_som', 'n_clicks'),
-              State('tam_eje_x', 'value'),
-              State('tam_eje_y', 'value'),
-              State('tasa_aprendizaje_som', 'value'),
-              State('dropdown_vecindad', 'value'),
-              State('dropdown_topology', 'value'),
-              State('dropdown_distance', 'value'),
-              State('sigma', 'value'),
-              State('iteracciones', 'value'),
-              State('dropdown_inicializacion_pesos','value'),
-              prevent_initial_call=True )
-def train_som(n_clicks,x,y,tasa_aprendizaje,vecindad, topology, distance,sigma,iteracciones,pesos_init):
-
-    tasa_aprendizaje=float(tasa_aprendizaje)
-    sigma = float(sigma)
-    iteracciones = int(iteracciones)
 
 
-    # TRAINING
-    dataset = Sesion.data
-
-    #Plasmamos datos en el json
-    with open('data_session.json') as json_file:
-        session_data = json.load(json_file)
-
-    session_data['som_tam_eje_x'] = x
-    session_data['som_tam_eje_y'] = y
-
-    with open('data_session.json', 'w') as outfile:
-        json.dump(session_data, outfile)
-
-
-    data = dataset[:,:-1]
-    targets = dataset[:,-1:]
-    n_samples = dataset.shape[0]
-    n_features = dataset.shape[1]
-
-    som = minisom.MiniSom(x=x, y=y, input_len=data.shape[1], sigma=sigma, learning_rate=tasa_aprendizaje,
-                neighborhood_function=vecindad, topology=topology,
-                 activation_distance=distance, random_seed=None)
-    
-    #Weigh init
-    if(pesos_init == 'pca'):
-        som.pca_weights_init(data)
-    elif(pesos_init == 'random'):   
-        som.random_weights_init(data)
-
-    som.train(data, iteracciones, verbose=True)  # random training                                                          #quitar el verbose
-    Sesion.modelo = som
-
-    print('ENTRENAMIENTO FINALIZADO')
-
-    return 'Entrenamiento completado',session_data
 
    
 

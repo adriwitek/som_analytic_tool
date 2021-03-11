@@ -3,6 +3,8 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 import  views.elements as elements
 
+from models.ghsom import GSOM
+
 
 
 
