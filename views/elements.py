@@ -6,14 +6,10 @@ import dash_bootstrap_components as dbc
 import  views.elements as elements
 
 
-'''
-    Common visual  elements for all views
-'''
+from  views.session_data import Sesion
+from  config.config import *
 
 
-#Global Var.
-APP_NAME = 'SOM Analytic Tool'
-PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
 
 
 

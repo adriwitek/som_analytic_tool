@@ -4,7 +4,8 @@ import dash_bootstrap_components as dbc
 import  views.elements as elements
 
 
-
+from  views.session_data import Sesion
+from  config.config import *
 
 
 

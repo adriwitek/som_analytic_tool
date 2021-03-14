@@ -25,8 +25,8 @@ import plotly.graph_objects as go
 import plotly.figure_factory as ff
 from views.custom_annotated_heatmap import create_annotated_heatmap as custom_heatmap
 
-from views.session_data import Sesion,session_data_dict
-
+from  views.session_data import Sesion
+from  config.config import *
 
  #TESTIN DATA
 #PARA NO TENER QUE RECARGAR EL DATASET EN LAS PRUEBAS
@@ -150,7 +150,7 @@ def update_som_fig(n_clicks):
     print('\nVISUALIZACION clicked\n')
 
     #Plasmamos datos en el json
-    with open('data_session.json') as json_file:
+    with open(SESSION_DATA_FILE_DIR) as json_file:
         session_data = json.load(json_file)
 
     tam_eje_x = session_data['som_tam_eje_x'] 

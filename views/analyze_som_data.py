@@ -6,7 +6,6 @@ import dash
 import  views.elements as elements
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
-from views.session_data import Sesion,session_data_dict
 import json
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -14,8 +13,8 @@ from math import ceil
 import numpy as np
 
 
-from views.session_data import Sesion
-
+from  views.session_data import Sesion
+from  config.config import *
 
 
 fig = go.Figure()
@@ -80,14 +79,14 @@ def analyze_som_data():
             #Card: Component plans
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Component plans",color="link",id="button_collapse_2"))
+                    html.H2(dbc.Button("Mapa de componentes",color="link",id="button_collapse_2"))
                 ),
                 dbc.Collapse(id="collapse_2",children=
                     dbc.CardBody(children=[
                         html.H5("Seleccionar atributos para mostar:"),
                         dcc.Dropdown(
                             id='dropdown_atrib_names',
-                            options=get_nombres_atributos(),
+                            options=Sesion.get_nombres_atributos(),
                             multi=True
                         ),
                         html.Div( 
@@ -165,24 +164,6 @@ def analyze_som_data():
 
 
 
-def get_nombres_atributos():
-
-    with open('data_session.json') as json_file:
-        session_data = json.load(json_file)
-
-    nombres = session_data['columns_names']
-    atribs= nombres[0:len(nombres)-1]
-    options = []  # must be a list of dicts per option
-
-    for n in atribs:
-        options.append({'label' : n, 'value': n})
-
-    return options
-
-
-
-
-
 ##################################################################
 #                       CALLBACKS
 ##################################################################
@@ -235,7 +216,7 @@ def update_mapa_componentes_fig(click,names):
 
 
     som = Sesion.modelo
-    with open('data_session.json') as json_file:
+    with open(SESSION_DATA_FILE_DIR) as json_file:
         session_data = json.load(json_file)
 
     tam_eje_x = session_data['som_tam_eje_x'] 
@@ -290,7 +271,7 @@ def update_mapa_componentes_fig(click,names):
 def on_form_change(check):
 
     if(check):
-        with open('data_session.json') as json_file:
+        with open(SESSION_DATA_FILE_DIR) as json_file:
             session_data = json.load(json_file)
 
         nombres = session_data['columns_names']
@@ -330,7 +311,7 @@ def update_mapa_frecuencias_fig(click):
 
 
       
-#Actualizar mapas de frecuencias
+#U-matrix
 @app.callback(Output('umatrix_figure_div','children'),
               Input('umatrix_button','n_clicks'),
               prevent_initial_call=True 

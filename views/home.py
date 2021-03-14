@@ -14,9 +14,11 @@ from io import BytesIO
 from datetime import datetime
 import base64
 from pandas import read_csv
-from views.session_data import Sesion,session_data_dict
 import json
 import numpy as np
+
+from  views.session_data import Sesion
+from  config.config import *
 
 
 #VENTANA PRINCIPAL 
@@ -133,7 +135,7 @@ def update_target_type(radio_option):
 
     if (trigger_id == "radio_discrete_continuous"):
          #Plasmamos datos en el json
-        with open('data_session.json') as json_file:
+        with open(SESSION_DATA_FILE_DIR) as json_file:
             session_data = json.load(json_file)
 
         if(radio_option == 1):
@@ -141,7 +143,7 @@ def update_target_type(radio_option):
         else:
             session_data['discrete_data'] = False
 
-        with open('data_session.json', 'w') as outfile:
+        with open(SESSION_DATA_FILE_DIR, 'w') as outfile:
             json.dump(session_data, outfile)
 
         return  ''
@@ -196,13 +198,13 @@ def update_output( contents, filename, last_modified,session_data):
         cadena_2 =  'Número de Atributos: ' + str(n_features - 1)
  
         
-        session_data = session_data_dict()
+        session_data = Sesion.session_data_dict()
         session_data['n_samples'] = n_samples
         session_data['n_features'] = n_features-1
         session_data['columns_names'] = list(dataset.head())
 
         
-        with open('data_session.json', 'w') as outfile:
+        with open(SESSION_DATA_FILE_DIR, 'w') as outfile:
             json.dump(session_data, outfile)
 
         # Give a default data dict with 0 clicks if there's no data.

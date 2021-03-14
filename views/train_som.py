@@ -11,7 +11,8 @@ import json
 from models.som import minisom
 
 
-from views.session_data import Sesion
+from  views.session_data import Sesion
+from  config.config import *
 
 def train_som_view():
 
@@ -176,13 +177,13 @@ def train_som(n_clicks,x,y,tasa_aprendizaje,vecindad, topology, distance,sigma,i
     dataset = Sesion.data
 
     #Plasmamos datos en el json
-    with open('data_session.json') as json_file:
+    with open(SESSION_DATA_FILE_DIR) as json_file:
         session_data = json.load(json_file)
 
     session_data['som_tam_eje_x'] = x
     session_data['som_tam_eje_y'] = y
 
-    with open('data_session.json', 'w') as outfile:
+    with open(SESSION_DATA_FILE_DIR, 'w') as outfile:
         json.dump(session_data, outfile)
 
 
@@ -201,7 +202,7 @@ def train_som(n_clicks,x,y,tasa_aprendizaje,vecindad, topology, distance,sigma,i
     elif(pesos_init == 'random'):   
         som.random_weights_init(data)
 
-    som.train(data, iteracciones, verbose=True)  # random training                                                          #quitar el verbose
+    som.train(data, iteracciones, verbose=True)  # random training                                                          # TODO quitar el verbose
     Sesion.modelo = som
 
     print('ENTRENAMIENTO FINALIZADO')
