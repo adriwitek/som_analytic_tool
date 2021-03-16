@@ -18,6 +18,7 @@ en visualizar som se crea antes una figura que no vale para nada
 añadir el nombre del fichero cuando se guarda el modelo.
 quitar la carga de datos a traves de json
 organizar los imports no usados
+problemas al borrar carptetas como saved data
 
 
 

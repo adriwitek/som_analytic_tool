@@ -304,16 +304,10 @@ def save_gsom_model(n_clicks,):
 
     data = []
 
-     #Carga de datos
-    with open(SESSION_DATA_FILE_DIR) as json_file:
-        datos_entrenamiento = json.load(json_file)
+    params = session_data.get_gsom_model_info_dict()
 
-
-    model_info = session_data.get_model_info_dict('gsom')
-    model_info['mapa_tam_eje_x'] = datos_entrenamiento['som_tam_eje_x']
-    model_info['mapa_tam_eje_y'] = datos_entrenamiento['som_tam_eje_y'] 
-    data.append(model_info)
-
+    data.append('gsom')
+    data.append(params)
     data.append(session_data.get_modelo())
 
     now = datetime.now()

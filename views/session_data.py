@@ -100,6 +100,13 @@ class Sesion():
         self.gsom_params['sigma'] = sigma
         self.gsom_params['epocas_gsom'] = epocas_gsom
         self.gsom_params['max_iter_gsom'] = max_iter_gsom
+
+
+    def set_gsom_model_info_dict_direct(self,dict):
+        #for laod model purpose
+        self.som_params= None
+        self.gsom_params = dict.copy()
+        self.ghsom_params=None
             
 
     def get_gsom_model_info_dict(self):
@@ -132,7 +139,7 @@ class Sesion():
             return session_data        
 
 
-    
+    #TODO CAMBIAR ESTO:BORRARLO
     @staticmethod
     def get_model_info_dict(model_type):
 

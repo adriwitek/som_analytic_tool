@@ -187,14 +187,19 @@ def load_selected_model(n_clicks,filename):
     # Load data (deserialize)
     with open(DIR_SAVED_MODELS + filename, 'rb') as handle:
         unserialized_data = pickle.load(handle)
-        model_info= unserialized_data[0]
-        session_data.set_modelo(unserialized_data[1])
+        model_type= unserialized_data[0]
+        model_info = unserialized_data[1]
+        session_data.set_modelo(unserialized_data[2])
+
     
-    if model_info['model_type'] ==  'som':
+    if  model_type ==  'som':
+        #todo apend
         return dcc.Location(pathname=URLS['ANALYZE_SOM_URL'], id="redirect")
-    elif model_info['model_type'] == 'gsom':
+    elif model_type ==   'gsom':
+        session_data.set_gsom_model_info_dict_direct(model_info)
         return dcc.Location(pathname=URLS['ANALYZE_GSOM_URL'], id="redirect")
-    elif model_info['model_type'] == 'ghsom':
+    elif model_type ==   'ghsom':
+        #todo apend
         return dcc.Location(pathname=URLS['ANALYZE_GHSOM_URL'], id="redirect")
     else:   #it something goes worng 
         return dcc.Location(pathname="/", id="redirect")
