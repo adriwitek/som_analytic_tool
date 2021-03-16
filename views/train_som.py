@@ -9,9 +9,11 @@ from dash.exceptions import PreventUpdate
 import  views.elements as elements
 import json
 from models.som import minisom
+import numpy as np
+import plotly.graph_objects as go
 
 
-from  views.session_data import Sesion
+from  views.session_data import session_data
 from  config.config import *
 
 def train_som_view():
@@ -174,19 +176,25 @@ def train_som(n_clicks,x,y,tasa_aprendizaje,vecindad, topology, distance,sigma,i
 
 
     # TRAINING
-    dataset = Sesion.data
+    dataset = session_data.get_data()
+
+
+    session_data.set_som_model_info_dict(x,y,tasa_aprendizaje,vecindad,distance,sigma,iteracciones, pesos_init)
+
+    #TODO BORRAR ESTO DEL JSON
 
     #Plasmamos datos en el json
+    '''
     with open(SESSION_DATA_FILE_DIR) as json_file:
-        session_data = json.load(json_file)
+        datos_entrenamiento = json.load(json_file)
 
-    session_data['som_tam_eje_x'] = x
-    session_data['som_tam_eje_y'] = y
+    datos_entrenamiento['som_tam_eje_x'] = x
+    datos_entrenamiento['som_tam_eje_y'] = y
 
     with open(SESSION_DATA_FILE_DIR, 'w') as outfile:
-        json.dump(session_data, outfile)
+        json.dump(datos_entrenamiento, outfile)
 
-
+    '''
     data = dataset[:,:-1]
     targets = dataset[:,-1:]
     n_samples = dataset.shape[0]
@@ -202,10 +210,175 @@ def train_som(n_clicks,x,y,tasa_aprendizaje,vecindad, topology, distance,sigma,i
     elif(pesos_init == 'random'):   
         som.random_weights_init(data)
 
-    som.train(data, iteracciones, verbose=True)  # random training                                                          # TODO quitar el verbose
-    Sesion.modelo = som
+    som.train(data, iteracciones, verbose=True)  # random training   
+    session_data.set_modelo(som)                                                       # TODO quitar el verbose
 
     print('ENTRENAMIENTO FINALIZADO')
 
     return 'Entrenamiento completado',session_data
+
+
+
+
+
+
+
+
+
+@app.callback(Output('winners_map', 'figure'),
+              Input('ver', 'n_clicks'),
+              prevent_initial_call=True )
+def update_som_fig(n_clicks):
+
+    print('\nVISUALIZACION clicked\n')
+
+
+    params = session_data.get_som_model_info_dict()
+    #TODO borrar
+    '''
+    with open(SESSION_DATA_FILE_DIR) as json_file:
+        datos_entrenamiento = json.load(json_file)
+
+    tam_eje_x = datos_entrenamiento['som_tam_eje_x'] 
+    tam_eje_y = datos_entrenamiento['som_tam_eje_y'] 
+    '''
+    tam_eje_x = params['x']
+    tam_eje_y = params['y']
+    
+    #TODO : cambiar esto por guardado bien del dataset
+
+    som = session_data.get_modelo()
+    dataset = session_data.get_data()
+    data = dataset[:,:-1]
+    targets = dataset[:,-1:]
+    n_samples = dataset.shape[0]
+    n_features = dataset.shape[1]
+
+   
+    
+    #print('targets',[t for t in targets])
+    targets_list = [t[0] for t in targets.tolist()]
+    #print('targetssss',targets_list)
+    labels_map = som.labels_map(data, targets_list)
+    data_to_plot = np.empty([tam_eje_x ,tam_eje_y],dtype=object)
+    #data_to_plot[:] = np.nan#labeled heatmap does not support nonetypes
+
+    if(session_data.get_discrete_data() ):
+        #showing the class more represented in each neuron
+        for position in labels_map.keys():
+            label_fracs = [ labels_map[position][t] for t in targets_list]
+            max_value= max(label_fracs)
+            winner_class_index = label_fracs.index(max_value)
+            data_to_plot[position[0]][position[1]] = targets_list[winner_class_index]
+    else: #continuos data: mean of the mapped values in each neuron
+        for position in labels_map.keys():
+            #fractions
+            label_fracs = [ labels_map[position][t] for t in targets_list]
+            data_to_plot[position[0]][position[1]] = np.mean(label_fracs)
+
+    
+
+   
+
+   
+    fig = go.Figure(data=go.Heatmap(
+                       z=data_to_plot,
+                       x=np.arange(tam_eje_x),
+                       y=np.arange(tam_eje_y),
+                       hoverongaps = True,
+                       colorscale='Viridis'))
+    fig.update_xaxes(side="top")
+    '''
+
+
+    x_ticks = np.linspace(0, tam_eje_x,tam_eje_x, dtype= int,endpoint=False).tolist()
+    y_ticks = np.linspace(0, tam_eje_y,tam_eje_y,dtype= int, endpoint=False ).tolist()
+
+    ######################################
+    # ANNOTATED HEATMAPD LENTO
+    #colorscale=[[np.nan, 'rgb(255,255,255)']]
+    #fig = ff.create_annotated_heatmap(
+    '''
+    '''
+    fig = custom_heatmap(
+        #x= x_ticks,
+        #y= y_ticks,
+        z=data_to_plot,
+        zmin=np.nanmin(data_to_plot),
+        zmax=np.nanmax(data_to_plot),
+        #xgap=5,
+        #ygap=5,
+        colorscale='Viridis',
+        #colorscale=colorscale,
+        #font_colors=font_colors,
+        
+        showscale=True #leyenda de colores
+        )
+    fig.update_layout(title_text='Clases ganadoras por neurona')
+    fig['layout'].update(plot_bgcolor='white')
+    '''
+
+    
+    #########################################################
+    # ANNOTATED HEATMAPD RAPIDOOO
+    
+    #type= heatmap para mas precision
+    #heatmapgl
+    trace = dict(type='heatmap', z=data_to_plot, colorscale = 'Jet')
+    data=[trace]
+
+    # Here's the key part - Scattergl text! 
+    
+
+
+    data.append({'type': 'scattergl',
+                    'mode': 'text',
+                    #'x': x_ticks,
+                    #'y': y_ticks,
+                    'text': 'a'
+                    })
+    
+    layout = {}
+    layout['xaxis'] = {'range': [-0.5, tam_eje_x]}
+    layout['width'] = 700
+    layout['height']= 700
+    annotations = []
+
+    fig = dict(data=data, layout=layout)
+
+    #condition_Nones = not(val is None)
+    #condition_nans= not(np.isnan(val))
+
+
+
+    #EIQUETANDO EL HEATMAP(solo los datos discretos)
+    #Improved vers. for quick annotations by me
+    if(session_data.get_discrete_data() ):
+        print('Etiquetando....')
+        for n, row in enumerate(data_to_plot):
+            for m, val in enumerate(row):
+                 #font_color = min_text_color if ( val < self.zmid ) else max_text_color    esto lo haria aun mas lento
+                if( not(val is None) ):
+                    annotations.append(
+                        go.layout.Annotation(
+                           text= str(val) ,
+                           x=m,
+                           y=n,
+                           #xref="x1",
+                           #yref="y1",
+                           #font=dict(color=font_color),
+                           showarrow=False,
+                        )
+                    )
+        
+
+    
+    
+    layout['annotations'] = annotations
+    
+
+    print('\nVISUALIZACION:renderfinalizado\n')
+
+    return fig
+
 

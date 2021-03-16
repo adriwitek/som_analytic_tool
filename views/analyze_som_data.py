@@ -13,7 +13,7 @@ from math import ceil
 import numpy as np
 
 
-from  views.session_data import Sesion
+from  views.session_data import session_data
 from  config.config import *
 
 
@@ -86,7 +86,7 @@ def analyze_som_data():
                         html.H5("Seleccionar atributos para mostar:"),
                         dcc.Dropdown(
                             id='dropdown_atrib_names',
-                            options=Sesion.get_nombres_atributos(),
+                            options=session_data.get_nombres_atributos(),
                             multi=True
                         ),
                         html.Div( 
@@ -215,13 +215,13 @@ def enable_ver_mapas_componentes_button(values):
 def update_mapa_componentes_fig(click,names):
 
 
-    som = Sesion.modelo
+    som = session_data.get_modelo()
     with open(SESSION_DATA_FILE_DIR) as json_file:
-        session_data = json.load(json_file)
+        datos_entrenamiento = json.load(json_file)
 
-    tam_eje_x = session_data['som_tam_eje_x'] 
-    tam_eje_y = session_data['som_tam_eje_y'] 
-    nombres_columnas = session_data['columns_names']
+    tam_eje_x = datos_entrenamiento['som_tam_eje_x'] 
+    tam_eje_y = datos_entrenamiento['som_tam_eje_y'] 
+    nombres_columnas = datos_entrenamiento['columns_names']
     nombres_atributos = nombres_columnas[0:len(nombres_columnas)-1]
     lista_de_indices = []
 
@@ -272,9 +272,9 @@ def on_form_change(check):
 
     if(check):
         with open(SESSION_DATA_FILE_DIR) as json_file:
-            session_data = json.load(json_file)
+            datos_entrenamiento = json.load(json_file)
 
-        nombres = session_data['columns_names']
+        nombres = datos_entrenamiento['columns_names']
         atribs= nombres[0:len(nombres)-1]
         return atribs
     else:
@@ -296,8 +296,9 @@ def on_form_change(check):
               )
 def update_mapa_frecuencias_fig(click):
 
-    som = Sesion.modelo
-    dataset = Sesion.data
+    som = session_data.get_modelo() 
+    som =  session_data.get_modelo()
+    dataset = session_data.get_data()
     data = dataset[:,:-1]
  
     #frequencies is a np matrix
@@ -318,7 +319,7 @@ def update_mapa_frecuencias_fig(click):
               )
 def update_umatrix(click):
 
-    som = Sesion.modelo
+    som = session_data.get_modelo()
     umatrix = som.distance_map()
  
     figure= go.Figure(layout= {'title': 'Matriz U'},

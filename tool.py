@@ -15,6 +15,7 @@ from dash.dependencies import Input, Output
 from views.app import app
 from views import callbacks
 from views.home import Home
+from views.training_selection import Training_selection
 from views.train_som import train_som_view
 from views.analyze_som_data import analyze_som_data
 from views.analyze_gsom_data import analyze_gsom_data
@@ -39,15 +40,17 @@ def display_page(pathname):
     if pathname == '/':
         #raise PreventUpdate
         return Home()
-    elif pathname == '/train-ghsom':
+    elif pathname == URLS['TRAINING_SELECTION_URL']:
+        return Training_selection()
+    elif pathname == URLS['TRAINING_GHSOM_URL']:
         return train_ghsom.layout
-    elif pathname == '/train-gsom':
+    elif pathname == URLS['TRAINING_GSOM_URL']:
         return train_gsom.layout
-    elif pathname == '/train-som':
+    elif pathname == URLS['TRAINING_SOM_URL']:
         return train_som_view()
-    elif pathname == '/analyze-som-data':
+    elif pathname == URLS['ANALYZE_SOM_URL']:
         return analyze_som_data()
-    elif pathname == '/analyze-gsom-data':
+    elif pathname == URLS['ANALYZE_GSOM_URL']:
         return analyze_gsom_data()
     else:
         return '404'

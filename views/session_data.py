@@ -15,28 +15,101 @@ from  config.config import *
 class Sesion():
     
     
-
+    #Dataset
+    discrete_data = True
+    file_data = None
     data = None     # numpy array
     n_samples = 0
     n_features = 0 
+
     #tipo de modelo
     modelo = None
+    som_params= None
+    gsom_params=None
+    ghsom_params=None
 
-    def __init__(self,data):
-        data = np.copy(data)
+    def __init__(self):
+        return
+
+    def set_data(self,data):
+        self.data = np.copy(data)
         self.n_samples, self.n_features=data.shape
-        self.modelo = None
 
     def get_data(self):
         return self.data
+
+
+    
+    def set_filedata(self,filedata):
+        self.file_data = filedata
+
+    def get_filedata(self):
+        return self.file_data 
+
     def set_modelo(self,modelo):
         self.modelo = modelo
+
     def get_modelo(self):
         return self.modelo
 
+    def set_discrete_data(self,bool):
+        self.discrete_data = bool
+
+    def get_discrete_data(self):
+        return self.discrete_data
     
 
 
+
+    def set_som_model_info_dict(self,x,y,learning_rate,neigh_fun,distance_fun,sigma,iteraciones, inicialitacion_pesos):
+
+        #Only one model could be used at once
+        self.som_params= {}
+        self.gsom_params=None
+        self.ghsom_params=None
+
+        self.som_params['x'] = x
+        self.som_params['y'] = y 
+        self.som_params['learning_rate'] = learning_rate
+        self.som_params['neigh_fun'] = neigh_fun
+        self.som_params['distance_fun'] = distance_fun
+        self.som_params['sigma'] = sigma
+        self.som_params['iteraciones'] = iteraciones
+        self.som_params['inicialitacion_pesos'] = inicialitacion_pesos
+            
+
+    def get_som_model_info_dict(self):
+        return  self.som_params
+
+
+
+
+
+    def set_gsom_model_info_dict(self,x,y,tau_2,learning_rate,decadency,sigma,epocas_gsom,max_iter_gsom):
+
+        #Only one model could be used at once
+        self.som_params= None
+        self.gsom_params={}
+        self.ghsom_params=None
+
+        self.gsom_params['x'] = x
+        self.gsom_params['y'] = y 
+        self.gsom_params['tau_2'] = tau_2 
+        self.gsom_params['learning_rate'] = learning_rate
+        self.gsom_params['decadency'] = decadency
+        self.gsom_params['sigma'] = sigma
+        self.gsom_params['epocas_gsom'] = epocas_gsom
+        self.gsom_params['max_iter_gsom'] = max_iter_gsom
+            
+
+    def get_gsom_model_info_dict(self):
+        return  self.gsom_params
+
+
+
+
+
+    #TODO ADD THIS TO GHSOM MODEL
 
 
     @staticmethod
@@ -56,15 +129,44 @@ class Sesion():
             session_data['som_tam_eje_x'] = 0 
             session_data['som_tam_eje_y'] = 0 
 
-            return session_data          
+            return session_data        
+
+
+    
+    @staticmethod
+    def get_model_info_dict(model_type):
+
+            model_info = {}
+
+            #TODO   COMPLETAR ESTO
+
+            if model_type == 'som':
+                model_info['model_type'] = 'som'
+                model_info['mapa_tam_eje_x'] = 0 
+                model_info['mapa_tam_eje_y'] = 0 
+            elif model_type == 'gsom':
+                model_info['model_type'] = 'gsom'
+                model_info['mapa_tam_eje_x'] = 0 
+                model_info['mapa_tam_eje_y'] = 0 
+            elif model_type == 'ghsom':
+                model_info['model_type'] = 'ghsom'
+            else: 
+                return {}
+
+            return model_info     
+
+
+
+     
+        
 
     @staticmethod
     def get_nombres_atributos():
 
         with open(SESSION_DATA_FILE_DIR) as json_file:
-            session_data = json.load(json_file)
+            datos_entrenamiento = json.load(json_file)
 
-        nombres = session_data['columns_names']
+        nombres = datos_entrenamiento['columns_names']
         atribs= nombres[0:len(nombres)-1]
         options = []  # must be a list of dicts per option
 
@@ -84,3 +186,6 @@ class Sesion():
         with open('filename', 'rb') as infile:
             model = pickle.load(infile)
         return model
+
+
+session_data = Sesion()

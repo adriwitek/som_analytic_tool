@@ -17,12 +17,18 @@ from pandas import read_csv
 import json
 import numpy as np
 
-from  views.session_data import Sesion
+from  views.session_data import session_data
 from  config.config import *
 
 
-#VENTANA PRINCIPAL 
 
+
+
+
+
+#############################################################
+#	                       LAYOUT	                        #
+#############################################################
 
 def Home(): 
     layout = html.Div(children=[
@@ -56,7 +62,7 @@ def Home():
                         html.Div(id='hidden_div',children= '' ), 
 
                         html.Div( 
-                            [dbc.Button("Analizar Datos", id="continue-button",disabled= True,href='/train-som', className="mr-2", color="primary",)],
+                            [dbc.Button("Analizar Datos", id="continue-button",disabled= True,href=URLS['TRAINING_SELECTION_URL'], className="mr-2", color="primary",)],
                             style={'textAlign': 'center'}
                         )
                     ]),
@@ -65,7 +71,7 @@ def Home():
                         html.H4('URL',style={'textAlign': 'center'} ),
                         dbc.Input(type= 'url', placeholder="Link del dataset", bs_size="md", className="mb-3"),
                         html.Div( 
-                            [dbc.Button("Analizar Datos", id="continue-button-url",disabled= True,href='/train-som', className="mr-2", color="primary",)],
+                            [dbc.Button("Analizar Datos", id="continue-button-url",disabled= True,href=URLS['TRAINING_SELECTION_URL'], className="mr-2", color="primary",)],
                             style={'textAlign': 'center'}
                         )
                     ]),
@@ -76,22 +82,27 @@ def Home():
         ]),
 
     
-    
-        dbc.Card(color = 'light',children=[
-            dbc.CardHeader(html.H2('Cargar modelo pre-entrenado')),
 
-            dbc.CardBody(
-            
-
-            
-            )
-        ])
 
 
     ])
 
 
     return layout
+
+
+
+
+
+
+
+
+#############################################################
+#	                  AUX LAYOUT FUNS	                    #
+#############################################################
+
+ 
+
 
 
 def div_info_dataset(filename,fecha_modificacion, n_samples, n_features):
@@ -119,13 +130,18 @@ def div_info_dataset(filename,fecha_modificacion, n_samples, n_features):
 
 
 
-# CALLBACKS#########################################################
 
 
 
 
 
-#Carga la info del dataset en el home
+
+#############################################################
+#	                     CALLBACKS	                        #
+#############################################################
+
+
+#Discrete/cont. data
 @app.callback(Output('hidden_div', 'children'),
               Input('radio_discrete_continuous', 'value'),
               prevent_initial_call=True)
@@ -134,18 +150,14 @@ def update_target_type(radio_option):
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
     if (trigger_id == "radio_discrete_continuous"):
-         #Plasmamos datos en el json
-        with open(SESSION_DATA_FILE_DIR) as json_file:
-            session_data = json.load(json_file)
+        
 
         if(radio_option == 1):
-            session_data['discrete_data'] = True
+            session_data.set_discrete_data(True)
         else:
-            session_data['discrete_data'] = False
+            session_data.set_discrete_data(False)
 
-        with open(SESSION_DATA_FILE_DIR, 'w') as outfile:
-            json.dump(session_data, outfile)
-
+     
         return  ''
 
 
@@ -154,13 +166,11 @@ def update_target_type(radio_option):
 @app.callback(Output('info_dataset_div', 'children'),
               Output('info_dataset_div', 'style'),
               Output('continue-button','disabled'),
-              Output('session_data','data'),
               Input('upload-data', 'contents'),
               State('upload-data', 'filename'),
               State('upload-data', 'last_modified'), 
-              State('session_data', 'data'),
                 prevent_initial_call=True)
-def update_output( contents, filename, last_modified,session_data):
+def update_output( contents, filename, last_modified):
     '''Carga el dataset en los elementos adecuados
 
     '''
@@ -192,20 +202,20 @@ def update_output( contents, filename, last_modified,session_data):
         #N_FEATURES = N-1 because of the target column
         n_samples, n_features=data.shape
 
-        Sesion.data = data
-        Sesion.n_samples, Sesion.n_features=  n_samples, n_features-1
+        session_data.set_data(data)
+        #Sesion.n_samples, Sesion.n_features=  n_samples, n_features-1
         cadena_1 = 'Número de datos: ' + str(n_samples)
         cadena_2 =  'Número de Atributos: ' + str(n_features - 1)
  
         
-        session_data = Sesion.session_data_dict()
-        session_data['n_samples'] = n_samples
-        session_data['n_features'] = n_features-1
-        session_data['columns_names'] = list(dataset.head())
+        datos_entrenamiento = session_data.session_data_dict()
+        datos_entrenamiento['n_samples'] = n_samples
+        datos_entrenamiento['n_features'] = n_features-1
+        datos_entrenamiento['columns_names'] = list(dataset.head())
 
         
         with open(SESSION_DATA_FILE_DIR, 'w') as outfile:
-            json.dump(session_data, outfile)
+            json.dump(datos_entrenamiento, outfile)
 
         # Give a default data dict with 0 clicks if there's no data.
         
@@ -216,8 +226,12 @@ def update_output( contents, filename, last_modified,session_data):
                                 str(n_samples),
                                 str(n_features - 1)), 
                 {'textAlign': 'center'},
-                False, 
-                session_data)
+                False 
+                )
 
     else: #TODO PREVENT init call makes this its never called
-        return  div_info_dataset('','', '', '') ,{'textAlign': 'center', "visibility": "hidden"},True,{}
+        return  div_info_dataset('','', '', '') ,{'textAlign': 'center', "visibility": "hidden"},True
+
+
+
+

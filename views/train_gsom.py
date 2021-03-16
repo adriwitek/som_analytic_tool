@@ -14,7 +14,7 @@ from models.ghsom.neuron.neuron_builder import NeuronBuilder
 import json
 import numpy as np
 
-from  views.session_data import Sesion
+from  views.session_data import session_data
 from  config.config import *
 
 
@@ -138,7 +138,7 @@ def train_gsom(n_clicks,tau_2,tasa_aprendizaje_gsom,decadencia_gsom,sigma,epocas
 
 
 
-    dataset = Sesion.data
+    dataset = session_data.get_data()
 
 
     data = dataset[:,:-1]
@@ -189,17 +189,9 @@ def train_gsom(n_clicks,tau_2,tasa_aprendizaje_gsom,decadencia_gsom,sigma,epocas
     gsom = zero_unit.child_map
     #matriz_de_pesos_neuronas = __gmap_to_matrix(gsom.weights_map)
 
-    with open(SESSION_DATA_FILE_DIR) as json_file:
-        session_data = json.load(json_file)
-
     tam_eje_x,tam_eje_y=  gsom.map_shape()
-    session_data['som_tam_eje_x'] = tam_eje_x
-    session_data['som_tam_eje_y'] = tam_eje_y
-
-    with open(SESSION_DATA_FILE_DIR, 'w') as outfile:
-        json.dump(session_data, outfile)
-
-    Sesion.modelo =zero_unit
+    session_data.set_gsom_model_info_dict(tam_eje_x,tam_eje_y,tau_2,tasa_aprendizaje_gsom,decadencia_gsom,sigma_gausiana,epocas_gsom,max_iter_gsom)
+    session_data.set_modelo(zero_unit)
 
 
     print('Las nuevas dimensiones del mapa entrenado son:',tam_eje_x,tam_eje_y)

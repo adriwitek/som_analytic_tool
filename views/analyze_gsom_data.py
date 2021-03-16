@@ -12,11 +12,12 @@ from plotly.subplots import make_subplots
 from math import ceil
 import numpy as np
 from collections import Counter
+from datetime import datetime
 
 
-
-from  views.session_data import Sesion
+from  views.session_data import session_data
 from  config.config import *
+import pickle
 
 
 
@@ -64,7 +65,7 @@ def analyze_gsom_data():
                             html.H5("Seleccionar atributos para mostar:"),
                             dcc.Dropdown(
                                 id='dropdown_atrib_names_gsom',
-                                options=Sesion.get_nombres_atributos(),
+                                options=session_data.get_nombres_atributos(),
                                 multi=True
                             ),
                             html.Div( 
@@ -103,12 +104,17 @@ def analyze_gsom_data():
              #Card: Frecuencias de activacion
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("aaaaaaa",color="link",id="button_collapse_gsom_4"))
+                    html.H2(dbc.Button("Guardar modelo entrenado",color="link",id="button_collapse_gsom_4"))
                 ),
                 dbc.Collapse(id="collapse_gsom_4",children=
                     dbc.CardBody(children=[
                   
-                        
+                        html.Div(children=[
+                            dbc.Button("Guardar modelo", id="save_model_gsom", className="mr-2", color="primary"),
+                            html.P('',id="check_correctly_saved_gsom")
+                            ],
+                            style={'textAlign': 'center'}
+                        ),
                     ]),
                 ),
             ])
@@ -183,21 +189,18 @@ def toggle_accordion(n1, n2,n3,n4, is_open1, is_open2,is_open3,is_open4):
               )
 def update_winner_map_gsom(click):
 
+    params = session_data.get_gsom_model_info_dict()
+    tam_eje_x = params['x']
+    tam_eje_y = params['y']
 
-    #Carga de datos
-    with open(SESSION_DATA_FILE_DIR) as json_file:
-        session_data = json.load(json_file)
-
-    tam_eje_x = session_data['som_tam_eje_x'] 
-    tam_eje_y = session_data['som_tam_eje_y'] 
-    dataset = Sesion.data
+    dataset = session_data.get_data()
     data = dataset[:,:-1]
     targets = dataset[:,-1:]
     n_samples = dataset.shape[0]
     n_features = dataset.shape[1]
 
 
-    zero_unit = Sesion.modelo
+    zero_unit = session_data.get_modelo()
     gsom = zero_unit.child_map
     
 
@@ -223,7 +226,7 @@ def update_winner_map_gsom(click):
         for j in range(tam_eje_y):
             if((i,j) in positions):
 
-                if(session_data['discrete_data'] ):        #showing the class more represented in each neuron
+                if(session_data.get_discrete_data() ):        #showing the class more represented in each neuron
                     c = Counter(positions[(i,j)])
                     data_to_plot[i][j] = c.most_common(1)[0][0]
                 else: #continuos data: mean of the mapped values in each neuron
@@ -280,10 +283,44 @@ def on_form_change(check):
 
     if(check):
         with open(SESSION_DATA_FILE_DIR) as json_file:
-            session_data = json.load(json_file)
+            datos_entrenamiento = json.load(json_file)
 
-        nombres = session_data['columns_names']
+        nombres = datos_entrenamiento['columns_names']
         atribs= nombres[0:len(nombres)-1]
         return atribs
     else:
         return []
+
+
+
+
+
+#Save GSOM model
+@app.callback(Output('check_correctly_saved_gsom', 'children'),
+              Input('save_model_gsom', 'n_clicks'),
+             
+              prevent_initial_call=True )
+def save_gsom_model(n_clicks,):
+
+    data = []
+
+     #Carga de datos
+    with open(SESSION_DATA_FILE_DIR) as json_file:
+        datos_entrenamiento = json.load(json_file)
+
+
+    model_info = session_data.get_model_info_dict('gsom')
+    model_info['mapa_tam_eje_x'] = datos_entrenamiento['som_tam_eje_x']
+    model_info['mapa_tam_eje_y'] = datos_entrenamiento['som_tam_eje_y'] 
+    data.append(model_info)
+
+    data.append(session_data.get_modelo())
+
+    now = datetime.now()
+    dt_string = now.strftime("%Y_%m_%d__%H_%M")
+    filename = 'gsom_model_' + dt_string + '.pickle'
+    
+    with open(DIR_SAVED_MODELS + filename, 'wb') as handle:
+        pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    return 'Modelo guardado correctamente. Nombre del fichero: ' + filename
