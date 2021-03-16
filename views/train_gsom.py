@@ -164,7 +164,7 @@ def train_gsom(n_clicks,tau_2,tasa_aprendizaje_gsom,decadencia_gsom,sigma,epocas
     zero_unit.child_map = GSOM.GSOM( (2, 2),
                                 1,
                                 tau_1,
-                                data.shape[1],
+                                data.shape[1],#esto tiene que ser el numero de atributos
                                 random_weights ,
                                 data,
                                 neuron_builder)
@@ -188,6 +188,7 @@ def train_gsom(n_clicks,tau_2,tasa_aprendizaje_gsom,decadencia_gsom,sigma,epocas
 
     gsom = zero_unit.child_map
     #matriz_de_pesos_neuronas = __gmap_to_matrix(gsom.weights_map)
+
 
     tam_eje_x,tam_eje_y=  gsom.map_shape()
     session_data.set_gsom_model_info_dict(tam_eje_x,tam_eje_y,tau_2,tasa_aprendizaje_gsom,decadencia_gsom,sigma_gausiana,epocas_gsom,max_iter_gsom)

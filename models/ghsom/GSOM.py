@@ -43,6 +43,7 @@ class GSOM:
                                     dataset_percentage, min_dataset_size, seed)
 
             _iter += 1
+            print('\t Iteraccion: ', _iter)
             can_grow = self.__can_grow()
             if can_grow:
                 self.grow()
@@ -233,6 +234,7 @@ class GSOM:
         shape = self.weights_map[0].shape
         return shape[0], shape[1]
 
+
     def __training_data(self, seed, dataset_percentage, min_size):
         dataset_size = len(self.__parent_dataset)
         if dataset_size <= min_size:
@@ -243,3 +245,10 @@ class GSOM:
         random_generator = np.random.RandomState(seed)
         for _ in iterator:
             yield self.__parent_dataset[random_generator.randint(dataset_size)]
+
+
+
+
+    #added by adriwitek
+    def get_weights_map(self):
+        return self.weights_map[0]

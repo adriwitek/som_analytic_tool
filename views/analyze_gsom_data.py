@@ -182,7 +182,7 @@ def toggle_accordion(n1, n2,n3,n4, is_open1, is_open2,is_open3,is_open4):
 
 
 
-#Actualizar mapas de frecuencias
+#Winners map
 @app.callback(Output('winners_map_gsom','figure'),
               Input('ver_winners_map_gsom_button','n_clicks'),
               prevent_initial_call=True 
@@ -269,6 +269,112 @@ def update_winner_map_gsom(click):
 
     return fig
    
+
+
+
+
+
+
+
+#Habilitar boton ver_mapas_componentes_button_gsom
+@app.callback(Output('ver_mapas_componentes_button_gsom','disabled'),
+              Input('dropdown_atrib_names_gsom','value')
+            )
+def enable_ver_mapas_componentes_button(values):
+    if ( values ):
+        return False
+    else:
+        return True
+
+
+#Actualizar mapas de componentes
+@app.callback(Output('component_plans_figures_gsom_div','children'),
+              Input('ver_mapas_componentes_button_gsom','n_clicks'),
+              State('dropdown_atrib_names_gsom','value'),
+              prevent_initial_call=True 
+              )
+def update_mapa_componentes_gsom_fig(click,names):
+
+
+    som = session_data.get_modelo()
+    params = session_data.get_gsom_model_info_dict()
+    tam_eje_x = params['x']
+    tam_eje_y = params['y']
+
+
+    dataset = session_data.get_data()
+    data = dataset[:,:-1]
+    targets = dataset[:,-1:]
+    n_samples = dataset.shape[0]
+    n_features = dataset.shape[1]
+
+
+    zero_unit = session_data.get_modelo()
+    gsom = zero_unit.child_map
+    
+    #Weights MAP
+    weights_map= gsom.get_weights_map()
+    # weights_map[(row,col)] = np vector whith shape=n_feauters, dtype=np.float32
+
+
+
+
+    # Getting selected attrribs indexes
+    with open(SESSION_DATA_FILE_DIR) as json_file:
+        datos_entrenamiento = json.load(json_file)
+
+    nombres_columnas = datos_entrenamiento['columns_names']
+    nombres_atributos = nombres_columnas[0:len(nombres_columnas)-1]
+    lista_de_indices = []
+
+   
+
+    for n in names:
+        lista_de_indices.append(nombres_atributos.index(n) )
+    
+
+
+
+
+
+
+    traces = []
+
+
+    for k in lista_de_indices:
+        data_to_plot = np.empty([tam_eje_x ,tam_eje_y],dtype=object)
+        for i in range(tam_eje_x):
+            for j in range(tam_eje_y):
+                data_to_plot[i][j] = weights_map[(i,j)][k]
+        
+        figure= go.Figure(layout= {"height": 300,'width' : 300, 'title': nombres_atributos[k] },
+                          data=go.Heatmap(z=data_to_plot,showscale= True)                                                      
+        ) 
+
+        id ='graph-{}'.format(k)
+
+        traces.append(
+            html.Div(children= dcc.Graph(id=id,figure=figure)
+            ) 
+        )
+                   
+    print('render finalizado')
+    return traces
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   
 
 
