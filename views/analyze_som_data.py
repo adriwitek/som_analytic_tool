@@ -219,11 +219,14 @@ def update_mapa_componentes_fig(click,names):
     with open(SESSION_DATA_FILE_DIR) as json_file:
         datos_entrenamiento = json.load(json_file)
 
-    tam_eje_x = datos_entrenamiento['som_tam_eje_x'] 
-    tam_eje_y = datos_entrenamiento['som_tam_eje_y'] 
+
+    params = session_data.get_som_model_info_dict()
+    tam_eje_vertical = params['tam_eje_vertical'] 
+    tam_eje_horizontal = params['tam_eje_horizontal'] 
     nombres_columnas = datos_entrenamiento['columns_names']
     nombres_atributos = nombres_columnas[0:len(nombres_columnas)-1]
     lista_de_indices = []
+    print('Las  dimensiones del mapa entrenado son:',tam_eje_vertical,tam_eje_horizontal)
 
 
     for n in names:
@@ -284,8 +287,6 @@ def on_form_change(check):
 
 
     
-    ############################################
-    #               MAPA DE FRECUENCIAS
 
 
     

@@ -90,10 +90,20 @@ def analyze_gsom_data():
             #Card: U Matrix
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("aaaaaaa",color="link",id="button_collapse_gsom_3"))
+                    html.H2(dbc.Button("Matriz U",color="link",id="button_collapse_gsom_3"))
                 ),
                 dbc.Collapse(id="collapse_gsom_3",children=
                     dbc.CardBody(children=[
+
+                        html.Div(id = 'umatrix_div_fig_gsom',children = '',
+                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}
+                        ),
+                        html.Div( 
+                            [dbc.Button("Ver", id="ver_umatrix_gsom_button", className="mr-2", color="primary")],
+                            style={'textAlign': 'center'}
+                        )
+
+
 
                     ])
 
@@ -190,8 +200,8 @@ def toggle_accordion(n1, n2,n3,n4, is_open1, is_open2,is_open3,is_open4):
 def update_winner_map_gsom(click):
 
     params = session_data.get_gsom_model_info_dict()
-    tam_eje_x = params['x']
-    tam_eje_y = params['y']
+    tam_eje_vertical = params['tam_eje_vertical']
+    tam_eje_horizontal = params['tam_eje_horizontal']
 
     dataset = session_data.get_data()
     data = dataset[:,:-1]
@@ -206,7 +216,7 @@ def update_winner_map_gsom(click):
 
     #visualizacion
 
-    data_to_plot = np.empty([tam_eje_x ,tam_eje_y],dtype=object)
+    data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
     positions={}
 
     # Getting winnig neurons for each data element
@@ -222,8 +232,8 @@ def update_winner_map_gsom(click):
     print('posiciones:', positions)
 
     # Obtener clases representativas de cada neurona
-    for i in range(tam_eje_x):
-        for j in range(tam_eje_y):
+    for i in range(tam_eje_vertical):
+        for j in range(tam_eje_horizontal):
             if((i,j) in positions):
 
                 if(session_data.get_discrete_data() ):        #showing the class more represented in each neuron
@@ -238,7 +248,7 @@ def update_winner_map_gsom(click):
    
         
 
-    print('data_to_plot:',data_to_plot)
+    #print('data_to_plot:',data_to_plot)
     
     #type= heatmap para mas precision
     #heatmapgl
@@ -257,7 +267,7 @@ def update_winner_map_gsom(click):
                     })
     
     layout = {}
-    #layout['xaxis'] = {'range': [-0.5, tam_eje_x]}
+    #layout['xaxis'] = {'range': [-0.5, tam_eje_vertical]}
     layout['width'] = 700
     layout['height']= 700
     annotations = []
@@ -296,10 +306,9 @@ def enable_ver_mapas_componentes_button(values):
 def update_mapa_componentes_gsom_fig(click,names):
 
 
-    som = session_data.get_modelo()
     params = session_data.get_gsom_model_info_dict()
-    tam_eje_x = params['x']
-    tam_eje_y = params['y']
+    tam_eje_vertical = params['tam_eje_vertical']
+    tam_eje_horizontal = params['tam_eje_horizontal']
 
 
     dataset = session_data.get_data()
@@ -333,18 +342,13 @@ def update_mapa_componentes_gsom_fig(click,names):
         lista_de_indices.append(nombres_atributos.index(n) )
     
 
-
-
-
-
-
     traces = []
 
 
     for k in lista_de_indices:
-        data_to_plot = np.empty([tam_eje_x ,tam_eje_y],dtype=object)
-        for i in range(tam_eje_x):
-            for j in range(tam_eje_y):
+        data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
+        for i in range(tam_eje_vertical):
+            for j in range(tam_eje_horizontal):
                 data_to_plot[i][j] = weights_map[(i,j)][k]
         
         figure= go.Figure(layout= {"height": 300,'width' : 300, 'title': nombres_atributos[k] },
@@ -360,21 +364,6 @@ def update_mapa_componentes_gsom_fig(click,names):
                    
     print('render finalizado')
     return traces
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   
 
 
@@ -399,14 +388,115 @@ def on_form_change(check):
 
 
 
+#Aux fun
+def get_distances(weights_map, saved_distances, x,y,a,b):
+    '''
+        Aux. fun for ver_umatrix_gsom_fig callbacks to optimize the calc. of umatrix
+    '''
+    if (  (x,y,a,b) in saved_distances ):
+        return saved_distances[(x,y,a,b)]
+    elif (  (a,b,x,y) in saved_distances):
+        return saved_distances[(a,b,x,y)]
+    else:
+        v1 = weights_map[(x,y)]
+        v2 = weights_map[(a,b)]
+        distancia = np.linalg.norm(v1-v2) # euclidean distance
+        saved_distances[(x,y,a,b)] = distancia
+        return distancia
+
+
+
+#Ver UMatrix GSOM
+@app.callback(Output('umatrix_div_fig_gsom','children'),
+              Input('ver_umatrix_gsom_button','n_clicks'),
+              prevent_initial_call=True 
+              )
+def ver_umatrix_gsom_fig(click):
+
+    print('Button clicked, calculating umatrix')
+
+    params = session_data.get_gsom_model_info_dict()
+    tam_eje_vertical = params['tam_eje_vertical']
+    tam_eje_horizontal = params['tam_eje_horizontal']
+
+
+    zero_unit = session_data.get_modelo()
+    gsom = zero_unit.child_map
+    
+
+    #Weights MAP
+    weights_map= gsom.get_weights_map()
+    # weights_map[(row,col)] = np vector whith shape=n_feauters, dtype=np.float32
+
+
+
+    data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
+
+    saved_distances= {} #for saving distances
+    # saved_distances[i,j,a,b] with (i,j) and (a,b) neuron cords
+
+    for i in range(tam_eje_vertical):
+        for j in range(tam_eje_horizontal):
+            print('pesos[][]: ',i, j, '---:  ',weights_map[(i,j)])
+
+    print('eje x e y: ',tam_eje_vertical,tam_eje_horizontal)
+    for i in range(tam_eje_vertical):
+        for j in range(tam_eje_horizontal):
+
+            neuron_neighbords = []
+           
+            
+            if(j-1 >= 0): #bottom   neighbor
+                neuron_neighbords.append( get_distances(weights_map, saved_distances, i,j,i,j-1))
+            if(j+1 < tam_eje_horizontal):#top  neighbor
+                neuron_neighbords.append( get_distances(weights_map, saved_distances, i,j,i,j+1))
+            if(i-1 >= 0): #  #left  neighbor
+                neuron_neighbords.append( get_distances(weights_map, saved_distances, i,j,i-1,j))
+            if(i+1 < tam_eje_vertical ): #right neighbor
+                neuron_neighbords.append( get_distances(weights_map, saved_distances, i,j,i+1,j))
+
+            if(any(neuron_neighbords) ):
+                data_to_plot[i][j] = sum(neuron_neighbords)/len(neuron_neighbords)
+
+
+    print('distancias' )
+    for item in saved_distances.items():
+        print(item)
+
+    trace = dict(type='heatmap', z=data_to_plot, colorscale = 'Jet')
+    data=[trace]
+
+    
+    data.append({'type': 'scattergl',
+                    'mode': 'text',
+                    #'x': x_ticks,
+                    #'y': y_ticks,
+                    'text': 'a'
+                    })
+    
+    layout = {}
+    layout['width'] = 700
+    layout['height']= 700
+    annotations = []
+    fig = dict(data=data, layout=layout)
+
+
+    
+    children = [ dcc.Graph(id='umatrix_fig_gsom',figure=fig)  ]
+
+    print('\nVISUALIZACION:gsom renderfinalizado\n')
+
+
+
+    return children
+
 
 
 #Save GSOM model
 @app.callback(Output('check_correctly_saved_gsom', 'children'),
               Input('save_model_gsom', 'n_clicks'),
-             
               prevent_initial_call=True )
-def save_gsom_model(n_clicks,):
+def save_gsom_model(n_clicks):
 
     data = []
 

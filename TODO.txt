@@ -19,7 +19,7 @@ añadir el nombre del fichero cuando se guarda el modelo.
 quitar la carga de datos a traves de json
 organizar los imports no usados
 problemas al borrar carptetas como saved data
-
+LOS TICKS DE LOS HEATMPAS EMPIEZAN EN -0.5 AUNQUE LA CASILLA ESTA BIEN CENTRADA
 
 
 #PREGUNTAS
@@ -39,3 +39,9 @@ guardar/cargar soms entrenados
 
 #mejorar?
     Improving performance with memoization
+
+
+
+#DUDAS IMPLEMENTACION
+
+La u matrix en gsom, no es exactamente igual que la umatrix en gsom

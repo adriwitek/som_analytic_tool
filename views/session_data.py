@@ -61,15 +61,15 @@ class Sesion():
 
 
 
-    def set_som_model_info_dict(self,x,y,learning_rate,neigh_fun,distance_fun,sigma,iteraciones, inicialitacion_pesos):
+    def set_som_model_info_dict(self,tam_eje_vertical,tam_eje_horizontal,learning_rate,neigh_fun,distance_fun,sigma,iteraciones, inicialitacion_pesos):
 
         #Only one model could be used at once
         self.som_params= {}
         self.gsom_params=None
         self.ghsom_params=None
 
-        self.som_params['x'] = x
-        self.som_params['y'] = y 
+        self.som_params['tam_eje_vertical'] = tam_eje_vertical
+        self.som_params['tam_eje_horizontal'] = tam_eje_horizontal 
         self.som_params['learning_rate'] = learning_rate
         self.som_params['neigh_fun'] = neigh_fun
         self.som_params['distance_fun'] = distance_fun
@@ -85,15 +85,15 @@ class Sesion():
 
 
 
-    def set_gsom_model_info_dict(self,x,y,tau_2,learning_rate,decadency,sigma,epocas_gsom,max_iter_gsom):
+    def set_gsom_model_info_dict(self,tam_eje_vertical,tam_eje_horizontal,tau_2,learning_rate,decadency,sigma,epocas_gsom,max_iter_gsom):
 
         #Only one model could be used at once
         self.som_params= None
         self.gsom_params={}
         self.ghsom_params=None
 
-        self.gsom_params['x'] = x
-        self.gsom_params['y'] = y 
+        self.gsom_params['tam_eje_vertical'] = tam_eje_vertical
+        self.gsom_params['tam_eje_horizontal'] =tam_eje_horizontal
         self.gsom_params['tau_2'] = tau_2 
         self.gsom_params['learning_rate'] = learning_rate
         self.gsom_params['decadency'] = decadency
@@ -133,8 +133,8 @@ class Sesion():
 
 
             #SOM Params
-            session_data['som_tam_eje_x'] = 0 
-            session_data['som_tam_eje_y'] = 0 
+            session_data['som_tam_eje_vertical'] = 0 
+            session_data['som_tam_eje_horizontal'] = 0 
 
             return session_data        
 
@@ -149,12 +149,12 @@ class Sesion():
 
             if model_type == 'som':
                 model_info['model_type'] = 'som'
-                model_info['mapa_tam_eje_x'] = 0 
-                model_info['mapa_tam_eje_y'] = 0 
+                model_info['mapa_tam_eje_vertical'] = 0 
+                model_info['mapa_tam_eje_horizontal'] = 0 
             elif model_type == 'gsom':
                 model_info['model_type'] = 'gsom'
-                model_info['mapa_tam_eje_x'] = 0 
-                model_info['mapa_tam_eje_y'] = 0 
+                model_info['mapa_tam_eje_vertical'] = 0 
+                model_info['mapa_tam_eje_horizontal'] = 0 
             elif model_type == 'ghsom':
                 model_info['model_type'] = 'ghsom'
             else: 

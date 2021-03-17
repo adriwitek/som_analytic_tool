@@ -190,12 +190,12 @@ def train_gsom(n_clicks,tau_2,tasa_aprendizaje_gsom,decadencia_gsom,sigma,epocas
     #matriz_de_pesos_neuronas = __gmap_to_matrix(gsom.weights_map)
 
 
-    tam_eje_x,tam_eje_y=  gsom.map_shape()
-    session_data.set_gsom_model_info_dict(tam_eje_x,tam_eje_y,tau_2,tasa_aprendizaje_gsom,decadencia_gsom,sigma_gausiana,epocas_gsom,max_iter_gsom)
+    tam_eje_vertical,tam_eje_horizontal=  gsom.map_shape()
+    session_data.set_gsom_model_info_dict(tam_eje_vertical,tam_eje_horizontal,tau_2,tasa_aprendizaje_gsom,decadencia_gsom,sigma_gausiana,epocas_gsom,max_iter_gsom)
     session_data.set_modelo(zero_unit)
 
 
-    print('Las nuevas dimensiones del mapa entrenado son:',tam_eje_x,tam_eje_y)
+    print('Las nuevas dimensiones del mapa entrenado son:',tam_eje_vertical,tam_eje_horizontal)
 
     print('ENTRENAMIENTO DEL GSOM FINALIZADO\n')
 

@@ -25,11 +25,11 @@ def train_som_view():
                         #style={'textAlign': 'center'}
                         children=[
 
-                            html.H5(children='Tamaño del grid(eje X):'),
-                            dcc.Input(id="tam_eje_x", type="number", value=2,step=1,min=1),
+                            html.H5(children='Tamaño del grid(Eje vertical):'),
+                            dcc.Input(id="tam_eje_vertical", type="number", value=2,step=1,min=1),
 
-                            html.H5(children='Tamaño del grid(eje Y):'),
-                            dcc.Input(id="tam_eje_y", type="number", value=2,step=1,min=1),
+                            html.H5(children='Tamaño del grid(Eje horizontal):'),
+                            dcc.Input(id="tam_eje_horizontal", type="number", value=2,step=1,min=1),
 
                             html.H5(children='Tasa de aprendizaje:'),
                             dcc.Input(id="tasa_aprendizaje_som", type="number", value="0.5",step=0.01,min=0,max=5),
@@ -134,8 +134,8 @@ def train_som_view():
 
 #Habilitar boton train som
 @app.callback(Output('train_button_som','disabled'),
-              Input('tam_eje_x', 'value'),
-              Input('tam_eje_y', 'value'),
+              Input('tam_eje_vertical', 'value'),
+              Input('tam_eje_horizontal', 'value'),
               Input('tasa_aprendizaje_som', 'value'),
               Input('dropdown_vecindad', 'value'),
               Input('dropdown_topology', 'value'),
@@ -144,9 +144,9 @@ def train_som_view():
               Input('iteracciones', 'value'),
               Input('dropdown_inicializacion_pesos','value')
             )
-def enable_train_som_button(tam_eje_x,tam_eje_y,tasa_aprendizaje,vecindad, topology, distance,
+def enable_train_som_button(tam_eje_vertical,tam_eje_horizontal,tasa_aprendizaje,vecindad, topology, distance,
                             sigma,iteracciones,dropdown_inicializacion_pesos):
-    if all(i is not None for i in [tam_eje_x,tam_eje_y,tasa_aprendizaje,vecindad, topology, distance,
+    if all(i is not None for i in [tam_eje_vertical,tam_eje_horizontal,tasa_aprendizaje,vecindad, topology, distance,
                                     sigma,iteracciones,dropdown_inicializacion_pesos]):
         return False
     else:
@@ -158,8 +158,8 @@ def enable_train_som_button(tam_eje_x,tam_eje_y,tasa_aprendizaje,vecindad, topol
 
 @app.callback(Output('som_entrenado', 'children'),
               Input('train_button_som', 'n_clicks'),
-              State('tam_eje_x', 'value'),
-              State('tam_eje_y', 'value'),
+              State('tam_eje_vertical', 'value'),
+              State('tam_eje_horizontal', 'value'),
               State('tasa_aprendizaje_som', 'value'),
               State('dropdown_vecindad', 'value'),
               State('dropdown_topology', 'value'),
@@ -168,7 +168,7 @@ def enable_train_som_button(tam_eje_x,tam_eje_y,tasa_aprendizaje,vecindad, topol
               State('iteracciones', 'value'),
               State('dropdown_inicializacion_pesos','value'),
               prevent_initial_call=True )
-def train_som(n_clicks,x,y,tasa_aprendizaje,vecindad, topology, distance,sigma,iteracciones,pesos_init):
+def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, topology, distance,sigma,iteracciones,pesos_init):
 
     tasa_aprendizaje=float(tasa_aprendizaje)
     sigma = float(sigma)
@@ -178,29 +178,19 @@ def train_som(n_clicks,x,y,tasa_aprendizaje,vecindad, topology, distance,sigma,i
     # TRAINING
     dataset = session_data.get_data()
 
-
-    session_data.set_som_model_info_dict(x,y,tasa_aprendizaje,vecindad,distance,sigma,iteracciones, pesos_init)
+    #ojo en numpy: array[ejevertical][ejehorizontal] ,al contratio que en plotly
+    session_data.set_som_model_info_dict(eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad,distance,sigma,iteracciones, pesos_init)
 
     #TODO BORRAR ESTO DEL JSON
 
     #Plasmamos datos en el json
-    '''
-    with open(SESSION_DATA_FILE_DIR) as json_file:
-        datos_entrenamiento = json.load(json_file)
-
-    datos_entrenamiento['som_tam_eje_x'] = x
-    datos_entrenamiento['som_tam_eje_y'] = y
-
-    with open(SESSION_DATA_FILE_DIR, 'w') as outfile:
-        json.dump(datos_entrenamiento, outfile)
-
-    '''
+ 
     data = dataset[:,:-1]
     targets = dataset[:,-1:]
     n_samples = dataset.shape[0]
     n_features = dataset.shape[1]
 
-    som = minisom.MiniSom(x=x, y=y, input_len=data.shape[1], sigma=sigma, learning_rate=tasa_aprendizaje,
+    som = minisom.MiniSom(x=eje_vertical, y=eje_horizontal, input_len=data.shape[1], sigma=sigma, learning_rate=tasa_aprendizaje,
                 neighborhood_function=vecindad, topology=topology,
                  activation_distance=distance, random_seed=None)
     
@@ -239,11 +229,11 @@ def update_som_fig(n_clicks):
     with open(SESSION_DATA_FILE_DIR) as json_file:
         datos_entrenamiento = json.load(json_file)
 
-    tam_eje_x = datos_entrenamiento['som_tam_eje_x'] 
-    tam_eje_y = datos_entrenamiento['som_tam_eje_y'] 
+    tam_eje_vertical = datos_entrenamiento['som_tam_eje_vertical'] 
+    tam_eje_horizontal = datos_entrenamiento['som_tam_eje_horizontal'] 
     '''
-    tam_eje_x = params['x']
-    tam_eje_y = params['y']
+    tam_eje_vertical = params['tam_eje_vertical']
+    tam_eje_horizontal = params['tam_eje_horizontal']
     
     #TODO : cambiar esto por guardado bien del dataset
 
@@ -260,7 +250,7 @@ def update_som_fig(n_clicks):
     targets_list = [t[0] for t in targets.tolist()]
     #print('targetssss',targets_list)
     labels_map = som.labels_map(data, targets_list)
-    data_to_plot = np.empty([tam_eje_x ,tam_eje_y],dtype=object)
+    data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
     #data_to_plot[:] = np.nan#labeled heatmap does not support nonetypes
 
     if(session_data.get_discrete_data() ):
@@ -283,16 +273,16 @@ def update_som_fig(n_clicks):
    
     fig = go.Figure(data=go.Heatmap(
                        z=data_to_plot,
-                       x=np.arange(tam_eje_x),
-                       y=np.arange(tam_eje_y),
+                       x=np.arange(tam_eje_vertical),
+                       y=np.arange(tam_eje_horizontal),
                        hoverongaps = True,
                        colorscale='Viridis'))
     fig.update_xaxes(side="top")
     '''
 
 
-    x_ticks = np.linspace(0, tam_eje_x,tam_eje_x, dtype= int,endpoint=False).tolist()
-    y_ticks = np.linspace(0, tam_eje_y,tam_eje_y,dtype= int, endpoint=False ).tolist()
+    x_ticks = np.linspace(0, tam_eje_vertical,tam_eje_vertical, dtype= int,endpoint=False).tolist()
+    y_ticks = np.linspace(0, tam_eje_horizontal,tam_eje_horizontal,dtype= int, endpoint=False ).tolist()
 
     ######################################
     # ANNOTATED HEATMAPD LENTO
@@ -339,7 +329,7 @@ def update_som_fig(n_clicks):
                     })
     
     layout = {}
-    layout['xaxis'] = {'range': [-0.5, tam_eje_x]}
+    layout['xaxis'] = {'range': [-0.5, tam_eje_vertical]}
     layout['width'] = 700
     layout['height']= 700
     annotations = []
