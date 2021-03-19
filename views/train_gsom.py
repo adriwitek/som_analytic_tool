@@ -195,7 +195,7 @@ def train_gsom(n_clicks,tau_2,tasa_aprendizaje_gsom,decadencia_gsom,sigma,epocas
     session_data.set_modelo(zero_unit)
 
 
-    print('Las nuevas dimensiones del mapa entrenado son:',tam_eje_vertical,tam_eje_horizontal)
+    print('Las nuevas dimensiones del mapa entrenado son(vertical,horizontal):',tam_eje_vertical,tam_eje_horizontal)
 
     print('ENTRENAMIENTO DEL GSOM FINALIZADO\n')
 

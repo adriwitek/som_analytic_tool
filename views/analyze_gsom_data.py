@@ -19,6 +19,8 @@ from  views.session_data import session_data
 from  config.config import *
 import pickle
 
+from  os.path import normpath 
+from re import search 
 
 
 fig = go.Figure()
@@ -111,7 +113,7 @@ def analyze_gsom_data():
             ]),
 
 
-             #Card: Frecuencias de activacion
+            #Card: Guardar modelo
             dbc.Card([
                 dbc.CardHeader(
                     html.H2(dbc.Button("Guardar modelo entrenado",color="link",id="button_collapse_gsom_4"))
@@ -120,6 +122,10 @@ def analyze_gsom_data():
                     dbc.CardBody(children=[
                   
                         html.Div(children=[
+                            
+                            html.H5("Nombre del fichero"),
+                            dbc.Input(id='nombre_de_fichero_a_guardar',placeholder="Nombre del archivo", className="mb-3"),
+
                             dbc.Button("Guardar modelo", id="save_model_gsom", className="mr-2", color="primary"),
                             html.P('',id="check_correctly_saved_gsom")
                             ],
@@ -150,6 +156,7 @@ def analyze_gsom_data():
     ])
 
     return layout
+
 
 
 
@@ -229,7 +236,7 @@ def update_winner_map_gsom(click):
             positions[(r,c)] = []
             positions[(r,c)].append(dataset[i][-1]) 
 
-    print('posiciones:', positions)
+    #print('posiciones:', positions)
 
     # Obtener clases representativas de cada neurona
     for i in range(tam_eje_vertical):
@@ -435,11 +442,14 @@ def ver_umatrix_gsom_fig(click):
     saved_distances= {} #for saving distances
     # saved_distances[i,j,a,b] with (i,j) and (a,b) neuron cords
 
+    '''
+    debugg
     for i in range(tam_eje_vertical):
         for j in range(tam_eje_horizontal):
             print('pesos[][]: ',i, j, '---:  ',weights_map[(i,j)])
-
     print('eje x e y: ',tam_eje_vertical,tam_eje_horizontal)
+
+    '''
     for i in range(tam_eje_vertical):
         for j in range(tam_eje_horizontal):
 
@@ -458,11 +468,12 @@ def ver_umatrix_gsom_fig(click):
             if(any(neuron_neighbords) ):
                 data_to_plot[i][j] = sum(neuron_neighbords)/len(neuron_neighbords)
 
-
+    '''
+    debug
     print('distancias' )
     for item in saved_distances.items():
         print(item)
-
+    '''
     trace = dict(type='heatmap', z=data_to_plot, colorscale = 'Jet')
     data=[trace]
 
@@ -491,12 +502,32 @@ def ver_umatrix_gsom_fig(click):
     return children
 
 
+#Save file name
+@app.callback(Output('nombre_de_fichero_a_guardar', 'valid'),
+              Output('nombre_de_fichero_a_guardar', 'invalid'),
+              Input('nombre_de_fichero_a_guardar', 'value'),
+              prevent_initial_call=True
+              )
+def check_savemodel_name(value):
+    
+    if not normpath(value) or search(r'[^A-Za-z0-9_\-]',value):
+        return False,True
+    else:
+        return True,False
+
+
+
 
 #Save GSOM model
 @app.callback(Output('check_correctly_saved_gsom', 'children'),
               Input('save_model_gsom', 'n_clicks'),
+              State('nombre_de_fichero_a_guardar', 'value'),
+              State('nombre_de_fichero_a_guardar', 'valid'),
               prevent_initial_call=True )
-def save_gsom_model(n_clicks):
+def save_gsom_model(n_clicks,name,isvalid):
+
+    if(not isvalid):
+        return ''
 
     data = []
 
@@ -506,10 +537,13 @@ def save_gsom_model(n_clicks):
     data.append(params)
     data.append(session_data.get_modelo())
 
+    '''
     now = datetime.now()
     dt_string = now.strftime("%Y_%m_%d__%H_%M")
     filename = 'gsom_model_' + dt_string + '.pickle'
-    
+    '''
+    filename =   name +  '_gsom.pickle'
+
     with open(DIR_SAVED_MODELS + filename, 'wb') as handle:
         pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
