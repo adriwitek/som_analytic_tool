@@ -15,6 +15,10 @@ import numpy as np
 
 from  views.session_data import session_data
 from  config.config import *
+import pickle
+from  os.path import normpath 
+from re import search 
+
 
 
 fig = go.Figure()
@@ -129,6 +133,30 @@ def analyze_som_data():
                     ])
 
                     ),
+            ]),
+
+
+
+            #Card: Guardar modelo
+            dbc.Card([
+                dbc.CardHeader(
+                    html.H2(dbc.Button("Guardar modelo entrenado",color="link",id="button_collapse_5"))
+                ),
+                dbc.Collapse(id="collapse_5",children=
+                    dbc.CardBody(children=[
+                  
+                        html.Div(children=[
+                            
+                            html.H5("Nombre del fichero"),
+                            dbc.Input(id='nombre_de_fichero_a_guardar_som',placeholder="Nombre del archivo", className="mb-3"),
+
+                            dbc.Button("Guardar modelo", id="save_model_som", className="mr-2", color="primary"),
+                            html.P('',id="check_correctly_saved_som")
+                            ],
+                            style={'textAlign': 'center'}
+                        ),
+                    ]),
+                ),
             ])
 
 
@@ -169,11 +197,11 @@ def analyze_som_data():
 ##################################################################
 
 @app.callback(
-    [Output(f"collapse_{i}", "is_open") for i in range(1, 5)],
-    [Input(f"button_collapse_{i}", "n_clicks") for i in range(1, 5)],
-    [State(f"collapse_{i}", "is_open") for i in range(1, 5)],
+    [Output(f"collapse_{i}", "is_open") for i in range(1, 6)],
+    [Input(f"button_collapse_{i}", "n_clicks") for i in range(1, 6)],
+    [State(f"collapse_{i}", "is_open") for i in range(1, 6)],
     prevent_initial_call=True)
-def toggle_accordion(n1, n2,n3,n4, is_open1, is_open2,is_open3,is_open4):
+def toggle_accordion(n1, n2,n3,n4,n5, is_open1, is_open2,is_open3,is_open4,is_open5):
     ctx = dash.callback_context
 
     if not ctx.triggered:
@@ -182,14 +210,16 @@ def toggle_accordion(n1, n2,n3,n4, is_open1, is_open2,is_open3,is_open4):
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
     if button_id == "button_collapse_1" and n1:
-        return not is_open1, is_open2, is_open3,is_open4
+        return not is_open1, is_open2, is_open3,is_open4, is_open5
     elif button_id == "button_collapse_2" and n2:
-        return is_open1, not is_open2, is_open3,is_open4
+        return is_open1, not is_open2, is_open3,is_open4, is_open5
     elif button_id == "button_collapse_3" and n3:
-        return is_open1, is_open2, not is_open3,is_open4
+        return is_open1, is_open2, not is_open3,is_open4, is_open5
     elif button_id == "button_collapse_4" and n4:
-        return is_open1, is_open2, is_open3, not is_open4
-    return False, False, False,False
+        return is_open1, is_open2, is_open3, not is_open4, is_open5
+    elif button_id == "button_collapse_5" and n5:
+        return is_open1, is_open2, is_open3, is_open4, not is_open5
+    return False, False, False,False,False
 
 
 #Habilitar boton ver_mapas_componentes_button
@@ -330,3 +360,54 @@ def update_umatrix(click):
 
     print('render finalizado')
     return  html.Div(children= dcc.Graph(id='graph_u_matrix',figure=figure))
+
+
+
+
+
+#Save file name
+@app.callback(Output('nombre_de_fichero_a_guardar_som', 'valid'),
+              Output('nombre_de_fichero_a_guardar_som', 'invalid'),
+              Input('nombre_de_fichero_a_guardar_som', 'value'),
+              prevent_initial_call=True
+              )
+def check_savesommodel_name(value):
+    
+    if not normpath(value) or search(r'[^A-Za-z0-9_\-]',value):
+        return False,True
+    else:
+        return True,False
+
+
+
+
+#Save GSOM model
+@app.callback(Output('check_correctly_saved_som', 'children'),
+              Input('save_model_som', 'n_clicks'),
+              State('nombre_de_fichero_a_guardar_som', 'value'),
+              State('nombre_de_fichero_a_guardar_som', 'valid'),
+              prevent_initial_call=True )
+def save_som_model(n_clicks,name,isvalid):
+
+    if(not isvalid):
+        return ''
+
+    data = []
+
+    params = session_data.get_som_model_info_dict()
+
+    data.append('som')
+    data.append(params)
+    data.append(session_data.get_modelo())
+
+    '''
+    now = datetime.now()
+    dt_string = now.strftime("%Y_%m_%d__%H_%M")
+    filename = 'gsom_model_' + dt_string + '.pickle'
+    '''
+    filename =   name +  '_som.pickle'
+
+    with open(DIR_SAVED_MODELS + filename, 'wb') as handle:
+        pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    return 'Modelo guardado correctamente. Nombre del fichero: ' + filename

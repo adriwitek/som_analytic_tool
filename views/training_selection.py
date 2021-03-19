@@ -193,7 +193,7 @@ def load_selected_model(n_clicks,filename):
 
     
     if  model_type ==  'som':
-        #todo apend
+        session_data.set_som_model_info_dict_direct(model_info)
         return dcc.Location(pathname=URLS['ANALYZE_SOM_URL'], id="redirect")
     elif model_type ==   'gsom':
         session_data.set_gsom_model_info_dict_direct(model_info)

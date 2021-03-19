@@ -77,6 +77,11 @@ class Sesion():
         self.som_params['iteraciones'] = iteraciones
         self.som_params['inicialitacion_pesos'] = inicialitacion_pesos
             
+    def set_som_model_info_dict_direct(self,dict):
+        #for laod model purpose
+        self.som_params= dict.copy()
+        self.gsom_params = None
+        self.ghsom_params=None
 
     def get_som_model_info_dict(self):
         return  self.som_params
