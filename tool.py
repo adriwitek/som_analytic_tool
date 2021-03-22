@@ -19,6 +19,7 @@ from views.training_selection import Training_selection
 from views.train_som import train_som_view
 from views.analyze_som_data import analyze_som_data
 from views.analyze_gsom_data import analyze_gsom_data
+from views.analyze_ghsom_data import analyze_ghsom_data
 from views.session_data import *
 
 from views import train_ghsom,train_gsom
@@ -52,6 +53,8 @@ def display_page(pathname):
         return analyze_som_data()
     elif pathname == URLS['ANALYZE_GSOM_URL']:
         return analyze_gsom_data()
+    elif pathname == URLS['ANALYZE_GHSOM_URL']:
+        return analyze_ghsom_data()
     else:
         return '404'
 

@@ -100,7 +100,7 @@ def sync_slider_tau2(tau2, slider_value):
               Input('epocas_gsom','value'),
               Input('max_iter_gsom','value'),
             )
-def enable_train_ghsom_button(tau2,tasa_aprendizaje_gsom,decadencia_gsom,sigma_gsom,epocas_gsom,max_iter_gsom):
+def enable_train_gsom_button(tau2,tasa_aprendizaje_gsom,decadencia_gsom,sigma_gsom,epocas_gsom,max_iter_gsom):
     '''Habilita el boton de train del gsom
 
     '''
@@ -126,7 +126,7 @@ def enable_train_ghsom_button(tau2,tasa_aprendizaje_gsom,decadencia_gsom,sigma_g
 def train_gsom(n_clicks,tau_2,tasa_aprendizaje_gsom,decadencia_gsom,sigma,epocas_gsom,max_iter_gsom):
 
 
-    #MEJORAR EL ALGORITMO:
+    # TODO MEJORAR EL ALGORITMO:
     tau_1 = 0
 
 

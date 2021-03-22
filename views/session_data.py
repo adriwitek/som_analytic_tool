@@ -121,7 +121,32 @@ class Sesion():
 
 
 
-    #TODO ADD THIS TO GHSOM MODEL
+
+
+    def set_ghsom_model_info_dict(self,tau_1,tau_2,learning_rate,decadency,sigma,epocas_ghsom,max_iter_ghsom):
+
+        #Only one model could be used at once
+        self.som_params= None
+        self.gsom_params=None
+        self.ghsom_params={}    
+        self.ghsom_params['tau_1'] = tau_1 
+        self.ghsom_params['tau_2'] = tau_2 
+        self.ghsom_params['learning_rate'] = learning_rate
+        self.ghsom_params['decadency'] = decadency
+        self.ghsom_params['sigma'] = sigma
+        self.ghsom_params['epocas_gsom'] = epocas_ghsom
+        self.ghsom_params['max_iter_gsom'] = max_iter_ghsom
+
+
+    def set_ghsom_model_info_dict_direct(self,dict):
+        #for laod model purpose
+        self.som_params= None
+        self.gsom_params = None
+        self.ghsom_params=dict.copy()
+            
+
+    def get_ghsom_model_info_dict(self):
+        return  self.ghsom_params
 
 
     @staticmethod

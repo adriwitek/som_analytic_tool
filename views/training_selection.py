@@ -54,7 +54,7 @@ def Training_selection():
                     dbc.ListGroupItem([
                         html.H4('GSOM',style={'textAlign': 'center'} ),
                         html.Div( 
-                            [dbc.Button("SOM", id="train_mode_gsom_button",href='/train-gsom', className="mr-2", color="primary",)],
+                            [dbc.Button("GSOM", id="train_mode_gsom_button",href='/train-gsom', className="mr-2", color="primary",)],
                             style={'textAlign': 'center'}
                         )
                     ]),
@@ -64,7 +64,7 @@ def Training_selection():
                     dbc.ListGroupItem([
                         html.H4('GHSOM',style={'textAlign': 'center'} ),
                         html.Div( 
-                            [dbc.Button("SOM", id="train_mode_ghsom_button",href='/train-ghsom', className="mr-2", color="primary",)],
+                            [dbc.Button("GHSOM", id="train_mode_ghsom_button",href='/train-ghsom', className="mr-2", color="primary",)],
                             style={'textAlign': 'center'}
                         )
                     ]),
@@ -199,7 +199,7 @@ def load_selected_model(n_clicks,filename):
         session_data.set_gsom_model_info_dict_direct(model_info)
         return dcc.Location(pathname=URLS['ANALYZE_GSOM_URL'], id="redirect")
     elif model_type ==   'ghsom':
-        #todo apend
+        session_data.set_ghsom_model_info_dict_direct(model_info)
         return dcc.Location(pathname=URLS['ANALYZE_GHSOM_URL'], id="redirect")
     else:   #it something goes worng 
         return dcc.Location(pathname="/", id="redirect")

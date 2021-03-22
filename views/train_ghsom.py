@@ -8,6 +8,8 @@ from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 import  views.elements as elements
 
+from models.ghsom.GHSOM import GHSOM
+from models.ghsom.GSOM import GSOM 
 
 from  views.session_data import session_data
 from  config.config import *
@@ -33,11 +35,22 @@ formulario_ghsom =  dbc.ListGroupItem([
 
                     html.H5(children='Sigma gaussiana:'),
                     dcc.Input(id="sigma", type="number", value="1.5",step=0.01,min=0,max=10),
+
+                    html.H5(children='Número máximo de iteracciones:'),
+                    dcc.Input(id="max_iter_ghsom", type="number", value="100",step=1),
+
+                    html.H5(children='Épocas:'),
+                    dcc.Input(id="epocas_ghsom", type="number", value="15",step=1,min=1),
+
+
+
                     html.Hr(),
                     html.Div( 
-                        [dbc.Button("Entrenar", id="train_button_ghsom",disabled= True, className="mr-2", color="primary")],
+                        [dbc.Button("Entrenar", id="train_button_ghsom",href='analyze-ghsom-data',disabled= True, className="mr-2", color="primary")],
                         style={'textAlign': 'center'}
-                    )
+                    ),
+                    #for training callback
+                    html.Div(id='trained_ghsom_div',children=''),
                     
 
 
@@ -136,12 +149,15 @@ def sync_slider_tau2(tau2, slider_value):
               Input('tau2','value'),
               Input('tasa_aprendizaje','value'),
               Input('decadencia','value'),
-              Input('sigma','value'))
-def enable_train_ghsom_button(tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana):
+              Input('sigma','value'),
+              Input('max_iter_ghsom','value'),
+              Input('epocas_ghsom','value')
+              )
+def enable_train_ghsom_button(tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,max_iter_ghsom, epocas_ghsom):
     '''Habilita el boton de train del ghsom
 
     '''
-    if all(i is not None for i in [tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana]):
+    if all(i is not None for i in [tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana, max_iter_ghsom, epocas_ghsom ]):
         return False
     else:
         return True
@@ -149,25 +165,50 @@ def enable_train_ghsom_button(tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussi
 
 
 #Boton train ghsom
-@app.callback(Output('test_element', 'value'),
-              Input('train_button_ghsom_button', 'n_clicks'),
+@app.callback(Output('trained_ghsom_div', 'value'),
+              Input('train_button_ghsom', 'n_clicks'),
               State('tau1','value'),
               State('tau2','value'),
               State('tasa_aprendizaje','value'),
               State('decadencia','value'),
               State('sigma','value'),
+              State('epocas_ghsom','value'),
+              State('max_iter_ghsom','value'),
               prevent_initial_call=True )
-def train_ghsom(n_clicks,tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana):
+def train_ghsom(n_clicks,tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,epocas_ghsom, max_iter_ghsom):
 
-    #dataset = esion.data
-    '''
-    sesion.set_modelo(ghsom)
+    print('button clickedddddddddddd\n', flush=True)
+    tau1 = float(tau1)
+    tau2 = float(tau2)
+    tasa_aprendizaje=float(tasa_aprendizaje)
+    decadencia = float(decadencia)
+    sigma_gaussiana = float(sigma_gaussiana)
+    epocas_ghsom = int(epocas_ghsom)
+    max_iter_ghsom = int(max_iter_ghsom)
+
+
+    dataset = session_data.get_data()
+
+
+    data = dataset[:,:-1]
+    targets = dataset[:,-1:]
+    n_samples = dataset.shape[0]
+    n_features = dataset.shape[1]
+
+    print('debug point 1')
+
+
     
-    ghsom = GHSOM(dataset , tau1, tau2, tasa_aprendizaje, decadencia, sigma_gaussiana)
-    zero_unit = ghsom.train(epochs_number=15, dataset_percentage=1, min_dataset_size=1, seed=0, grow_maxiter=100)
-    interactive_plot_with_labels(zero_unit.child_map, data, labels)
-    plt.show()
-    '''
+    
+    ghsom = GHSOM(input_dataset = data, t1= tau1, t2= tau2, learning_rate= tasa_aprendizaje, decay= decadencia, gaussian_sigma=sigma_gaussiana, growing_metric="qe")
+    zero_unit = ghsom.train(epochs_number=epocas_ghsom, dataset_percentage=1, min_dataset_size=1, seed=0, grow_maxiter=max_iter_ghsom)
+    session_data.set_ghsom_model_info_dict(tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,epocas_ghsom,max_iter_ghsom)
+
+    session_data.set_modelo(zero_unit)
+    print('ENTRENAMIENTO DEL GHSOM FINALIZADO\n')
+    print('zerounit:',zero_unit)
+
+    
     return 'entrenamiento_completado'
 
 

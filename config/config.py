@@ -23,7 +23,7 @@ URLS= {
     'TRAINING_GHSOM_URL' : '/train-ghsom', 
     'ANALYZE_SOM_URL' : '/analyze-som-data', 
     'ANALYZE_GSOM_URL' : '/analyze-gsom-data', 
-    'ANALYZE_GHSOM_URL' : '/analyze-gHsom-data', 
+    'ANALYZE_GHSOM_URL' : '/analyze-ghsom-data', 
 
 }
 
