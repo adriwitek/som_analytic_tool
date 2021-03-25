@@ -252,3 +252,6 @@ class GSOM:
     #added by adriwitek
     def get_weights_map(self):
         return self.weights_map[0]
+
+    def get_neurons(self):
+        return self.neurons

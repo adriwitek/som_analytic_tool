@@ -236,6 +236,166 @@ def enable_ver_mapas_componentes_button(values):
 
 
 
+#Mapa neuonas ganadoras
+@app.callback(Output('winners_map', 'figure'),
+              Input('ver', 'n_clicks'),
+              prevent_initial_call=True )
+def update_som_fig(n_clicks):
+
+    print('\nVISUALIZACION clicked\n')
+
+
+    params = session_data.get_som_model_info_dict()
+    #TODO borrar
+    '''
+    with open(SESSION_DATA_FILE_DIR) as json_file:
+        datos_entrenamiento = json.load(json_file)
+
+    tam_eje_vertical = datos_entrenamiento['som_tam_eje_vertical'] 
+    tam_eje_horizontal = datos_entrenamiento['som_tam_eje_horizontal'] 
+    '''
+    tam_eje_vertical = params['tam_eje_vertical']
+    tam_eje_horizontal = params['tam_eje_horizontal']
+    
+    #TODO : cambiar esto por guardado bien del dataset
+
+    som = session_data.get_modelo()
+    dataset = session_data.get_data()
+    data = dataset[:,:-1]
+    targets = dataset[:,-1:]
+    n_samples = dataset.shape[0]
+    n_features = dataset.shape[1]
+
+   
+    
+    #print('targets',[t for t in targets])
+    targets_list = [t[0] for t in targets.tolist()]
+    #print('targetssss',targets_list)
+    labels_map = som.labels_map(data, targets_list)
+    data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
+    #data_to_plot[:] = np.nan#labeled heatmap does not support nonetypes
+
+    if(session_data.get_discrete_data() ):
+        #showing the class more represented in each neuron
+        for position in labels_map.keys():
+            label_fracs = [ labels_map[position][t] for t in targets_list]
+            max_value= max(label_fracs)
+            winner_class_index = label_fracs.index(max_value)
+            data_to_plot[position[0]][position[1]] = targets_list[winner_class_index]
+    else: #continuos data: mean of the mapped values in each neuron
+        for position in labels_map.keys():
+            #fractions
+            label_fracs = [ labels_map[position][t] for t in targets_list]
+            data_to_plot[position[0]][position[1]] = np.mean(label_fracs)
+
+    
+
+   
+
+    '''
+
+
+    x_ticks = np.linspace(0, tam_eje_vertical,tam_eje_vertical, dtype= int,endpoint=False).tolist()
+    y_ticks = np.linspace(0, tam_eje_horizontal,tam_eje_horizontal,dtype= int, endpoint=False ).tolist()
+
+    ######################################
+    # ANNOTATED HEATMAPD LENTO
+    #colorscale=[[np.nan, 'rgb(255,255,255)']]
+    #fig = ff.create_annotated_heatmap(
+    '''
+    '''
+    fig = custom_heatmap(
+        #x= x_ticks,
+        #y= y_ticks,
+        z=data_to_plot,
+        zmin=np.nanmin(data_to_plot),
+        zmax=np.nanmax(data_to_plot),
+        #xgap=5,
+        #ygap=5,
+        colorscale='Viridis',
+        #colorscale=colorscale,
+        #font_colors=font_colors,
+        
+        showscale=True #leyenda de colores
+        )
+    fig.update_layout(title_text='Clases ganadoras por neurona')
+    fig['layout'].update(plot_bgcolor='white')
+    '''
+
+    
+    #########################################################
+    # ANNOTATED HEATMAPD RAPIDOOO
+    
+    #type= heatmap para mas precision
+    #heatmapgl
+    trace = dict(type='heatmap', z=data_to_plot, colorscale = 'Jet')
+    data=[trace]
+
+    # Here's the key part - Scattergl text! 
+    
+
+
+    data.append({'type': 'scattergl',
+                    'mode': 'text',
+                    #'x': x_ticks,
+                    #'y': y_ticks,
+                    'text': 'a'
+                    })
+    
+    layout = {}
+    layout['title'] = 'Mapa de neuronas ganadoras'
+    layout['xaxis']  ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
+    layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
+    #layout['width'] = 700
+    #layout['height']= 700
+    annotations = []
+
+    fig = dict(data=data, layout=layout)
+
+    #condition_Nones = not(val is None)
+    #condition_nans= not(np.isnan(val))
+
+
+
+    #EIQUETANDO EL HEATMAP(solo los datos discretos)
+    #Improved vers. for quick annotations by me
+    if(session_data.get_discrete_data() ):
+        print('Etiquetando....')
+        for n, row in enumerate(data_to_plot):
+            for m, val in enumerate(row):
+                #TODO
+                #font_color = min_text_color if ( val < self.zmid ) else max_text_color    esto lo haria aun mas lento
+                if( not(val is None) ):
+                    annotations.append(
+                        go.layout.Annotation(
+                           text= str(val) ,
+                           x=m,
+                           y=n,
+                           #xref="x1",
+                           #yref="y1",
+                           #font=dict(color=font_color),
+                           showarrow=False,
+                        )
+                    )
+        
+
+    
+    
+    layout['annotations'] = annotations
+    
+
+    print('\nVISUALIZACION:renderfinalizado\n')
+
+    return fig
+
+
+
+
+
+
+
+
+
 #Actualizar mapas de componentes
 @app.callback(Output('component_plans_figures_div','children'),
               Input('ver_mapas_componentes_button','n_clicks'),
@@ -267,9 +427,19 @@ def update_mapa_componentes_fig(click,names):
 
     traces = []
 
+
+
+
+
+    xaxis_dict ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
+    yaxis_dict  ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
+       
+
+
     for i in lista_de_indices:
         
-        figure= go.Figure(layout= {"height": 300,'width' : 300, 'title': nombres_atributos[i] },
+        #figure= go.Figure(layout= {"height": 300,'width' : 300, 'title': nombres_atributos[i], 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict},
+        figure= go.Figure(layout= { 'title': nombres_atributos[i], 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict},
                           data=go.Heatmap(z=pesos[:,:,i].tolist(),showscale= True)                                                      
         ) 
 
@@ -331,10 +501,17 @@ def update_mapa_frecuencias_fig(click):
     som =  session_data.get_modelo()
     dataset = session_data.get_data()
     data = dataset[:,:-1]
- 
+    params = session_data.get_som_model_info_dict()
+    tam_eje_horizontal = params['tam_eje_horizontal'] 
+
+    xaxis_dict ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
+    yaxis_dict  ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
+       
+
+
     #frequencies is a np matrix
     frequencies = som.activation_response(data)
-    figure= go.Figure(layout= {'title': 'Mapa de frecuencias absolutas'},
+    figure= go.Figure(layout= {'title': 'Mapa de frecuencias absolutas', 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict},
                           data=go.Heatmap(z=frequencies.tolist(),showscale= True)                              
     ) 
     return figure
@@ -352,8 +529,14 @@ def update_umatrix(click):
 
     som = session_data.get_modelo()
     umatrix = som.distance_map()
- 
-    figure= go.Figure(layout= {'title': 'Matriz U'},
+    params = session_data.get_som_model_info_dict()
+    tam_eje_horizontal = params['tam_eje_horizontal'] 
+
+    xaxis_dict ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
+    yaxis_dict  ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
+       
+
+    figure= go.Figure(layout= {'title': 'Matriz U', 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict},
                           data=go.Heatmap(z=umatrix.tolist(),showscale= True)                              
     ) 
 

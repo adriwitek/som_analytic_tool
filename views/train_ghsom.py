@@ -20,12 +20,12 @@ formulario_ghsom =  dbc.ListGroupItem([
                     html.H4('Elección de parámetros',className="card-title"  ),
 
                     html.H5(children='Tau 1:'),
-                    dcc.Slider(id='tau1_slider', min=0,max=1,step=0.00001,value=0.9),
-                    dcc.Input(id="tau1", type="number", value="0.9",step=0.00001,min=0,max=1),
+                    dcc.Slider(id='tau1_slider', min=0,max=1,step=0.00001,value=0.1),
+                    dcc.Input(id="tau1", type="number", value="0.1",step=0.00001,min=0,max=1),
 
                     html.H5(children='Tau 2:'),
-                    dcc.Input(id="tau2", type="number", value="0.5",step=0.00001,min=0,max=1),
-                    dcc.Slider(id='tau2_slider', min=0,max=1,step=0.00001,value=0.5),
+                    dcc.Input(id="tau2", type="number", value="0.0001",step=0.00001,min=0,max=1),
+                    dcc.Slider(id='tau2_slider', min=0,max=1,step=0.00001,value=0.0001),
 
                     html.H5(children='Tasa de aprendizaje:'),
                     dcc.Input(id="tasa_aprendizaje", type="number", value="0.15",step=0.01,min=0,max=5),
@@ -37,7 +37,7 @@ formulario_ghsom =  dbc.ListGroupItem([
                     dcc.Input(id="sigma", type="number", value="1.5",step=0.01,min=0,max=10),
 
                     html.H5(children='Número máximo de iteracciones:'),
-                    dcc.Input(id="max_iter_ghsom", type="number", value="100",step=1),
+                    dcc.Input(id="max_iter_ghsom", type="number", value="10",step=1),
 
                     html.H5(children='Épocas:'),
                     dcc.Input(id="epocas_ghsom", type="number", value="15",step=1,min=1),

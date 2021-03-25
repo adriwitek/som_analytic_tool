@@ -274,8 +274,8 @@ def update_winner_map_gsom(click):
                     })
     
     layout = {}
-    #layout['xaxis'] = {'range': [-0.5, tam_eje_vertical]}
-    layout['width'] = 700
+    layout['xaxis']  ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
+    layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
     layout['height']= 700
     annotations = []
     fig = dict(data=data, layout=layout)
@@ -352,13 +352,19 @@ def update_mapa_componentes_gsom_fig(click,names):
     traces = []
 
 
+    xaxis_dict ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
+    yaxis_dict  ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
+
     for k in lista_de_indices:
         data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
         for i in range(tam_eje_vertical):
             for j in range(tam_eje_horizontal):
                 data_to_plot[i][j] = weights_map[(i,j)][k]
         
-        figure= go.Figure(layout= {"height": 300,'width' : 300, 'title': nombres_atributos[k] },
+      
+       
+
+        figure= go.Figure(layout= {"height": 300,'width' : 300, 'title': nombres_atributos[k], 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict },
                           data=go.Heatmap(z=data_to_plot,showscale= True)                                                      
         ) 
 
@@ -486,6 +492,8 @@ def ver_umatrix_gsom_fig(click):
                     })
     
     layout = {}
+    layout['xaxis']  ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
+    layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }  
     layout['width'] = 700
     layout['height']= 700
     annotations = []

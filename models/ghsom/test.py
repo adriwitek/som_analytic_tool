@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.datasets import load_digits
-from sklearn.datasets import fetch_mldata
+#from sklearn.datasets import fetch_mldata
 from collections import OrderedDict
 from GHSOM import GHSOM
 from matplotlib import pyplot as plt

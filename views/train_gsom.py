@@ -9,7 +9,7 @@ from views.app import app
 
 import  views.elements as elements
 
-from models.ghsom import GSOM
+from models.ghsom.GSOM import GSOM 
 from models.ghsom.neuron.neuron_builder import NeuronBuilder
 import json
 import numpy as np
@@ -161,7 +161,7 @@ def train_gsom(n_clicks,tau_2,tasa_aprendizaje_gsom,decadencia_gsom,sigma,epocas
         random_data_item = data[random_generator.randint(len(data))]
         random_weights[position] = random_data_item
     #GSOM
-    zero_unit.child_map = GSOM.GSOM( (2, 2),
+    zero_unit.child_map = GSOM( (2, 2),
                                 1,
                                 tau_1,
                                 data.shape[1],#esto tiene que ser el numero de atributos
@@ -199,28 +199,8 @@ def train_gsom(n_clicks,tau_2,tasa_aprendizaje_gsom,decadencia_gsom,sigma,epocas
 
     print('ENTRENAMIENTO DEL GSOM FINALIZADO\n')
 
+    #TODO
     return 'entrenadooooo el gosom'
 
 
 
-   
-
-     
-
-
-
-
-
-# Library test-function    (LA USA PARA LOS PIXELES)
-'''
-def __gmap_to_matrix(gmap):
-    gmap = gmap[0]
-    map_row = data_shape * gmap.shape[0]
-    map_col = data_shape * gmap.shape[1]
-    _image = np.empty(shape=(map_row, map_col), dtype=np.float32)
-    for i in range(0, map_row, data_shape):
-        for j in range(0, map_col, data_shape):
-            neuron = gmap[i // data_shape, j // data_shape]
-            _image[i:(i + data_shape), j:(j + data_shape)] = np.reshape(neuron, newshape=(data_shape, data_shape))
-    return _image
-'''
