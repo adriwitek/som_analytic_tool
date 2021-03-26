@@ -1,4 +1,5 @@
-from neuron.neuron import Neuron
+#from neuron.neuron import Neuron
+from models.ghsom.neuron.neuron import Neuron
 import numpy as np
 
 

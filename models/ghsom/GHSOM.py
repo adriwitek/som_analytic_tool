@@ -1,11 +1,12 @@
-from neuron import NeuronBuilder
+#from neuron import NeuronBuilder
+from models.ghsom.neuron import NeuronBuilder
 from models.ghsom import GSOM
 
 import numpy as np
 from queue import Queue
 import progressbar
 from multiprocessing import Pool
-
+import networkx as nx
 
 class GHSOM:
     def __init__(self, input_dataset, t1, t2, learning_rate, decay, gaussian_sigma, growing_metric="qe"):
@@ -19,6 +20,8 @@ class GHSOM:
         self.__t1 = t1
 
         self.__neuron_builder = NeuronBuilder(t2, growing_metric)
+        #todo borrar esto y el codigo de abajo
+        # self.structure_graph = None
 
     def train(self, epochs_number=15, dataset_percentage=0.25, min_dataset_size=1, seed=None, grow_maxiter=100):
         zero_unit = self.__init_zero_unit(seed=seed)
@@ -30,6 +33,14 @@ class GHSOM:
 
         active_dataset = len(zero_unit.input_dataset)
 
+        #network
+        self.structure_graph= nx.Graph()
+        self.structure_graph.add_node(zero_unit.child_map)
+        self.structure_graph.add_node(1, nivel = 1, parent = 0 )
+        self.structure_graph.add_edge(0, 1)
+        self.node_counter = 2
+
+        #Progressbar
         bar = progressbar.ProgressBar(max_value=active_dataset, widgets=[
             '[', progressbar.Timer(), '] ',
             progressbar.Bar(),
@@ -64,12 +75,16 @@ class GHSOM:
                         self.__new_map_weights(_neuron.position, gmap.weights_map[0])
                     )
 
+                    self.structure_graph.add_node(_neuron.child_map )
+                    self.structure_graph.add_edge( gmap , _neuron.child_map)
+
                     neuron_queue.put(_neuron)
 
                     active_dataset += len(_neuron.input_dataset)
 
             bar.update(bar.max_value - active_dataset)
 
+        zero_unit.graph = self.structure_graph
         return zero_unit
 
     def __init_zero_unit(self, seed):
@@ -151,3 +166,4 @@ class GHSOM:
         row, col = position
         map_rows, map_cols = map_shape[0], map_shape[1]
         return (row >= 0 and col >= 0) and (row < map_rows and col < map_cols)
+

@@ -13,6 +13,7 @@ import numpy as np
 from collections import Counter
 from datetime import datetime
 
+import plotly.graph_objects as go
 
 from  views.session_data import session_data
 from  config.config import *
@@ -21,7 +22,7 @@ import pickle
 from  os.path import normpath 
 from re import search 
 
-
+import networkx as nx
 
 
 
@@ -48,9 +49,16 @@ def analyze_ghsom_data():
                             style={'textAlign': 'center'}
                         ),
 
+                        
+
+                        html.Div(id = 'grafo_ghsom',children = '',
+                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+                        ),
+
                         html.Div(id = 'winners_submap_ghsom',children = '',
                                 style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
                         ),
+
                     ]),
                 ),
             ]),
@@ -176,7 +184,7 @@ def get_gsom_plotted_graph(figure_id,name, gsom,mapped_dataset):
             gsom(gsom):gsom to plot
             mapped_data(data): data mappaed to the gsom through the neuron parent of the gsom
         Returns:
-            figure(dcc.Graph)
+            figure(plotly)
     '''
 
     #TODO add annotations arg to this fun
@@ -243,17 +251,62 @@ def get_gsom_plotted_graph(figure_id,name, gsom,mapped_dataset):
     layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }   
     layout['width'] = 500
     layout['height']= 500
-    layout['title'] = name
+    #layout['title'] = name
     #layout['x'] = 'Longitud(neuronas) del GSOM'
     #layout['y'] = 'Longitud(neuronas) del GSOM'
 
     annotations = []
     fig = dict(data=data, layout=layout)
-    return dcc.Graph(id=figure_id,figure=fig)
+    return fig
     
 
 
+#Plot fig eith titles and gso size
+def get_figure_complete_div(fig,fig_id, title,gsom_level,tam_eje_horizontal, tam_eje_vertical,neurona_padre):
+    '''
 
+        neurona_padre: None or str tuple if it exits
+    '''
+
+    
+    if(neurona_padre is not None):
+        div_info_neurona_padre = html.Div(children = [
+            dbc.Badge('Neurona padre:', pill=True, color="light", className="mr-1"),
+            dbc.Badge(neurona_padre, pill=True, color="info", className="mr-1")
+        ])
+       
+    else:
+        div_info_neurona_padre= ''
+
+
+
+
+    div_inf_grid = html.Div(children = [
+        html.H3(title),
+
+        html.Div(children= [
+            dbc.Badge('Nivel '+ str(gsom_level), pill=True , color="info", className="mr-1"),
+            div_info_neurona_padre
+        ], style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-direction': 'column '}),
+
+        html.Div(children= [
+            dbc.Badge(tam_eje_horizontal, pill=True, color="info", className="mr-1"),
+            dbc.Badge('x', pill=True, color="light", className="mr-1"),
+            dbc.Badge(tam_eje_vertical, pill=True, color="info", className="mr-1"),
+            dbc.Badge('neuronas.', pill=True, color="light", className="mr-1")
+        ], style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'})
+        
+    ], style={'margin': '0 auto','width': '100%', 'display': 'flex','align-items': 'center', 'justify-content': 'center',
+                'flex-wrap': 'wrap', 'flex-direction': 'column ' })
+
+
+      
+    children =[ div_inf_grid, dcc.Graph(id=fig_id,figure=fig)  ]
+    div = html.Div(children=children, style={'margin': '0 auto','width': '100%', 'display': 'flex',
+                                             'align-items': 'center', 'justify-content': 'center',
+                                            'flex-wrap': 'wrap', 'flex-direction': 'column ' } )
+
+    return div
 
 
 
@@ -372,17 +425,19 @@ def update_winner_map_ghsom(click):
     layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
     layout['width'] = 700
     layout['height']= 700
-    layout['title'] = 'Mapa de neuronas ganadoras'
+    #layout['title'] = 'Mapa de neuronas ganadoras'
     annotations = []
     fig = dict(data=data, layout=layout)
 
 
-    children = [ dcc.Graph(id='winnersmap_fig_ghsom',figure=fig)  ]
+    div = get_figure_complete_div(fig,'winnersmap_fig_ghsom','Mapa de neuronas ganadoras',1,tam_eje_horizontal, tam_eje_vertical,None)
 
     print('\nVISUALIZACION:ghsom renderfinalizado\n')
 
+    return div
 
-    return children
+
+
 
 
 
@@ -403,12 +458,7 @@ def view_submaps(clickdata, plots_list):
     punto_clickeado = points[0]
     cord_vertical_punto_clickeado = punto_clickeado['x']
     cord_horizontal_punto_clickeado = punto_clickeado['y'] 
-    
     #z_data_punto_clickeado = punto_clickeado['z']
-
-
- 
-
 
     zero_unit = session_data.get_modelo()
     gsom_nivel_1 = zero_unit.child_map
@@ -416,35 +466,177 @@ def view_submaps(clickdata, plots_list):
     #neuronas[(row,col)]
     selected_neuron = neuronas[(cord_horizontal_punto_clickeado,cord_vertical_punto_clickeado)]
     selected_gsom = selected_neuron.child_map
+    tam_eje_vertical,tam_eje_horizontal=  selected_gsom.map_shape()
+
     if(selected_gsom is None):
         #return ['Esta neurona no tiene ningún submapa']
         return plots_list
 
 
 
-    id = 'gsom_level_2_son_of_' + str(cord_vertical_punto_clickeado) + '_' + str(cord_horizontal_punto_clickeado)
-    name = 'Nivel 2: GSOM hijo de la neurona (' + str(cord_vertical_punto_clickeado) + ',' + str(cord_horizontal_punto_clickeado) + ') del Nivel 1.'
-    graph_gsom = get_gsom_plotted_graph(id ,name, selected_gsom,zero_unit.input_dataset)
+    id = 'gsom_nivel_2_son_of_' + str(cord_vertical_punto_clickeado) + '_' + str(cord_horizontal_punto_clickeado)
+    name = 'Mapa de neuronas ganadoras'
+    fig = get_gsom_plotted_graph(id ,name, selected_gsom,zero_unit.input_dataset)
+    coordenada_neurona_padre = '(' + str(cord_vertical_punto_clickeado) + ',' + str(cord_horizontal_punto_clickeado) + ')'
+    fig_in_div = get_figure_complete_div(fig,id, name,2 ,tam_eje_horizontal, tam_eje_vertical,coordenada_neurona_padre)
 
 
 
     print('\nVISUALIZACION:ghsom nivel 2  renderfinalizado\n')
     if(len(plots_list) == 0):
-        children = [ graph_gsom ]
+        children = [ fig_in_div ]
         return children
     else:
-        plots_list.append(graph_gsom)
+        plots_list.append(fig_in_div)
         return plots_list
 
 
-  
 
 
 
 
 
 
+#grafo map
+@app.callback(Output('grafo_ghsom','children'),
+              Input('ver_winners_map_ghsom_button','n_clicks'),
+              prevent_initial_call=True 
+              )
+def ver_grafo_gsom(click):
 
+    zero_unit = session_data.get_modelo()
+    #g = zero_unit.graph
+    grafo = nx.Graph()
+    g = zero_unit.child_map.get_structure_graph(grafo,level=0)
+
+    
+    for n1,n2,attr in g.edges(data=True):
+        print ('a verrr',n1,n2,attr)
+    
+
+    edge_x = []
+    edge_y = []
+    edge_z = []
+
+    n= len(g.nodes)
+
+    nodes_dict = {}
+    counter = 0
+    for node in g.nodes:
+        if(node not in nodes_dict):
+            nodes_dict[node] = counter
+            counter = counter + 1
+
+    
+
+
+    for edge in g.edges:
+        nodo1,nodo2 = edge
+        a= nodes_dict[nodo1]
+        b=nodes_dict[nodo2]
+        '''
+        edge_x.append(0)
+        edge_y.append(g.nodes[nodo1]['nivel'] )
+        edge_z.append(a)
+
+        edge_x.append(0)
+        edge_y.append(g.nodes[nodo2]['nivel'])
+        edge_z.append(b)
+        '''
+        #2d
+        edge_x.append(a)
+        edge_y.append(-g.nodes[nodo1]['nivel'] )
+
+        edge_x.append(b)
+        edge_y.append(-g.nodes[nodo2]['nivel'])
+        
+    
+    edge_trace = go.Scatter(
+        x=edge_x, y=edge_y,
+        #z=edge_z,
+        line=dict(width=0.5, color='#888'),
+        hoverinfo='none',
+        mode='lines')
+
+    node_x = []
+    node_y = []
+    node_z = []
+    for node in g.nodes:
+        '''
+        node_x.append(0)
+        node_y.append( g.nodes[node]['nivel'] )
+        node_z.append(nodes_dict[node])
+        '''
+
+        node_x.append(nodes_dict[node])
+        node_y.append(- g.nodes[node]['nivel'] )
+
+    node_trace = go.Scatter(
+        x=node_x, y=node_y,
+        #z = node_z,
+        mode='markers',
+        hoverinfo='text',
+        marker=dict(
+            showscale=True,
+            # colorscale options
+            #'Greys' | 'YlGnBu' | 'Greens' | 'YlOrRd' | 'Bluered' | 'RdBu' |
+            #'Reds' | 'Blues' | 'Picnic' | 'Rainbow' | 'Portland' | 'Jet' |
+            #'Hot' | 'Blackbody' | 'Earth' | 'Electric' | 'Viridis' |
+            colorscale='YlGnBu',
+            reversescale=True,
+            color=[],
+            size=10,
+            colorbar=dict(
+                thickness=15,
+                title='Node Connections',
+                xanchor='left',
+                titleside='right'
+            ),
+            line_width=2))
+
+    '''
+    #Color nodes
+    node_adjacencies = []
+    node_text = []
+    for node, adjacencies in enumerate(g.adjacency()):
+        node_adjacencies.append(len(adjacencies[1]))
+        node_text.append('# of connections: '+str(len(adjacencies[1])))
+
+    node_trace.marker.color = node_adjacencies
+    node_trace.text = node_text
+    '''
+
+
+    data1=[edge_trace, node_trace]
+
+    axis=dict(showbackground=False,
+          showline=False,
+          zeroline=False,
+          showgrid=False,
+          showticklabels=False,
+          title=''
+          )
+
+    layout = go.Layout(
+            title="Estructura de los submapas que componen la red",
+            titlefont_size=16,
+            showlegend=False,
+            hovermode='closest',
+            margin=dict(b=20,l=5,r=5,t=40),
+            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False)
+            )
+           
+
+
+    fig = dict(data=data1,layout=layout)
+    #fig = go.Figure(data=data1, layout=layout)
+
+
+    children =[ dcc.Graph(id='grafo_ghsom',figure=fig)  ]
+    return html.Div(children=children, style={'margin': '0 auto','width': '100%', 'display': 'flex',
+                                             'align-items': 'center', 'justify-content': 'center',
+                                            'flex-wrap': 'wrap', 'flex-direction': 'column ' } )
 
 
 

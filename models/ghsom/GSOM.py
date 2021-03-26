@@ -1,5 +1,6 @@
 from math import ceil
 import numpy as np
+import networkx as nx
 
 
 class GSOM:
@@ -255,3 +256,17 @@ class GSOM:
 
     def get_neurons(self):
         return self.neurons
+
+
+    def get_structure_graph(self,grafo,level=0):
+
+        grafo.add_node(self,nivel =level )
+
+        for neuron in self.neurons.values():
+            if neuron.child_map is not None:
+                grafo.add_node(neuron.child_map ,nivel=level+1)
+                grafo.add_edge(self,neuron.child_map)
+                grafo = neuron.child_map.get_structure_graph(grafo,level=level+1)
+
+
+        return grafo

@@ -6,7 +6,9 @@
 APP_NAME = 'SOM Analytic Tool'
 PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
 
-
+#Models
+GHSOM_MAX_SUBLEVELS_VIEW = 25
+GHSOM_MAX_SUBMAPS_SIZE_VIEW = 200
 
 #DIR
 DIR_SAVED_MODELS='Saved_Data/'
