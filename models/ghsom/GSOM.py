@@ -264,8 +264,9 @@ class GSOM:
 
         for neuron in self.neurons.values():
             if neuron.child_map is not None:
-                grafo.add_node(neuron.child_map ,nivel=level+1)
+                grafo.add_node(neuron.child_map ,nivel=level+1, neurona_padre_pos= neuron.position)
                 grafo.add_edge(self,neuron.child_map)
+                print('+1edge')
                 grafo = neuron.child_map.get_structure_graph(grafo,level=level+1)
 
 

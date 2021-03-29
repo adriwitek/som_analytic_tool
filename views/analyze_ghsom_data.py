@@ -505,54 +505,50 @@ def view_submaps(clickdata, plots_list):
 def ver_grafo_gsom(click):
 
     zero_unit = session_data.get_modelo()
+    #TODO BORRAR ESTO EN GHSOM
     #g = zero_unit.graph
     grafo = nx.Graph()
     g = zero_unit.child_map.get_structure_graph(grafo,level=0)
 
-    
-    for n1,n2,attr in g.edges(data=True):
-        print ('a verrr',n1,n2,attr)
-    
-
+  
     edge_x = []
     edge_y = []
-    edge_z = []
 
-    n= len(g.nodes)
 
     nodes_dict = {}
     counter = 0
     for node in g.nodes:
-        if(node not in nodes_dict):
-            nodes_dict[node] = counter
-            counter = counter + 1
-
-    
+        nodes_dict[node] = counter
+        counter +=  1
 
 
     for edge in g.edges:
+        print('debug_+1edge')
         nodo1,nodo2 = edge
         a= nodes_dict[nodo1]
         b=nodes_dict[nodo2]
-        '''
-        edge_x.append(0)
-        edge_y.append(g.nodes[nodo1]['nivel'] )
-        edge_z.append(a)
-
-        edge_x.append(0)
-        edge_y.append(g.nodes[nodo2]['nivel'])
-        edge_z.append(b)
-        '''
-        #2d
+     
         edge_x.append(a)
         edge_y.append(-g.nodes[nodo1]['nivel'] )
 
         edge_x.append(b)
         edge_y.append(-g.nodes[nodo2]['nivel'])
+
+        #Fix to plot segments
+        edge_x.append(None)
+        edge_y.append(None)
+
+        print('eje del punto:', str(a),str(-g.nodes[nodo1]['nivel']),  'al punto:', str(b), str( -g.nodes[nodo2]['nivel']))
         
-    
+    #Centramos el nodo primero por estetica
+    #edge_x[0] = int(len(nodes_dict)/2)
+    print('edge_x:',edge_x)
+    print('edge_y:',edge_y)
+
+
     edge_trace = go.Scatter(
-        x=edge_x, y=edge_y,
+        x=edge_x, 
+        y=edge_y,
         #z=edge_z,
         line=dict(width=0.5, color='#888'),
         hoverinfo='none',
@@ -560,54 +556,47 @@ def ver_grafo_gsom(click):
 
     node_x = []
     node_y = []
-    node_z = []
-    for node in g.nodes:
-        '''
-        node_x.append(0)
-        node_y.append( g.nodes[node]['nivel'] )
-        node_z.append(nodes_dict[node])
-        '''
+    hover_text= []
+    levels = []
 
-        node_x.append(nodes_dict[node])
-        node_y.append(- g.nodes[node]['nivel'] )
+    for node in g.nodes:
+
+        x_cord = nodes_dict[node]
+        y_cord = - g.nodes[node]['nivel'] 
+        node_x.append(x_cord)
+        node_y.append(y_cord)
+
+
+        if('neurona_padre_pos' in g.nodes[node] ):
+            cord_ver,cord_hor = g.nodes[node]['neurona_padre_pos']
+            #string= 'Coordenadas neurona padre: (' + str(cord_hor) + ','+ str(cord_ver) + ')'
+            string = '(' + str(cord_hor) + ','+ str(cord_ver) + ')'
+            hover_text.append(string) 
+        else:
+            hover_text.append('')
+
+
+    #Centramos el nodo primero por estetica
+    #node_x[0] = int(len(nodes_dict)/2)
 
     node_trace = go.Scatter(
-        x=node_x, y=node_y,
-        #z = node_z,
+        x=node_x, 
+        y=node_y,
         mode='markers',
-        hoverinfo='text',
+        text=hover_text,
+        hovertemplate= 'Coordenadas neurona padre: <b>%{text}</b><br>'+
+                        'Nivel: %{y}<br>' 
+                        +"<extra></extra>"
+        ,
         marker=dict(
-            showscale=True,
-            # colorscale options
-            #'Greys' | 'YlGnBu' | 'Greens' | 'YlOrRd' | 'Bluered' | 'RdBu' |
-            #'Reds' | 'Blues' | 'Picnic' | 'Rainbow' | 'Portland' | 'Jet' |
-            #'Hot' | 'Blackbody' | 'Earth' | 'Electric' | 'Viridis' |
-            colorscale='YlGnBu',
-            reversescale=True,
             color=[],
             size=10,
-            colorbar=dict(
-                thickness=15,
-                title='Node Connections',
-                xanchor='left',
-                titleside='right'
-            ),
-            line_width=2))
-
-    '''
-    #Color nodes
-    node_adjacencies = []
-    node_text = []
-    for node, adjacencies in enumerate(g.adjacency()):
-        node_adjacencies.append(len(adjacencies[1]))
-        node_text.append('# of connections: '+str(len(adjacencies[1])))
-
-    node_trace.marker.color = node_adjacencies
-    node_trace.text = node_text
-    '''
+            line_width=2)
+    )
 
 
     data1=[edge_trace, node_trace]
+
 
     axis=dict(showbackground=False,
           showline=False,
@@ -617,6 +606,7 @@ def ver_grafo_gsom(click):
           title=''
           )
 
+      
     layout = go.Layout(
             title="Estructura de los submapas que componen la red",
             titlefont_size=16,
@@ -624,19 +614,22 @@ def ver_grafo_gsom(click):
             hovermode='closest',
             margin=dict(b=20,l=5,r=5,t=40),
             xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False)
+            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
             )
            
-
-
     fig = dict(data=data1,layout=layout)
-    #fig = go.Figure(data=data1, layout=layout)
-
-
     children =[ dcc.Graph(id='grafo_ghsom',figure=fig)  ]
+
     return html.Div(children=children, style={'margin': '0 auto','width': '100%', 'display': 'flex',
                                              'align-items': 'center', 'justify-content': 'center',
                                             'flex-wrap': 'wrap', 'flex-direction': 'column ' } )
+
+
+
+
+
+
+
 
 
 
