@@ -202,7 +202,7 @@ def update_output( contents, filename, last_modified):
         #N_FEATURES = N-1 because of the target column
         n_samples, n_features=data.shape
 
-        session_data.set_data(data)
+        session_data.set_dataset(data)
         #Sesion.n_samples, Sesion.n_features=  n_samples, n_features-1
         cadena_1 = 'Número de datos: ' + str(n_samples)
         cadena_2 =  'Número de Atributos: ' + str(n_features - 1)

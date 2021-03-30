@@ -187,7 +187,7 @@ def train_ghsom(n_clicks,tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,e
     max_iter_ghsom = int(max_iter_ghsom)
 
 
-    dataset = session_data.get_data()
+    dataset = session_data.get_dataset()
 
 
     data = dataset[:,:-1]

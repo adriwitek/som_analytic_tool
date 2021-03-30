@@ -210,7 +210,7 @@ def update_winner_map_gsom(click):
     tam_eje_vertical = params['tam_eje_vertical']
     tam_eje_horizontal = params['tam_eje_horizontal']
 
-    dataset = session_data.get_data()
+    dataset = session_data.get_dataset()
     data = dataset[:,:-1]
     targets = dataset[:,-1:]
     n_samples = dataset.shape[0]
@@ -318,7 +318,7 @@ def update_mapa_componentes_gsom_fig(click,names):
     tam_eje_horizontal = params['tam_eje_horizontal']
 
 
-    dataset = session_data.get_data()
+    dataset = session_data.get_dataset()
     data = dataset[:,:-1]
     targets = dataset[:,-1:]
     n_samples = dataset.shape[0]

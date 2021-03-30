@@ -138,7 +138,7 @@ def train_gsom(n_clicks,tau_2,tasa_aprendizaje_gsom,decadencia_gsom,sigma,epocas
 
 
 
-    dataset = session_data.get_data()
+    dataset = session_data.get_dataset()
 
 
     data = dataset[:,:-1]

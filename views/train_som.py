@@ -176,7 +176,7 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
 
 
     # TRAINING
-    dataset = session_data.get_data()
+    dataset = session_data.get_dataset()
 
     #ojo en numpy: array[ejevertical][ejehorizontal] ,al contratio que en plotly
     session_data.set_som_model_info_dict(eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad,distance,sigma,iteracciones, pesos_init)

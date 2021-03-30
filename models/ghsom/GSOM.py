@@ -258,16 +258,44 @@ class GSOM:
         return self.neurons
 
 
-    def get_structure_graph(self,grafo,level=0):
+    def get_structure_graph(self,grafo,dataset, level=0):
+       
 
-        grafo.add_node(self,nivel =level )
 
+        #Indexes of dataset mapped on each neuron
+        mapping = [[list() for _ in range(self.map_shape()[1])] for _ in range(self.map_shape()[0])]
+        # contains targets list per neuron, later used to analyze the graph
+        neurons_mapped_targets = {} 
+        data = dataset[:,:-1]
+
+        # Getting winnig neurons for each data element
+        for i,d in enumerate(data):
+            winner_neuron = self.winner_neuron(d)[0][0]
+            r, c = winner_neuron.position
+            mapping[r][c].append(i)
+
+            if((r,c) in neurons_mapped_targets):
+                neurons_mapped_targets[(r,c)].append(dataset[i][-1]) 
+            else:
+                neurons_mapped_targets[(r,c)] = []
+                neurons_mapped_targets[(r,c)].append(dataset[i][-1]) 
+
+        grafo.add_node(self,nivel =level, neurons_mapped_targets = neurons_mapped_targets )
+ 
+
+        #Creating the graph itself
         for neuron in self.neurons.values():
             if neuron.child_map is not None:
-                grafo.add_node(neuron.child_map ,nivel=level+1, neurona_padre_pos= neuron.position)
+
+                grafo.add_node(neuron.child_map ,
+                                nivel=level+1, 
+                                neurona_padre_pos= neuron.position, 
+                                )
                 grafo.add_edge(self,neuron.child_map)
-                print('+1edge')
-                grafo = neuron.child_map.get_structure_graph(grafo,level=level+1)
+            
+                r, c = neuron.position
+                index_list= mapping[r][c]
+                grafo = neuron.child_map.get_structure_graph(grafo,dataset[index_list], level=level+1)
 
 
         return grafo

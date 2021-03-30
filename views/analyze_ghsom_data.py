@@ -261,7 +261,7 @@ def get_gsom_plotted_graph(figure_id,name, gsom,mapped_dataset):
     
 
 
-#Plot fig eith titles and gso size
+#Plot fig eight titles and gso size
 def get_figure_complete_div(fig,fig_id, title,gsom_level,tam_eje_horizontal, tam_eje_vertical,neurona_padre):
     '''
 
@@ -342,7 +342,7 @@ def toggle_accordion(n1, n2,n3,n4, is_open1, is_open2,is_open3,is_open4):
 
 
 
-
+'''
 #Winners map
 @app.callback(Output('winners_map_ghsom','children'),
               Input('ver_winners_map_ghsom_button','n_clicks'),
@@ -351,19 +351,16 @@ def toggle_accordion(n1, n2,n3,n4, is_open1, is_open2,is_open3,is_open4):
 def update_winner_map_ghsom(click):
 
 
-    params = session_data.get_ghsom_model_info_dict()
+    #params = session_data.get_ghsom_model_info_dict()
     zero_unit = session_data.get_modelo()
     ghsom_nivel_1 = zero_unit.child_map
     tam_eje_vertical,tam_eje_horizontal=  ghsom_nivel_1.map_shape()
     print('Las nuevas dimensiones del mapa NIVEL 1 son(vertical,horizontal):',tam_eje_vertical,tam_eje_horizontal)
 
 
-    dataset = session_data.get_data()
-    data = dataset[:,:-1]
-    targets = dataset[:,-1:]
-    n_samples = dataset.shape[0]
-    n_features = dataset.shape[1]
-
+    dataset = session_data.get_dataset()
+    data = session_data.get_data()
+   
 
    
     
@@ -371,30 +368,36 @@ def update_winner_map_ghsom(click):
     #visualizacion
 
     data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
-    positions={}
+    positions_targets={}
+    neurons_data_index= {}
+    #neurons_data_index[(gsom,row,col)] = [data_input_indexs]
+
 
     # Getting winnig neurons for each data element
     for i,d in enumerate(data):
         winner_neuron = ghsom_nivel_1.winner_neuron(d)[0][0]
         r, c = winner_neuron.position
-        if((r,c) in positions):
-            positions[(r,c)].append(dataset[i][-1]) 
+        if((r,c) in positions_targets):
+            neurons_data_index[(ghsom_nivel_1,r,c)].append(i)
+            positions_targets[(r,c)].append(dataset[i][-1]) 
         else:
-            positions[(r,c)] = []
-            positions[(r,c)].append(dataset[i][-1]) 
+            neurons_data_index[(ghsom_nivel_1,r,c)] = []
+            neurons_data_index[(ghsom_nivel_1,r,c)].append(i)
+            positions_targets[(r,c)] = []
+            positions_targets[(r,c)].append(dataset[i][-1]) 
 
-    #print('posiciones:', positions)
+    #print('posiciones:', positions_targets)
 
     # Obtener clases representativas de cada neurona
     for i in range(tam_eje_vertical):
         for j in range(tam_eje_horizontal):
-            if((i,j) in positions):
+            if((i,j) in positions_targets):
 
                 if(session_data.get_discrete_data() ):        #showing the class more represented in each neuron
-                    c = Counter(positions[(i,j)])
+                    c = Counter(positions_targets[(i,j)])
                     data_to_plot[i][j] = c.most_common(1)[0][0]
                 else: #continuos data: mean of the mapped values in each neuron
-                    data_to_plot[i][j]  = np.mean(positions[(i,j)])
+                    data_to_plot[i][j]  = np.mean(positions_targets[(i,j)])
     
             else:
                 data_to_plot[i][j] = None
@@ -409,14 +412,9 @@ def update_winner_map_ghsom(click):
     trace = dict(type='heatmap', z=data_to_plot, colorscale = 'Jet')
     data=[trace]
 
-    # Here's the key part - Scattergl text! 
-    
-
 
     data.append({'type': 'scattergl',
                     'mode': 'text',
-                    #'x': x_ticks,
-                    #'y': y_ticks,
                     'text': 'a'
                     })
     
@@ -426,7 +424,6 @@ def update_winner_map_ghsom(click):
     layout['width'] = 700
     layout['height']= 700
     #layout['title'] = 'Mapa de neuronas ganadoras'
-    annotations = []
     fig = dict(data=data, layout=layout)
 
 
@@ -436,7 +433,7 @@ def update_winner_map_ghsom(click):
 
     return div
 
-
+'''
 
 
 
@@ -508,8 +505,9 @@ def ver_grafo_gsom(click):
     #TODO BORRAR ESTO EN GHSOM
     #g = zero_unit.graph
     grafo = nx.Graph()
-    g = zero_unit.child_map.get_structure_graph(grafo,level=0)
-
+    dataset = session_data.get_dataset()
+    g = zero_unit.child_map.get_structure_graph(grafo,dataset ,level=0)
+    session_data.set_ghsom_structure_graph(g)
   
     edge_x = []
     edge_y = []
@@ -523,7 +521,6 @@ def ver_grafo_gsom(click):
 
 
     for edge in g.edges:
-        print('debug_+1edge')
         nodo1,nodo2 = edge
         a= nodes_dict[nodo1]
         b=nodes_dict[nodo2]
@@ -538,12 +535,10 @@ def ver_grafo_gsom(click):
         edge_x.append(None)
         edge_y.append(None)
 
-        print('eje del punto:', str(a),str(-g.nodes[nodo1]['nivel']),  'al punto:', str(b), str( -g.nodes[nodo2]['nivel']))
         
     #Centramos el nodo primero por estetica
     #edge_x[0] = int(len(nodes_dict)/2)
-    print('edge_x:',edge_x)
-    print('edge_y:',edge_y)
+   
 
 
     edge_trace = go.Scatter(
@@ -557,7 +552,7 @@ def ver_grafo_gsom(click):
     node_x = []
     node_y = []
     hover_text= []
-    levels = []
+    nodes_by_cords_dict = {}
 
     for node in g.nodes:
 
@@ -565,8 +560,9 @@ def ver_grafo_gsom(click):
         y_cord = - g.nodes[node]['nivel'] 
         node_x.append(x_cord)
         node_y.append(y_cord)
+        nodes_by_cords_dict[(y_cord, x_cord)] = node
 
-
+        #Coordenadas de la neurona padre
         if('neurona_padre_pos' in g.nodes[node] ):
             cord_ver,cord_hor = g.nodes[node]['neurona_padre_pos']
             #string= 'Coordenadas neurona padre: (' + str(cord_hor) + ','+ str(cord_ver) + ')'
@@ -574,6 +570,11 @@ def ver_grafo_gsom(click):
             hover_text.append(string) 
         else:
             hover_text.append('')
+
+        
+
+
+    session_data.set_ghsom_nodes_by_coord_dict(nodes_by_cords_dict)
 
 
     #Centramos el nodo primero por estetica
@@ -598,15 +599,6 @@ def ver_grafo_gsom(click):
     data1=[edge_trace, node_trace]
 
 
-    axis=dict(showbackground=False,
-          showline=False,
-          zeroline=False,
-          showgrid=False,
-          showticklabels=False,
-          title=''
-          )
-
-      
     layout = go.Layout(
             title="Estructura de los submapas que componen la red",
             titlefont_size=16,
@@ -625,6 +617,94 @@ def ver_grafo_gsom(click):
                                             'flex-wrap': 'wrap', 'flex-direction': 'column ' } )
 
 
+
+
+#Winners map del punto seleccionado del grafo
+@app.callback(Output('winners_map_ghsom','children'),
+              Input('grafo_ghsom','clickData'),
+              prevent_initial_call=True 
+              )
+def view_winner_map_by_selected_point(clickdata):
+
+    if(clickdata is None):
+        raise PreventUpdate
+
+    print('clikedpoint:',clickdata)
+    #{'points': [{'curveNumber': 0, 'x': 0, 'y': 0, 'z': 0}]}
+    points = clickdata['points']
+    punto_clickeado = points[0]
+    cord_horizontal_punto_clickeado = punto_clickeado['x']
+    cord_vertical_punto_clickeado = punto_clickeado['y'] 
+    
+
+
+    #aqui estoyyyyyyyyy
+    nodes_dict = session_data.get_ghsom_nodes_by_coord_dict()
+    ghsom = nodes_dict[(cord_vertical_punto_clickeado,cord_horizontal_punto_clickeado)]
+    tam_eje_vertical,tam_eje_horizontal=  ghsom.map_shape()
+
+    g = session_data.get_ghsom_structure_graph()
+    neurons_mapped_targets = g.nodes[ghsom]['neurons_mapped_targets']
+    level = g.nodes[ghsom]['nivel']
+
+    #visualizacion
+    data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
+    positions={}
+
+    #solo para el input dataset tiene que serrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
+
+
+    # Obtener clases representativas de cada neurona
+    for i in range(tam_eje_vertical):
+        for j in range(tam_eje_horizontal):
+
+            if((i,j) in neurons_mapped_targets):
+
+                if(session_data.get_discrete_data() ):        #showing the class more represented in each neuron
+                    c = Counter(neurons_mapped_targets[(i,j)])
+                    data_to_plot[i][j] = c.most_common(1)[0][0]
+                else: #continuos data: mean of the mapped values in each neuron
+                    data_to_plot[i][j]  = np.mean(neurons_mapped_targets[(i,j)])
+    
+            else:
+                data_to_plot[i][j] = None
+
+   
+        
+
+    #print('data_to_plot:',data_to_plot)
+    
+    #type= heatmap para mas precision
+    #heatmapgl
+    trace = dict(type='heatmap', z=data_to_plot, colorscale = 'Jet')
+    data=[trace]
+
+    # Here's the key part - Scattergl text! 
+    
+
+
+    data.append({'type': 'scattergl',
+                    'mode': 'text',
+                    #'x': x_ticks,
+                    #'y': y_ticks,
+                    'text': 'a'
+                    })
+    
+    layout = {}
+    layout['xaxis']  ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
+    layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
+    layout['width'] = 700
+    layout['height']= 700
+    #layout['title'] = 'Mapa de neuronas ganadoras'
+    annotations = []
+    fig = dict(data=data, layout=layout)
+
+
+    div = get_figure_complete_div(fig,'winnersmap_fig_ghsom','Mapa de neuronas ganadoras',level,tam_eje_horizontal, tam_eje_vertical,None)
+
+    print('\nVISUALIZACION:ghsom renderfinalizado\n')
+
+    return div
 
 
 

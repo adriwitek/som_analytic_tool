@@ -15,29 +15,53 @@ from  config.config import *
 class Sesion():
     
     
-    #Dataset
-    discrete_data = True
-    file_data = None
-    data = None     # numpy array
-    n_samples = 0
-    n_features = 0 
-
-    #tipo de modelo
-    modelo = None
-    som_params= None
-    gsom_params=None
-    ghsom_params=None
+  
 
     def __init__(self):
+          #Dataset
+        self.discrete_data = True
+        self.file_data = None
+        self.dataset = None     # numpy array
+        self.n_samples = 0
+        self.n_features = 0 
+    
+        #tipo de modelo
+        self.modelo = None
+        self.som_params= None
+        self.gsom_params=None
+        self.ghsom_params=None
+        self.ghsom_structure_graph = {}
+        self.ghsom_nodes_by_coord_dict = {}
         return
 
-    def set_data(self,data):
-        self.data = np.copy(data)
-        self.n_samples, self.n_features=data.shape
 
+    #Call when closing app
+    def clean_session_data(self):
+        #Dataset
+        self.discrete_data = True
+        self.file_data = None
+        self.data = None     # numpy array
+        self.n_samples = 0
+        self.n_features = 0 
+
+        #tipo de modelo
+        self.modelo = None
+        self.som_params= None
+        self.gsom_params=None
+        self.ghsom_params=None
+        self.ghsom_structure_graph = {}
+        self.ghsom_nodes_by_coord_dict = {}
+
+
+    def set_dataset(self,dataset):
+        self.dataset = np.copy(dataset)
+        self.n_samples, self.n_features=dataset.shape
+
+    def get_dataset(self):
+        return self.dataset
+        
     def get_data(self):
-        return self.data
-
+        return self.dataset[:,:-1]
 
     
     def set_filedata(self,filedata):
@@ -148,6 +172,19 @@ class Sesion():
     def get_ghsom_model_info_dict(self):
         return  self.ghsom_params
 
+    
+    def get_ghsom_structure_graph(self):
+        return self.ghsom_structure_graph
+
+    def set_ghsom_structure_graph(self,graph):
+        self.ghsom_structure_graph = graph 
+    
+
+    def get_ghsom_nodes_by_coord_dict(self):
+        return self.ghsom_nodes_by_coord_dict 
+
+    def set_ghsom_nodes_by_coord_dict(self,dict):
+        self.ghsom_nodes_by_coord_dict = dict
 
     @staticmethod
     def session_data_dict():

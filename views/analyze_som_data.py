@@ -260,7 +260,7 @@ def update_som_fig(n_clicks):
     #TODO : cambiar esto por guardado bien del dataset
 
     som = session_data.get_modelo()
-    dataset = session_data.get_data()
+    dataset = session_data.get_dataset()
     data = dataset[:,:-1]
     targets = dataset[:,-1:]
     n_samples = dataset.shape[0]
@@ -499,7 +499,7 @@ def update_mapa_frecuencias_fig(click):
 
     som = session_data.get_modelo() 
     som =  session_data.get_modelo()
-    dataset = session_data.get_data()
+    dataset = session_data.get_dataset()
     data = dataset[:,:-1]
     params = session_data.get_som_model_info_dict()
     tam_eje_horizontal = params['tam_eje_horizontal'] 
