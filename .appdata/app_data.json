@@ -1,1 +1,1 @@
-{"n_samples": 441, "n_features": 10, "discrete_data": true, "columns_names": ["151", "0.038076", "0.05068", "0.061696", "0.021872", "-0.044223", "-0.034821", "-0.043401", "-0.002592", "0.019908", "-0.017646"], "som_tam_eje_vertical": 0, "som_tam_eje_horizontal": 0}
+{"n_samples": 17000, "n_features": 8, "discrete_data": true, "columns_names": ["longitude", "latitude", "housing_median_age", "total_rooms", "total_bedrooms", "population", "households", "median_income", "median_house_value"], "som_tam_eje_vertical": 0, "som_tam_eje_horizontal": 0}
