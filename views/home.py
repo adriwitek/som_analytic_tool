@@ -58,7 +58,7 @@ def Home():
                                             # Allow multiple files to be uploaded
                                             multiple=False),
                         #info showed when the dataset its loaded
-                        html.Div(id='info_dataset_div',style={'textAlign': 'center', "visibility": "hidden"} ,children = div_info_dataset('','', '', '') ), 
+                        html.Div(id='info_dataset_div',style={'textAlign': 'center', "visibility": "hidden",'display':'none'} ,children = div_info_dataset('','', '', '') ), 
                         html.Div(id='hidden_div',children= '' ), 
 
                         html.Div( 
@@ -225,7 +225,7 @@ def update_output( contents, filename, last_modified):
                                 datetime.utcfromtimestamp(last_modified).strftime('%d/%m/%Y %H:%M:%S'),
                                 str(n_samples),
                                 str(n_features - 1)), 
-                {'textAlign': 'center'},
+                {'textAlign': 'center',  'display': 'block'},
                 False 
                 )
 

@@ -42,14 +42,7 @@ def analyze_ghsom_data():
                 dbc.Collapse(id="collapse_ghsom_1",children=
                     dbc.CardBody(children=[ 
                     
-                        #TODO borrar este button
-                        html.Div( 
-                            [dbc.Button("Ver", id="ver_winners_map_ghsom_button", className="mr-2", color="primary")],
-                            style={'textAlign': 'center'}
-                        ),
-
-                        
-
+                    
                         html.Div(id = 'grafo_ghsom_1',children = '',
                                 style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
                         ),
@@ -83,8 +76,7 @@ def analyze_ghsom_data():
                                 [dbc.Checklist(
                                     options=[{"label": "Seleccionar todos", "value": 1}],
                                     value=[],
-                                    id="check_seleccionar_todos_mapas_ghsom"),
-                                dbc.Button("Ver Mapas de Componentes", id="ver_mapas_componentes_button_ghsom", className="mr-2", color="primary")],
+                                    id="check_seleccionar_todos_mapas_ghsom")],
                                 style={'textAlign': 'center'}
                             ),
 
@@ -111,20 +103,13 @@ def analyze_ghsom_data():
                 dbc.Collapse(id="collapse_ghsom_3",children=
                     dbc.CardBody(children=[
 
-                        html.Div(id = 'umatrix_div_fig_ghsom',children = '',
-                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}
-                        ),
-
                         html.Div(id = 'grafo_ghsom_3',children = '',
                                 style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
                         ),
 
-                        html.Div( 
-                            [dbc.Button("Ver", id="ver_umatrix_ghsom_button", className="mr-2", color="primary")],
-                            style={'textAlign': 'center'}
+                        html.Div(id = 'umatrix_div_fig_ghsom',children = '',
+                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}
                         )
-
-
 
                     ])
 
@@ -353,8 +338,9 @@ def get_ghsom_fig():
         edge_y.append(None)
 
 
-
-    edge_trace = go.Scatter(
+    #TODO quicker scattergl
+    edge_trace = go.Scattergl(
+    #edge_trace = go.Scatter(
         x=edge_x, 
         y=edge_y,
         #z=edge_z,
@@ -389,7 +375,9 @@ def get_ghsom_fig():
     session_data.set_ghsom_nodes_by_coord_dict(nodes_by_cords_dict)
 
 
-    node_trace = go.Scatter(
+    #node_trace = go.Scatter(
+    #TODO quicker scattergl
+    node_trace = go.Scattergl(
         x=node_x, 
         y=node_y,
         mode='markers',
@@ -399,11 +387,19 @@ def get_ghsom_fig():
                         +"<extra></extra>"
         ,
         marker=dict(
-            color=[],
-            size=10,
-            line_width=2)
+            color=['blue'], #set color equal to a variable
+            size=14)
     )
 
+
+    #TODO: esto es por esttetica del color, si va muy lento borrar
+    '''
+    node_adjacencies = []
+    for node, adjacencies in enumerate(g.adjacency() ) :
+        node_adjacencies.append(len(adjacencies[1]))
+
+    node_trace.marker.color = node_adjacencies
+    '''
 
     data1=[edge_trace, node_trace]
 
@@ -425,7 +421,23 @@ def get_ghsom_fig():
 
 
 
+#For calculating u-matrix distiances
 
+#Aux fun
+def get_distances(weights_map, saved_distances, x,y,a,b):
+    '''
+        Aux. fun for ver_umatrix_gsom_fig callbacks to optimize the calc. of umatrix
+    '''
+    if (  (x,y,a,b) in saved_distances ):
+        return saved_distances[(x,y,a,b)]
+    elif (  (a,b,x,y) in saved_distances):
+        return saved_distances[(a,b,x,y)]
+    else:
+        v1 = weights_map[(x,y)]
+        v2 = weights_map[(a,b)]
+        distancia = np.linalg.norm(v1-v2) # euclidean distance
+        saved_distances[(x,y,a,b)] = distancia
+        return distancia
 
 
 
@@ -699,3 +711,100 @@ def update_mapa_componentes_ghsom_fig(clickdata,names):
         )
                    
     return traces
+
+
+
+
+
+
+#Ver UMatrix GHSOM
+@app.callback(Output('umatrix_div_fig_ghsom','children'),
+              Input('dcc_ghsom_graph_3','clickData'),
+              prevent_initial_call=True 
+              )
+def ver_umatrix_gsom_fig(clickdata):
+
+
+    if(clickdata is None):
+        raise PreventUpdate
+
+    print('clikedpoint:',clickdata)
+    #{'points': [{'curveNumber': 0, 'x': 0, 'y': 0, 'z': 0}]}
+    points = clickdata['points']
+    punto_clickeado = points[0]
+    cord_horizontal_punto_clickeado = punto_clickeado['x']
+    cord_vertical_punto_clickeado = punto_clickeado['y'] 
+    
+    nodes_dict = session_data.get_ghsom_nodes_by_coord_dict()
+    gsom = nodes_dict[(cord_vertical_punto_clickeado,cord_horizontal_punto_clickeado)]
+    tam_eje_vertical,tam_eje_horizontal=  gsom.map_shape()
+
+    
+
+    #Weights MAP
+    weights_map= gsom.get_weights_map()
+    # weights_map[(row,col)] = np vector whith shape=n_feauters, dtype=np.float32
+
+
+    data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
+
+    saved_distances= {} #for saving distances
+    # saved_distances[i,j,a,b] with (i,j) and (a,b) neuron cords
+
+    '''
+    debugg
+    for i in range(tam_eje_vertical):
+        for j in range(tam_eje_horizontal):
+            print('pesos[][]: ',i, j, '---:  ',weights_map[(i,j)])
+    print('eje x e y: ',tam_eje_vertical,tam_eje_horizontal)
+
+    '''
+    for i in range(tam_eje_vertical):
+        for j in range(tam_eje_horizontal):
+
+            neuron_neighbords = []
+           
+            
+            if(j-1 >= 0): #bottom   neighbor
+                neuron_neighbords.append( get_distances(weights_map, saved_distances, i,j,i,j-1))
+            if(j+1 < tam_eje_horizontal):#top  neighbor
+                neuron_neighbords.append( get_distances(weights_map, saved_distances, i,j,i,j+1))
+            if(i-1 >= 0): #  #left  neighbor
+                neuron_neighbords.append( get_distances(weights_map, saved_distances, i,j,i-1,j))
+            if(i+1 < tam_eje_vertical ): #right neighbor
+                neuron_neighbords.append( get_distances(weights_map, saved_distances, i,j,i+1,j))
+
+            if(any(neuron_neighbords) ):
+                data_to_plot[i][j] = sum(neuron_neighbords)/len(neuron_neighbords)
+
+    '''
+    debug
+    print('distancias' )
+    for item in saved_distances.items():
+        print(item)
+    '''
+    trace = dict(type='heatmap', z=data_to_plot, colorscale = 'Jet')
+    data=[trace]
+
+    
+    data.append({'type': 'scattergl',
+                    'mode': 'text',
+                    'text': 'a'
+                    })
+    
+    layout = {}
+    layout['xaxis']  ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
+    layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }  
+    layout['width'] = 700
+    layout['height']= 700
+    annotations = []
+    fig = dict(data=data, layout=layout)
+
+
+    children = [ dcc.Graph(id='umatrix_fig_ghsom',figure=fig)  ]
+
+    print('\nVISUALIZACION:gsom renderfinalizado\n')
+
+
+
+    return children
