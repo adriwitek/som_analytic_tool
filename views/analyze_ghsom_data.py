@@ -49,7 +49,7 @@ def analyze_ghsom_data():
 
                         
 
-                        html.Div(id = 'grafo_ghsom',children = '',
+                        html.Div(id = 'grafo_ghsom_1',children = '',
                                 style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
                         ),
 
@@ -96,6 +96,11 @@ def analyze_ghsom_data():
                                 dbc.Button("Ver Mapas de Componentes", id="ver_mapas_componentes_button_ghsom", className="mr-2", color="primary")],
                                 style={'textAlign': 'center'}
                             ),
+
+                            html.Div(id = 'grafo_ghsom_2',children = '',
+                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+                            ),
+
                             html.Div(id='component_plans_figures_ghsom_div', children=[''],
                                     style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
                             )
@@ -118,6 +123,11 @@ def analyze_ghsom_data():
                         html.Div(id = 'umatrix_div_fig_ghsom',children = '',
                                 style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}
                         ),
+
+                        html.Div(id = 'grafo_ghsom_3',children = '',
+                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+                        ),
+
                         html.Div( 
                             [dbc.Button("Ver", id="ver_umatrix_ghsom_button", className="mr-2", color="primary")],
                             style={'textAlign': 'center'}
@@ -313,12 +323,152 @@ def get_figure_complete_div(fig,fig_id, title,gsom_level,tam_eje_horizontal, tam
 
 
 
+
+# Grafo de la estructura del ghsom
+'''
+#grafo map
+@app.callback(  Output('grafo_ghsom_1','children'),
+                Output('grafo_ghsom_2','children'),
+                Output('grafo_ghsom_3','children'),
+              Input('ver_winners_map_ghsom_button','n_clicks'),
+              prevent_initial_call=True 
+              )
+
+def ver_grafo_gsom(click):
+'''
+# This 2 funcs are splitted in 2 for eficience. reason
+def get_ghsom_graph_div(fig,dcc_graph_id):
+    children =[ dcc.Graph(id=dcc_graph_id,figure=fig)  ]
+
+    div =  html.Div(children=children, style={'margin': '0 auto','width': '100%', 'display': 'flex',
+                                             'align-items': 'center', 'justify-content': 'center',
+                                            'flex-wrap': 'wrap', 'flex-direction': 'column ' } )
+
+    return div
+
+def get_ghsom_fig():
+    zero_unit = session_data.get_modelo()
+    #TODO BORRAR ESTO EN GHSOM
+    #g = zero_unit.graph
+    grafo = nx.Graph()
+    dataset = session_data.get_dataset()
+    g = zero_unit.child_map.get_structure_graph(grafo,dataset ,level=0)
+    session_data.set_ghsom_structure_graph(g)
+  
+    edge_x = []
+    edge_y = []
+
+
+    nodes_dict = {}
+    counter = 0
+    for node in g.nodes:
+        nodes_dict[node] = counter
+        counter +=  1
+
+
+    for edge in g.edges:
+        nodo1,nodo2 = edge
+        a= nodes_dict[nodo1]
+        b=nodes_dict[nodo2]
+     
+        edge_x.append(a)
+        edge_y.append(-g.nodes[nodo1]['nivel'] )
+
+        edge_x.append(b)
+        edge_y.append(-g.nodes[nodo2]['nivel'])
+
+        #Fix to plot segments
+        edge_x.append(None)
+        edge_y.append(None)
+
+
+
+    edge_trace = go.Scatter(
+        x=edge_x, 
+        y=edge_y,
+        #z=edge_z,
+        line=dict(width=0.5, color='#888'),
+        hoverinfo='none',
+        mode='lines')
+
+    node_x = []
+    node_y = []
+    hover_text= []
+    nodes_by_cords_dict = {}
+
+    for node in g.nodes:
+
+        x_cord = nodes_dict[node]
+        y_cord = - g.nodes[node]['nivel'] 
+        node_x.append(x_cord)
+        node_y.append(y_cord)
+        nodes_by_cords_dict[(y_cord, x_cord)] = node
+
+        #Coordenadas de la neurona padre
+        if('neurona_padre_pos' in g.nodes[node] ):
+            cord_ver,cord_hor = g.nodes[node]['neurona_padre_pos']
+            string = '(' + str(cord_hor) + ','+ str(cord_ver) + ')'
+            hover_text.append(string) 
+        else:
+            hover_text.append('')
+
+        
+
+
+    session_data.set_ghsom_nodes_by_coord_dict(nodes_by_cords_dict)
+
+
+    node_trace = go.Scatter(
+        x=node_x, 
+        y=node_y,
+        mode='markers',
+        text=hover_text,
+        hovertemplate= 'Coordenadas neurona padre: <b>%{text}</b><br>'+
+                        'Nivel: %{y}<br>' 
+                        +"<extra></extra>"
+        ,
+        marker=dict(
+            color=[],
+            size=10,
+            line_width=2)
+    )
+
+
+    data1=[edge_trace, node_trace]
+
+
+    layout = go.Layout(
+            title="Estructura de los submapas que componen la red",
+            titlefont_size=16,
+            showlegend=False,
+            hovermode='closest',
+            margin=dict(b=20,l=5,r=5,t=40),
+            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+            )
+           
+    fig = dict(data=data1,layout=layout)
+    return fig
+
+
+
+
+
+
+
+
+
+
+
 ##################################################################
 #                       CALLBACKS
 ##################################################################
 
 @app.callback(
     [Output(f"collapse_ghsom_{i}", "is_open") for i in range(1, 5)],
+    Output('grafo_ghsom_1','children'),
+    Output('grafo_ghsom_2','children'),
+    Output('grafo_ghsom_3','children'),
     [Input(f"button_collapse_ghsom_{i}", "n_clicks") for i in range(1, 5)],
     [State(f"collapse_ghsom_{i}", "is_open") for i in range(1, 5)],
     prevent_initial_call=True)
@@ -326,19 +476,24 @@ def toggle_accordion(n1, n2,n3,n4, is_open1, is_open2,is_open3,is_open4):
     ctx = dash.callback_context
 
     if not ctx.triggered:
-        return False, False, False
+        return False, False, False, [],[],[]
     else:
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+        fig=  get_ghsom_fig()
+        div_1 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_1')
+        div_2 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_2')
+        div_3 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_3')
 
+        
     if button_id == "button_collapse_ghsom_1" and n1:
-        return not is_open1, is_open2, is_open3,is_open4
+        return not is_open1, is_open2, is_open3,is_open4, div_1,div_2,div_3
     elif button_id == "button_collapse_ghsom_2" and n2:
-        return is_open1, not is_open2, is_open3,is_open4
+        return is_open1, not is_open2, is_open3,is_open4, div_1,div_2,div_3
     elif button_id == "button_collapse_ghsom_3" and n3:
-        return is_open1, is_open2, not is_open3,is_open4
+        return is_open1, is_open2, not is_open3,is_open4, div_1,div_2,div_3
     elif button_id == "button_collapse_ghsom_4" and n4:
-        return is_open1, is_open2, is_open3, not is_open4
-    return False, False, False,False
+        return is_open1, is_open2, is_open3, not is_open4, div_1,div_2,div_3
+    return False, False, False,False, div_1,div_2,div_3
 
 
 
@@ -415,134 +570,9 @@ def view_submaps(clickdata, plots_list):
 
 
 
-#grafo map
-@app.callback(Output('grafo_ghsom','children'),
-              Input('ver_winners_map_ghsom_button','n_clicks'),
-              prevent_initial_call=True 
-              )
-def ver_grafo_gsom(click):
-
-    zero_unit = session_data.get_modelo()
-    #TODO BORRAR ESTO EN GHSOM
-    #g = zero_unit.graph
-    grafo = nx.Graph()
-    dataset = session_data.get_dataset()
-    g = zero_unit.child_map.get_structure_graph(grafo,dataset ,level=0)
-    session_data.set_ghsom_structure_graph(g)
-  
-    edge_x = []
-    edge_y = []
-
-
-    nodes_dict = {}
-    counter = 0
-    for node in g.nodes:
-        nodes_dict[node] = counter
-        counter +=  1
-
-
-    for edge in g.edges:
-        nodo1,nodo2 = edge
-        a= nodes_dict[nodo1]
-        b=nodes_dict[nodo2]
-     
-        edge_x.append(a)
-        edge_y.append(-g.nodes[nodo1]['nivel'] )
-
-        edge_x.append(b)
-        edge_y.append(-g.nodes[nodo2]['nivel'])
-
-        #Fix to plot segments
-        edge_x.append(None)
-        edge_y.append(None)
-
-        
-    #Centramos el nodo primero por estetica
-    #edge_x[0] = int(len(nodes_dict)/2)
-   
-
-
-    edge_trace = go.Scatter(
-        x=edge_x, 
-        y=edge_y,
-        #z=edge_z,
-        line=dict(width=0.5, color='#888'),
-        hoverinfo='none',
-        mode='lines')
-
-    node_x = []
-    node_y = []
-    hover_text= []
-    nodes_by_cords_dict = {}
-
-    for node in g.nodes:
-
-        x_cord = nodes_dict[node]
-        y_cord = - g.nodes[node]['nivel'] 
-        node_x.append(x_cord)
-        node_y.append(y_cord)
-        nodes_by_cords_dict[(y_cord, x_cord)] = node
-
-        #Coordenadas de la neurona padre
-        if('neurona_padre_pos' in g.nodes[node] ):
-            cord_ver,cord_hor = g.nodes[node]['neurona_padre_pos']
-            #string= 'Coordenadas neurona padre: (' + str(cord_hor) + ','+ str(cord_ver) + ')'
-            string = '(' + str(cord_hor) + ','+ str(cord_ver) + ')'
-            hover_text.append(string) 
-        else:
-            hover_text.append('')
-
-        
-
-
-    session_data.set_ghsom_nodes_by_coord_dict(nodes_by_cords_dict)
-
-
-    #Centramos el nodo primero por estetica
-    #node_x[0] = int(len(nodes_dict)/2)
-
-    node_trace = go.Scatter(
-        x=node_x, 
-        y=node_y,
-        mode='markers',
-        text=hover_text,
-        hovertemplate= 'Coordenadas neurona padre: <b>%{text}</b><br>'+
-                        'Nivel: %{y}<br>' 
-                        +"<extra></extra>"
-        ,
-        marker=dict(
-            color=[],
-            size=10,
-            line_width=2)
-    )
-
-
-    data1=[edge_trace, node_trace]
-
-
-    layout = go.Layout(
-            title="Estructura de los submapas que componen la red",
-            titlefont_size=16,
-            showlegend=False,
-            hovermode='closest',
-            margin=dict(b=20,l=5,r=5,t=40),
-            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-            )
-           
-    fig = dict(data=data1,layout=layout)
-    children =[ dcc.Graph(id='grafo_ghsom',figure=fig)  ]
-
-    return html.Div(children=children, style={'margin': '0 auto','width': '100%', 'display': 'flex',
-                                             'align-items': 'center', 'justify-content': 'center',
-                                            'flex-wrap': 'wrap', 'flex-direction': 'column ' } )
-
-
-
-
 #Winners map del punto seleccionado del grafo
 @app.callback(Output('winners_map_ghsom','children'),
-              Input('grafo_ghsom','clickData'),
+              Input('dcc_ghsom_graph_1','clickData'),
               prevent_initial_call=True 
               )
 def view_winner_map_by_selected_point(clickdata):
