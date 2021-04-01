@@ -1,5 +1,5 @@
 #INTERFAZ
-404 con flask 
+404 con flask, no mejor warnng y redirigir
 revisar maximos y minimos de los parametros
 sincronizar slider y valores
 filtrar por tipo de archivo y leerlo en consecuencia bien, no solo csv
@@ -20,6 +20,7 @@ quitar la carga de datos a traves de json
 organizar los imports no usados
 problemas al borrar carptetas como saved data
 LOS TICKS DE LOS HEATMPAS EMPIEZAN EN -0.5 AUNQUE LA CASILLA ESTA BIEN CENTRADA
+quitar forma hexagonal del som
 
 
 #PREGUNTAS

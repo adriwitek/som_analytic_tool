@@ -446,6 +446,7 @@ def get_distances(weights_map, saved_distances, x,y,a,b):
 ##################################################################
 #                       CALLBACKS
 ##################################################################
+
 #Control de pliegues y carga del grafo de la estructura del ghsom
 @app.callback(
     [Output(f"collapse_ghsom_{i}", "is_open") for i in range(1, 5)],

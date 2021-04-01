@@ -42,6 +42,17 @@ formulario_ghsom =  dbc.ListGroupItem([
                     html.H5(children='Épocas:'),
                     dcc.Input(id="epocas_ghsom", type="number", value="15",step=1,min=1),
 
+                    html.H5(children='Semilla:'),
+                    html.Div( 
+                            [dbc.Checklist(
+                                options=[{"label": "Seleccionar semilla", "value": 1}],
+                                value=[],
+                                id="check_semilla_ghsom")]
+                    ),
+                    html.Div( id= 'div_semilla_ghsom',
+                                children = [dcc.Input(id="seed_ghsom", type="number", value="0",step=1,min=0, max=(2**32 - 1))],
+                                style={ "visibility": "hidden",'display':'none'}
+                    ),    
 
 
                     html.Hr(),
@@ -143,6 +154,21 @@ def sync_slider_tau2(tau2, slider_value):
     return value, value
 
 
+
+# Checklist seleccionar semilla
+@app.callback(
+    Output('div_semilla_ghsom','style'),
+    Input("check_semilla_ghsom", "value"),
+    prevent_initial_call=True
+    )
+def select_seed(check):
+
+    if(check):
+        return {  'display': 'block'}
+    else:
+        return { "visibility": "hidden",'display':'none'}
+
+
 #Habilitar boton train ghsom
 @app.callback(Output('train_button_ghsom','disabled'),
               Input('tau1','value'),
@@ -151,13 +177,20 @@ def sync_slider_tau2(tau2, slider_value):
               Input('decadencia','value'),
               Input('sigma','value'),
               Input('max_iter_ghsom','value'),
-              Input('epocas_ghsom','value')
+              Input('epocas_ghsom','value'),
+              Input('seed_ghsom','value'),
+              Input("check_semilla_ghsom", "value"),
               )
-def enable_train_ghsom_button(tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,max_iter_ghsom, epocas_ghsom):
+def enable_train_ghsom_button(tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,max_iter_ghsom, epocas_ghsom, seed, check_semilla):
     '''Habilita el boton de train del ghsom
 
     '''
-    if all(i is not None for i in [tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana, max_iter_ghsom, epocas_ghsom ]):
+    parametros = [tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana, max_iter_ghsom, epocas_ghsom ]
+
+    if(check_semilla):
+        parametros.append(seed)
+
+    if all(i is not None for i in parametros):
         return False
     else:
         return True
@@ -174,8 +207,10 @@ def enable_train_ghsom_button(tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussi
               State('sigma','value'),
               State('epocas_ghsom','value'),
               State('max_iter_ghsom','value'),
+              State('seed_ghsom','value'),
+              State("check_semilla_ghsom", "value"),
               prevent_initial_call=True )
-def train_ghsom(n_clicks,tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,epocas_ghsom, max_iter_ghsom):
+def train_ghsom(n_clicks,tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,epocas_ghsom, max_iter_ghsom, semilla, check_semilla):
 
     print('button clickedddddddddddd\n', flush=True)
     tau1 = float(tau1)
@@ -185,28 +220,25 @@ def train_ghsom(n_clicks,tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,e
     sigma_gaussiana = float(sigma_gaussiana)
     epocas_ghsom = int(epocas_ghsom)
     max_iter_ghsom = int(max_iter_ghsom)
-
+    if(check_semilla):
+        seed = int(semilla)
+    else:
+        seed = None
 
     dataset = session_data.get_dataset()
-
-
-    data = dataset[:,:-1]
-    targets = dataset[:,-1:]
-    n_samples = dataset.shape[0]
-    n_features = dataset.shape[1]
-
+    data = session_data.get_data() 
     print('debug point 1')
 
 
     
     
     ghsom = GHSOM(input_dataset = data, t1= tau1, t2= tau2, learning_rate= tasa_aprendizaje, decay= decadencia, gaussian_sigma=sigma_gaussiana, growing_metric="qe")
-    zero_unit = ghsom.train(epochs_number=epocas_ghsom, dataset_percentage=1, min_dataset_size=1, seed=0, grow_maxiter=max_iter_ghsom)
-    session_data.set_ghsom_model_info_dict(tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,epocas_ghsom,max_iter_ghsom)
+    zero_unit = ghsom.train(epochs_number=epocas_ghsom, dataset_percentage=1, min_dataset_size=1, seed=seed, grow_maxiter=max_iter_ghsom)
+    session_data.set_ghsom_model_info_dict(tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,epocas_ghsom,max_iter_ghsom,check_semilla,seed)
 
     session_data.set_modelo(zero_unit)
     print('ENTRENAMIENTO DEL GHSOM FINALIZADO\n')
-    print('zerounit:',zero_unit)
+    #print('zerounit:',zero_unit)
 
     
     return 'entrenamiento_completado'

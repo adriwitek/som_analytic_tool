@@ -97,6 +97,21 @@ def train_som_view():
                                 searchable=False,
                                 style={'width': '45%'}
                             ),
+
+
+                                html.H5(children='Semilla:'),
+                                html.Div( 
+                                        [dbc.Checklist(
+                                            options=[{"label": "Seleccionar semilla", "value": 1}],
+                                            value=[],
+                                            id="check_semilla_som")]
+                                ),
+                                html.Div( id= 'div_semilla_som',
+                                            children = [dcc.Input(id="seed_som", type="number", value="0",step=1,min=0, max=(2**32 - 1))],
+                                            style={ "visibility": "hidden",'display':'none'}
+                                ),   
+
+
                             html.Hr(),
 
                             html.Div(children=[
@@ -104,6 +119,7 @@ def train_som_view():
                                 #,dbc.Spinner(id='spinner_training',color="primary",fullscreen=False)],
                                 #    style={'textAlign': 'center'}
                             ),
+                            #Todo mirar esto
                             html.H6(id='som_entrenado')
 
                 ])
@@ -127,7 +143,18 @@ def train_som_view():
 
 
 
+# Checklist seleccionar semilla
+@app.callback(
+    Output('div_semilla_som','style'),
+    Input("check_semilla_som", "value"),
+    prevent_initial_call=True
+    )
+def select_seed(check):
 
+    if(check):
+        return {  'display': 'block'}
+    else:
+        return { "visibility": "hidden",'display':'none'}
 
 
 
@@ -142,12 +169,20 @@ def train_som_view():
               Input('dropdown_distance', 'value'),
               Input('sigma', 'value'),
               Input('iteracciones', 'value'),
-              Input('dropdown_inicializacion_pesos','value')
+              Input('dropdown_inicializacion_pesos','value'),
+              Input('seed_som','value'),
+              Input("check_semilla_som", "value"),
             )
 def enable_train_som_button(tam_eje_vertical,tam_eje_horizontal,tasa_aprendizaje,vecindad, topology, distance,
-                            sigma,iteracciones,dropdown_inicializacion_pesos):
-    if all(i is not None for i in [tam_eje_vertical,tam_eje_horizontal,tasa_aprendizaje,vecindad, topology, distance,
-                                    sigma,iteracciones,dropdown_inicializacion_pesos]):
+                            sigma,iteracciones,dropdown_inicializacion_pesos,  seed, check_semilla):
+
+    params  = [tam_eje_vertical,tam_eje_horizontal,tasa_aprendizaje,vecindad, topology, distance,
+                                    sigma,iteracciones,dropdown_inicializacion_pesos]
+
+    if(check_semilla):
+        params.append(seed)
+
+    if all(i is not None for i in params):
         return False
     else:
         return True
@@ -167,12 +202,18 @@ def enable_train_som_button(tam_eje_vertical,tam_eje_horizontal,tasa_aprendizaje
               State('sigma', 'value'),
               State('iteracciones', 'value'),
               State('dropdown_inicializacion_pesos','value'),
+              State('seed_som','value'),
+              State("check_semilla_som", "value"),
               prevent_initial_call=True )
-def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, topology, distance,sigma,iteracciones,pesos_init):
+def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, topology, distance,sigma,iteracciones,pesos_init, semilla, check_semilla):
 
     tasa_aprendizaje=float(tasa_aprendizaje)
     sigma = float(sigma)
     iteracciones = int(iteracciones)
+    if(check_semilla):
+        seed = int(semilla)
+    else:
+        seed = None
 
 
     # TRAINING
@@ -192,7 +233,7 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
 
     som = minisom.MiniSom(x=eje_vertical, y=eje_horizontal, input_len=data.shape[1], sigma=sigma, learning_rate=tasa_aprendizaje,
                 neighborhood_function=vecindad, topology=topology,
-                 activation_distance=distance, random_seed=None)
+                 activation_distance=distance, random_seed=seed)
     
     #Weigh init
     if(pesos_init == 'pca'):
@@ -200,8 +241,9 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
     elif(pesos_init == 'random'):   
         som.random_weights_init(data)
 
-    som.train(data, iteracciones, verbose=True)  # random training   
-    session_data.set_modelo(som)                                                       # TODO quitar el verbose
+    #TODO quitar el verbose
+    som.train(data, iteracciones, random_order=False, verbose=True)  
+    session_data.set_modelo(som)                                                   
 
     print('ENTRENAMIENTO FINALIZADO')
 
