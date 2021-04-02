@@ -242,12 +242,13 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
         som.random_weights_init(data)
 
     #TODO quitar el verbose
-    som.train(data, iteracciones, random_order=False, verbose=True)  
+    print('Training som...')
+    som.train(data, iteracciones, random_order=False, verbose=False)  
     session_data.set_modelo(som)                                                   
 
-    print('ENTRENAMIENTO FINALIZADO')
+    print('ENTRENAMIENTO SOM FINALIZADO')
 
-    return 'Entrenamiento completado',session_data
+    return 'Entrenamiento completado'
 
 
 

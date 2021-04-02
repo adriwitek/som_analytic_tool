@@ -18,7 +18,7 @@ from  config.config import *
 import pickle
 from  os.path import normpath 
 from re import search 
-
+import views.plot_utils as pu
 
 
 fig = go.Figure()
@@ -246,14 +246,6 @@ def update_som_fig(n_clicks):
 
 
     params = session_data.get_som_model_info_dict()
-    #TODO borrar
-    '''
-    with open(SESSION_DATA_FILE_DIR) as json_file:
-        datos_entrenamiento = json.load(json_file)
-
-    tam_eje_vertical = datos_entrenamiento['som_tam_eje_vertical'] 
-    tam_eje_horizontal = datos_entrenamiento['som_tam_eje_horizontal'] 
-    '''
     tam_eje_vertical = params['tam_eje_vertical']
     tam_eje_horizontal = params['tam_eje_horizontal']
     
@@ -261,19 +253,18 @@ def update_som_fig(n_clicks):
 
     som = session_data.get_modelo()
     dataset = session_data.get_dataset()
-    data = dataset[:,:-1]
+    data = session_data.get_data()
     targets = dataset[:,-1:]
-    n_samples = dataset.shape[0]
-    n_features = dataset.shape[1]
-
-   
     
+
     #print('targets',[t for t in targets])
     targets_list = [t[0] for t in targets.tolist()]
     #print('targetssss',targets_list)
     labels_map = som.labels_map(data, targets_list)
     data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
-    #data_to_plot[:] = np.nan#labeled heatmap does not support nonetypes
+    #labeled heatmap does not support nonetypes
+    print('debug 1')
+    data_to_plot[:] = np.nan
 
     if(session_data.get_discrete_data() ):
         #showing the class more represented in each neuron
@@ -290,7 +281,8 @@ def update_som_fig(n_clicks):
 
     
 
-   
+    print('debug 2')
+
 
     '''
 
@@ -326,8 +318,10 @@ def update_som_fig(n_clicks):
     #########################################################
     # ANNOTATED HEATMAPD RAPIDOOO
     
+    #TODO
     #type= heatmap para mas precision
     #heatmapgl
+    #trace = dict(type='heatmapgl', z=data_to_plot, colorscale = 'Jet')
     trace = dict(type='heatmap', z=data_to_plot, colorscale = 'Jet')
     data=[trace]
 
@@ -348,7 +342,6 @@ def update_som_fig(n_clicks):
     layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
     #layout['width'] = 700
     #layout['height']= 700
-    annotations = []
 
     fig = dict(data=data, layout=layout)
 
@@ -359,12 +352,14 @@ def update_som_fig(n_clicks):
 
     #EIQUETANDO EL HEATMAP(solo los datos discretos)
     #Improved vers. for quick annotations by me
+    '''
+    annotations = []
     if(session_data.get_discrete_data() ):
         print('Etiquetando....')
         for n, row in enumerate(data_to_plot):
             for m, val in enumerate(row):
                 #TODO
-                #font_color = min_text_color if ( val < self.zmid ) else max_text_color    esto lo haria aun mas lento
+                #font_color = min_text_color if ( val < self.zmid ) else max_text_color    #esto lo haria aun mas lento
                 if( not(val is None) ):
                     annotations.append(
                         go.layout.Annotation(
@@ -377,9 +372,16 @@ def update_som_fig(n_clicks):
                            showarrow=False,
                         )
                     )
-        
+    '''
+
+
 
     
+    print('Empezando a anotar')
+    #print(data_to_plot)
+    annotations = pu.make_annotations(data_to_plot, colorscale = 'Jet', reversescale= False)
+    print('Fin de la anotacion')
+
     
     layout['annotations'] = annotations
     
