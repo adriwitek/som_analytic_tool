@@ -35,17 +35,22 @@ def analyze_som_data():
         html.Div(children=[ 
 
             #Card Mapa neurona winners
+            #TODO div con la fig
             dbc.Card([
                 dbc.CardHeader(
                     html.H2(dbc.Button("Mapa de neuronas ganadoras",color="link",id="button_collapse_1"))
                 ),
                 dbc.Collapse(id="collapse_1",children=
                     dbc.CardBody(children=[ 
-                        html.Div([dcc.Graph(id='winners_map',figure=fig)],
-                          style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}
+                        html.Div([  dcc.Graph(id='winners_map',figure=fig)],
+                                    id='div_mapa_neuronas_ganadoras',
+                                    style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}
                         ),
-                        html.Div( 
-                            [dbc.Button("Ver", id="ver", className="mr-2", color="primary")],
+                        html.Div([
+                            dbc.Checklist(  options=[{"label": "Etiquetar Neuronas", "value": 1}],
+                                            value=[],
+                                            id="check_annotations_winnersmap"),
+                            dbc.Button("Ver", id="ver", className="mr-2", color="primary")],
                             style={'textAlign': 'center'}
                         )
                     ]),
@@ -233,14 +238,57 @@ def enable_ver_mapas_componentes_button(values):
         return True
 
 
+#Etiquetar Mapa neuonas ganadoras
+@app.callback(Output('div_mapa_neuronas_ganadoras', 'children'),
+              Input('check_annotations_winnersmap', 'value'),
+              State('winners_map', 'figure'),
+              State('ver', 'n_clicks'),
 
+              prevent_initial_call=True )
+def annotate_winners_map_som(check_annotations, fig,n_clicks):
+    
+    if(n_clicks is None):
+        raise PreventUpdate
+
+    params = session_data.get_som_model_info_dict()
+    tam_eje_vertical = params['tam_eje_vertical']
+    tam_eje_horizontal = params['tam_eje_horizontal']
+
+    layout = {}
+    layout['title'] = 'Mapa de neuronas ganadoras'
+    layout['xaxis']  ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
+    layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
+
+    data = fig['data']
+
+
+    if(check_annotations  ): #fig already ploted
+        trace = data[0]
+        data_to_plot = trace['z'] 
+        #To replace None values with NaN values
+        data_to_plot_1 = np.array(data_to_plot, dtype=np.float64)
+
+        annotations = pu.make_annotations(data_to_plot_1, colorscale = 'Jet', reversescale= False)
+        layout['annotations'] = annotations
+        
+   
+
+    
+
+    fig_updated = dict(data=data, layout=layout)
+
+    children = [dcc.Graph(id='winners_map',figure=fig_updated)]
+    return children
+        
+    
 
 
 #Mapa neuonas ganadoras
 @app.callback(Output('winners_map', 'figure'),
               Input('ver', 'n_clicks'),
+              State('check_annotations_winnersmap', 'value'),
               prevent_initial_call=True )
-def update_som_fig(n_clicks):
+def update_som_fig(n_clicks, check_annotations):
 
     print('\nVISUALIZACION clicked\n')
 
@@ -350,40 +398,12 @@ def update_som_fig(n_clicks):
 
 
 
-    #EIQUETANDO EL HEATMAP(solo los datos discretos)
-    #Improved vers. for quick annotations by me
-    '''
-    annotations = []
-    if(session_data.get_discrete_data() ):
-        print('Etiquetando....')
-        for n, row in enumerate(data_to_plot):
-            for m, val in enumerate(row):
-                #TODO
-                #font_color = min_text_color if ( val < self.zmid ) else max_text_color    #esto lo haria aun mas lento
-                if( not(val is None) ):
-                    annotations.append(
-                        go.layout.Annotation(
-                           text= str(val) ,
-                           x=m,
-                           y=n,
-                           #xref="x1",
-                           #yref="y1",
-                           #font=dict(color=font_color),
-                           showarrow=False,
-                        )
-                    )
-    '''
 
-
-
-    
-    print('Empezando a anotar')
-    #print(data_to_plot)
-    annotations = pu.make_annotations(data_to_plot, colorscale = 'Jet', reversescale= False)
-    print('Fin de la anotacion')
-
-    
-    layout['annotations'] = annotations
+    if(check_annotations):
+        print('Empezando a anotar')
+        annotations = pu.make_annotations(data_to_plot, colorscale = 'Jet', reversescale= False)
+        print('Fin de la anotacion')
+        layout['annotations'] = annotations
     
 
     print('\nVISUALIZACION:renderfinalizado\n')

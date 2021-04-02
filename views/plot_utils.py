@@ -85,6 +85,7 @@ def make_annotations(data, colorscale, reversescale):
     :rtype (list[dict]) annotations: list of annotations for each cell of
         the heatmap
     """
+    #TODO: ELIMAR LAS LLLAMDA A LA FUNCION DE ABAJO
     #min_text_color, max_text_color = get_text_color( colorscale, reversescale)
     white = "#FFFFFF"
     black = "#000000"
