@@ -339,8 +339,8 @@ def get_ghsom_fig():
 
 
     #TODO quicker scattergl
-    edge_trace = go.Scattergl(
-    #edge_trace = go.Scatter(
+    #edge_trace = go.Scattergl(
+    edge_trace = go.Scatter(
         x=edge_x, 
         y=edge_y,
         #z=edge_z,
@@ -375,9 +375,10 @@ def get_ghsom_fig():
     session_data.set_ghsom_nodes_by_coord_dict(nodes_by_cords_dict)
 
 
-    #node_trace = go.Scatter(
+    node_trace = go.Scatter(
     #TODO quicker scattergl
-    node_trace = go.Scattergl(
+    #TODO Scattergl no muestra el hovertext
+    #node_trace = go.Scattergl(
         x=node_x, 
         y=node_y,
         mode='markers',
@@ -387,7 +388,8 @@ def get_ghsom_fig():
                         +"<extra></extra>"
         ,
         marker=dict(
-            color=['blue'], #set color equal to a variable
+            #color=['blue',], #set color equal to a variable
+            color = 'slategray',
             size=14)
     )
 
@@ -415,6 +417,7 @@ def get_ghsom_fig():
             )
            
     fig = dict(data=data1,layout=layout)
+
     return fig
 
 
@@ -484,22 +487,30 @@ def toggle_accordion(n1, n2,n3,n4, is_open1, is_open2,is_open3,is_open4):
 
 
 
+
+
+
 #Winners map del punto seleccionado del grafo
 @app.callback(Output('winners_map_ghsom','children'),
+              Output('dcc_ghsom_graph_1','figure'),
+
               Input('dcc_ghsom_graph_1','clickData'),
+              State('dcc_ghsom_graph_1','figure'),
+
               prevent_initial_call=True 
               )
-def view_winner_map_by_selected_point(clickdata):
+def view_winner_map_by_selected_point(clickdata,figure):
 
     if(clickdata is None):
         raise PreventUpdate
 
-    print('clikedpoint:',clickdata)
+    #print('clikedpoint:',clickdata)
     #{'points': [{'curveNumber': 0, 'x': 0, 'y': 0, 'z': 0}]}
     points = clickdata['points']
     punto_clickeado = points[0]
     cord_horizontal_punto_clickeado = punto_clickeado['x']
     cord_vertical_punto_clickeado = punto_clickeado['y'] 
+    
     
     nodes_dict = session_data.get_ghsom_nodes_by_coord_dict()
     ghsom = nodes_dict[(cord_vertical_punto_clickeado,cord_horizontal_punto_clickeado)]
@@ -513,28 +524,26 @@ def view_winner_map_by_selected_point(clickdata):
     data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
     positions={}
 
-    #solo para el input dataset tiene que serrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
-
+    #TODO MIRAR SI ESTO ESTA:solo para el input dataset tiene que serrrrrr
 
     # Obtener clases representativas de cada neurona
-    for i in range(tam_eje_vertical):
-        for j in range(tam_eje_horizontal):
+    if(session_data.get_discrete_data() ):     #showing the class more represented in each neuron
+        for i in range(tam_eje_vertical):
+            for j in range(tam_eje_horizontal):
+                if((i,j) in neurons_mapped_targets):
+                        c = Counter(neurons_mapped_targets[(i,j)])
+                        data_to_plot[i][j] = c.most_common(1)[0][0]
+                else:
+                    data_to_plot[i][j] = None
+    else:#continuos data: mean of the mapped values in each neuron
+        for i in range(tam_eje_vertical):
+            for j in range(tam_eje_horizontal):
+                if((i,j) in neurons_mapped_targets):
+                        data_to_plot[i][j]  = np.mean(neurons_mapped_targets[(i,j)])
+                else:
+                    data_to_plot[i][j] = None
 
-            if((i,j) in neurons_mapped_targets):
-
-                if(session_data.get_discrete_data() ):        #showing the class more represented in each neuron
-                    c = Counter(neurons_mapped_targets[(i,j)])
-                    data_to_plot[i][j] = c.most_common(1)[0][0]
-                else: #continuos data: mean of the mapped values in each neuron
-                    data_to_plot[i][j]  = np.mean(neurons_mapped_targets[(i,j)])
-    
-            else:
-                data_to_plot[i][j] = None
-
-   
-        
-
-    
+    #MAPA DE NEURONAS GANADORAS
     #type= heatmap para mas precision
     #heatmapgl
     trace = dict(type='heatmap', z=data_to_plot, colorscale = 'Jet')
@@ -542,24 +551,47 @@ def view_winner_map_by_selected_point(clickdata):
 
     
     data.append({'type': 'scattergl',
-                    'mode': 'text',
-                    'text': 'a'
-                    })
+                    'mode': 'text'
+                })
     
     layout = {}
     layout['xaxis']  ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
     layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
     layout['width'] = 700
     layout['height']= 700
+    
     #layout['title'] = 'Mapa de neuronas ganadoras'
     annotations = []
     fig = dict(data=data, layout=layout)
 
     children = get_figure_complete_div(fig,'winnersmap_fig_ghsom','Mapa de neuronas ganadoras',level,tam_eje_horizontal, tam_eje_vertical,None)
 
+
+
+
+    #actualizar  COLOR DEL punto seleccionado en el grafo
+    data = []
+    data.append(figure['data'][0])
+    data.append(figure['data'][1])
+
+    data.append( go.Scattergl(
+        x=[cord_horizontal_punto_clickeado], 
+        y=[cord_vertical_punto_clickeado],
+        mode='markers',
+        marker=dict(
+            color = 'blue',
+            size=14)
+    ))
+    figure['data'] = data
+
+    
     print('\nVISUALIZACION:ghsom renderfinalizado\n')
 
-    return children
+
+    return children, figure
+
+
+
 
 
 
@@ -723,7 +755,7 @@ def update_mapa_componentes_ghsom_fig(clickdata,names):
               Input('dcc_ghsom_graph_3','clickData'),
               prevent_initial_call=True 
               )
-def ver_umatrix_gsom_fig(clickdata):
+def ver_umatrix_ghsom_fig(clickdata):
 
 
     if(clickdata is None):
