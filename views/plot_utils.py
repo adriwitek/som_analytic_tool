@@ -119,8 +119,27 @@ def make_annotations(data, colorscale, reversescale):
                 )
     return annotations
 
+#TODO VER SI USO ESTO FUNCION AL FINAL
+def fig_add_annotations(figure):
+    data = figure['data']
+    trace = data[0]
+    print(trace)
+    data_to_plot = trace['z'] 
+    #To replace None values with NaN values
+    data_to_plot_1 = np.array(data_to_plot, dtype=np.float64)
+    annotations = make_annotations(data_to_plot_1, colorscale = 'Jet', reversescale= False)
+    layout = figure['layout']
+    layout['annotations'] = annotations
+    fig_updated = dict(data=data, layout=layout)
+    return fig_updated
 
-
+#TODO VER SI USO ESTO FUNCION AL FINAL
+def fig_del_annotations(figure):
+    data = figure['data']
+    layout = figure['layout']
+    layout['annotations'] = []
+    fig_updated = dict(data=data, layout=layout)
+    return fig_updated
 
 
 
@@ -179,3 +198,6 @@ def get_fig_div_with_info(fig,fig_id, title,tam_eje_horizontal, tam_eje_vertical
                                             'flex-wrap': 'wrap', 'flex-direction': 'column ' } )
     '''
     return children
+
+
+

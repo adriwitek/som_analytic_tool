@@ -23,7 +23,8 @@ from  os.path import normpath
 from re import search 
 
 import networkx as nx
-from views.plot_utils import get_fig_div_with_info
+from views.plot_utils import get_fig_div_with_info, make_annotations
+import views.plot_utils as pu
 
 
 
@@ -54,6 +55,12 @@ def analyze_ghsom_data():
                                             'flex-wrap': 'wrap', 'flex-direction': 'column ' } 
                         ),
 
+                        html.Div(
+                            dbc.Checklist(  options=[{"label": "Etiquetar Neuronas", "value": 1}],
+                                            value=[],
+                                            id="check_annotations_winmap_ghsom"),
+                            style={'textAlign': 'center'}
+                        )
                     ]),
                 ),
             ]),
@@ -87,7 +94,14 @@ def analyze_ghsom_data():
 
                             html.Div(id='component_plans_figures_ghsom_div', children=[''],
                                     style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+                            ),
+
+                            html.Div(dbc.Checklist(  options=[{"label": "Etiquetar Neuronas", "value": 1}],
+                                                    value=[],
+                                                    id="check_annotations_comp_ghsom"),
+                                        style={'textAlign': 'center'}
                             )
+
 
                         ]),
                     ]),
@@ -110,8 +124,14 @@ def analyze_ghsom_data():
 
                         html.Div(id = 'umatrix_div_fig_ghsom',children = '',
                                 style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}
-                        )
+                        ),
 
+                        html.Div(dbc.Checklist(     options=[{"label": "Etiquetar Neuronas", "value": 1}],
+                                                    value=[],
+                                                    id="check_annotations_um_ghsom"),
+                                style={'textAlign': 'center'}
+                        )
+                    
                     ])
 
                     ),
@@ -364,14 +384,15 @@ def toggle_accordion(n1, n2,n3,n4, is_open1, is_open2,is_open3,is_open4):
 
 #Winners map del punto seleccionado del grafo
 @app.callback(Output('winners_map_ghsom','children'),
-              Output('dcc_ghsom_graph_1','figure'),
               Input('dcc_ghsom_graph_1','clickData'),
+              Input('check_annotations_winmap_ghsom','value'),
               State('dcc_ghsom_graph_1','figure'),
               prevent_initial_call=True 
               )
-def view_winner_map_by_selected_point(clickdata,figure):
+def view_winner_map_by_selected_point(clickdata,check_annotations,figure):
 
-    if(clickdata is None):
+
+    if clickdata is  None:
         raise PreventUpdate
 
     #print('clikedpoint:',clickdata)
@@ -442,13 +463,20 @@ def view_winner_map_by_selected_point(clickdata,figure):
     layout['width'] = DEFAULT_HEATMAP_PX_WIDTH
     layout['height']= DEFAULT_HEATMAP_PX_HEIGHT
     #layout['title'] = 'Mapa de neuronas ganadoras'
-    annotations = []
-    fig = dict(data=data, layout=layout)
 
-    children = get_fig_div_with_info(fig,'winnersmap_fig_ghsom','Mapa de neuronas ganadoras',tam_eje_horizontal, tam_eje_vertical,level,neurona_padre_string)
+
+    #Annotations
+    if(check_annotations  ): 
+        #Todo replace None values with NaN values
+        data_to_plot_1 = np.array(data_to_plot, dtype=np.float64)
+        annotations = pu.make_annotations(data_to_plot_1, colorscale = 'Jet', reversescale= False)
+        layout['annotations'] = annotations
+
+    fig = dict(data=data, layout=layout)
+    children = pu.get_fig_div_with_info(fig,'winnersmap_fig_ghsom','Mapa de neuronas ganadoras',tam_eje_horizontal, tam_eje_vertical,level,neurona_padre_string)
 
     print('\nVISUALIZACION:ghsom renderfinalizado\n')
-    return children, figure
+    return children
 
 
 
@@ -474,15 +502,18 @@ def on_form_change(check):
 
 
 
+
+
 #Actualizar mapas de componentes
 @app.callback(Output('component_plans_figures_ghsom_div','children'),
               Output('dcc_ghsom_graph_2','figure'),
               Input('dcc_ghsom_graph_2','clickData'),
+              Input('check_annotations_comp_ghsom','value'),
               State('dcc_ghsom_graph_2','figure'),
               State('dropdown_atrib_names_ghsom','value'),
               prevent_initial_call=True 
               )
-def update_mapa_componentes_ghsom_fig(clickdata,fig_grafo,names):
+def update_mapa_componentes_ghsom_fig(clickdata,check_annotations,fig_grafo,names):
 
 
     if(clickdata is None):
@@ -540,9 +571,21 @@ def update_mapa_componentes_ghsom_fig(clickdata,fig_grafo,names):
             for j in range(tam_eje_horizontal):
                 data_to_plot[i][j] = weights_map[(i,j)][k]
         
-        figure= go.Figure(layout= {"height": 300,'width' : 300, 'title': nombres_atributos[k], 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict },
+
+        layout = {"height": 300,'width' : 300, 'title': nombres_atributos[k], 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict }
+
+        #Annotations
+        if(check_annotations  ): 
+            #Todo replace None values with NaN values
+            data_to_plot_1 = np.array(data_to_plot, dtype=np.float64)
+            annotations = pu.make_annotations(data_to_plot_1, colorscale = 'Jet', reversescale= False)
+            layout['annotations'] = annotations
+
+        figure= go.Figure(layout= layout,
                           data=go.Heatmap(z=data_to_plot,showscale= True)                                                      
         ) 
+
+        
         id ='graph-{}'.format(k)
         traces.append(
             html.Div(children= dcc.Graph(id=id,figure=figure)
@@ -559,10 +602,11 @@ def update_mapa_componentes_ghsom_fig(clickdata,fig_grafo,names):
 @app.callback(Output('umatrix_div_fig_ghsom','children'),
               Output('dcc_ghsom_graph_3','figure'),
               Input('dcc_ghsom_graph_3','clickData'),
+              Input('check_annotations_um_ghsom','value'),
               State('dcc_ghsom_graph_3','figure'),
               prevent_initial_call=True 
               )
-def ver_umatrix_ghsom_fig(clickdata,fig_grafo):
+def ver_umatrix_ghsom_fig(clickdata,check_annotations,fig_grafo):
 
 
     if(clickdata is None):
@@ -640,7 +684,14 @@ def ver_umatrix_ghsom_fig(clickdata,fig_grafo):
     layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }  
     layout['width'] = DEFAULT_HEATMAP_PX_WIDTH
     layout['height']= DEFAULT_HEATMAP_PX_HEIGHT
-    annotations = []
+    
+    #Annotations
+    if(check_annotations  ): 
+        #Todo replace None values with NaN values
+        data_to_plot_1 = np.array(data_to_plot, dtype=np.float64)
+        annotations = pu.make_annotations(data_to_plot_1, colorscale = 'Jet', reversescale= False)
+        layout['annotations'] = annotations
+
     fig = dict(data=data, layout=layout)
     children = [ dcc.Graph(id='umatrix_fig_ghsom',figure=fig)  ]
 

@@ -262,6 +262,11 @@ def annotate_winners_map_som(check_annotations, fig,n_clicks):
     data = fig['data']
 
 
+
+
+
+
+    #TODO LLAMAR A FUNCIONA CREADA EN PLOT UTILS
     if(check_annotations  ): #fig already ploted
         trace = data[0]
         data_to_plot = trace['z'] 
@@ -373,14 +378,8 @@ def update_som_fig(n_clicks, check_annotations):
     trace = dict(type='heatmap', z=data_to_plot, colorscale = 'Jet')
     data=[trace]
 
-    # Here's the key part - Scattergl text! 
-    
-
-
     data.append({'type': 'scattergl',
                     'mode': 'text',
-                    #'x': x_ticks,
-                    #'y': y_ticks,
                     'text': 'a'
                     })
     
@@ -390,14 +389,10 @@ def update_som_fig(n_clicks, check_annotations):
     layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
     #layout['width'] = 700
     #layout['height']= 700
-
     fig = dict(data=data, layout=layout)
 
     #condition_Nones = not(val is None)
     #condition_nans= not(np.isnan(val))
-
-
-
 
     if(check_annotations):
         print('Empezando a anotar')
@@ -413,11 +408,6 @@ def update_som_fig(n_clicks, check_annotations):
 
 
 
-
-
-
-
-
 #Actualizar mapas de componentes
 @app.callback(Output('component_plans_figures_div','children'),
               Input('ver_mapas_componentes_button','n_clicks'),
@@ -426,7 +416,7 @@ def update_som_fig(n_clicks, check_annotations):
               )
 def update_mapa_componentes_fig(click,names):
 
-
+    #TODO quitar el json
     som = session_data.get_modelo()
     with open(SESSION_DATA_FILE_DIR) as json_file:
         datos_entrenamiento = json.load(json_file)
