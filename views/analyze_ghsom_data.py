@@ -16,7 +16,7 @@ from datetime import datetime
 import plotly.graph_objects as go
 
 from  views.session_data import session_data
-from  config.config import SESSION_DATA_FILE_DIR,DEFAULT_HEATMAP_PX_HEIGHT, DEFAULT_HEATMAP_PX_WIDTH
+from  config.config import SESSION_DATA_FILE_DIR,DEFAULT_HEATMAP_PX_HEIGHT, DEFAULT_HEATMAP_PX_WIDTH,DEFAULT_HEATMAP_COLORSCALE
 import pickle
 
 from  os.path import normpath 
@@ -453,7 +453,7 @@ def view_winner_map_by_selected_point(clickdata,check_annotations,figure):
 
 
     #heatmapgl
-    trace = dict(type='heatmap', z=data_to_plot, colorscale = 'Jet')
+    trace = dict(type='heatmap', z=data_to_plot, colorscale = DEFAULT_HEATMAP_COLORSCALE)
     data=[trace]
     data.append({'type': 'scattergl',
                     'mode': 'text'
@@ -470,7 +470,7 @@ def view_winner_map_by_selected_point(clickdata,check_annotations,figure):
     if(check_annotations  ): 
         #Todo replace None values with NaN values
         data_to_plot_1 = np.array(data_to_plot, dtype=np.float64)
-        annotations = pu.make_annotations(data_to_plot_1, colorscale = 'Jet', reversescale= False)
+        annotations = pu.make_annotations(data_to_plot_1, colorscale = DEFAULT_HEATMAP_COLORSCALE, reversescale= False)
         layout['annotations'] = annotations
 
     fig = dict(data=data, layout=layout)
@@ -572,13 +572,13 @@ def update_mapa_componentes_ghsom_fig(clickdata,check_annotations,fig_grafo,name
                 data_to_plot[i][j] = weights_map[(i,j)][k]
         
 
-        layout = {"height": 300,'width' : 300, 'title': nombres_atributos[k], 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict }
-
+        #layout = {"height": 500,'width' : 500, 'title': nombres_atributos[k], 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict }
+        layout = {'title': nombres_atributos[k], 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict }
         #Annotations
         if(check_annotations  ): 
             #Todo replace None values with NaN values
             data_to_plot_1 = np.array(data_to_plot, dtype=np.float64)
-            annotations = pu.make_annotations(data_to_plot_1, colorscale = 'Jet', reversescale= False)
+            annotations = pu.make_annotations(data_to_plot_1, colorscale = DEFAULT_HEATMAP_COLORSCALE, reversescale= False)
             layout['annotations'] = annotations
 
         figure= go.Figure(layout= layout,
@@ -674,7 +674,7 @@ def ver_umatrix_ghsom_fig(clickdata,check_annotations,fig_grafo):
     for item in saved_distances.items():
         print(item)
     '''
-    trace = dict(type='heatmap', z=data_to_plot, colorscale = 'Jet')
+    trace = dict(type='heatmap', z=data_to_plot, colorscale = DEFAULT_HEATMAP_COLORSCALE)
     data=[trace]
     data.append({'type': 'scattergl',
                     'mode': 'text'
@@ -689,7 +689,7 @@ def ver_umatrix_ghsom_fig(clickdata,check_annotations,fig_grafo):
     if(check_annotations  ): 
         #Todo replace None values with NaN values
         data_to_plot_1 = np.array(data_to_plot, dtype=np.float64)
-        annotations = pu.make_annotations(data_to_plot_1, colorscale = 'Jet', reversescale= False)
+        annotations = pu.make_annotations(data_to_plot_1, colorscale = DEFAULT_HEATMAP_COLORSCALE, reversescale= False)
         layout['annotations'] = annotations
 
     fig = dict(data=data, layout=layout)

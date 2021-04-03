@@ -21,7 +21,7 @@ from re import search
 import views.plot_utils as pu
 
 
-fig = go.Figure()
+
 
 
 
@@ -42,10 +42,7 @@ def analyze_som_data():
                 ),
                 dbc.Collapse(id="collapse_1",children=
                     dbc.CardBody(children=[ 
-                        html.Div([  dcc.Graph(id='winners_map',figure=fig)],
-                                    id='div_mapa_neuronas_ganadoras',
-                                    style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}
-                        ),
+                        html.Div( id='div_mapa_neuronas_ganadoras',children = ''),
                         html.Div([
                             dbc.Checklist(  options=[{"label": "Etiquetar Neuronas", "value": 1}],
                                             value=[],
@@ -68,13 +65,13 @@ def analyze_som_data():
                 ),
                 dbc.Collapse(id="collapse_4",children=
                     dbc.CardBody(children=[
-                        html.H5("Fecuencias de activacion:"),
-
-                        html.Div([dcc.Graph(id='frequency_map',figure=fig)],
-                          style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}
-                        ),
-                        html.Div( 
-                            [dbc.Button("Ver", id="frequency_map_button", className="mr-2", color="primary")],
+                        html.Div( id='div_frequency_map',children = ''),
+                        html.Div([ 
+                            dbc.Checklist(options=[{"label": "Etiquetar Neuronas", "value": 1}],
+                                            value=[],
+                                            id="check_annotations_freq"),
+                                        
+                            dbc.Button("Ver", id="frequency_map_button", className="mr-2", color="primary") ],
                             style={'textAlign': 'center'}
                         )
                         
@@ -239,11 +236,10 @@ def enable_ver_mapas_componentes_button(values):
 
 
 #Etiquetar Mapa neuonas ganadoras
-@app.callback(Output('div_mapa_neuronas_ganadoras', 'children'),
+@app.callback(Output('winners_map', 'figure'),
               Input('check_annotations_winnersmap', 'value'),
               State('winners_map', 'figure'),
               State('ver', 'n_clicks'),
-
               prevent_initial_call=True )
 def annotate_winners_map_som(check_annotations, fig,n_clicks):
     
@@ -255,16 +251,10 @@ def annotate_winners_map_som(check_annotations, fig,n_clicks):
     tam_eje_horizontal = params['tam_eje_horizontal']
 
     layout = {}
-    layout['title'] = 'Mapa de neuronas ganadoras'
+    #layout['title'] = 'Mapa de neuronas ganadoras'
     layout['xaxis']  ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
     layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
-
     data = fig['data']
-
-
-
-
-
 
     #TODO LLAMAR A FUNCIONA CREADA EN PLOT UTILS
     if(check_annotations  ): #fig already ploted
@@ -272,24 +262,19 @@ def annotate_winners_map_som(check_annotations, fig,n_clicks):
         data_to_plot = trace['z'] 
         #To replace None values with NaN values
         data_to_plot_1 = np.array(data_to_plot, dtype=np.float64)
-
-        annotations = pu.make_annotations(data_to_plot_1, colorscale = 'Jet', reversescale= False)
+        annotations = pu.make_annotations(data_to_plot_1, colorscale = DEFAULT_HEATMAP_COLORSCALE, reversescale= False)
         layout['annotations'] = annotations
         
    
-
-    
-
     fig_updated = dict(data=data, layout=layout)
+    return fig_updated
 
-    children = [dcc.Graph(id='winners_map',figure=fig_updated)]
-    return children
-        
+
     
 
 
 #Mapa neuonas ganadoras
-@app.callback(Output('winners_map', 'figure'),
+@app.callback(Output('div_mapa_neuronas_ganadoras', 'children'),
               Input('ver', 'n_clicks'),
               State('check_annotations_winnersmap', 'value'),
               prevent_initial_call=True )
@@ -316,7 +301,6 @@ def update_som_fig(n_clicks, check_annotations):
     labels_map = som.labels_map(data, targets_list)
     data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
     #labeled heatmap does not support nonetypes
-    print('debug 1')
     data_to_plot[:] = np.nan
 
     if(session_data.get_discrete_data() ):
@@ -334,12 +318,8 @@ def update_som_fig(n_clicks, check_annotations):
 
     
 
-    print('debug 2')
-
 
     '''
-
-
     x_ticks = np.linspace(0, tam_eje_vertical,tam_eje_vertical, dtype= int,endpoint=False).tolist()
     y_ticks = np.linspace(0, tam_eje_horizontal,tam_eje_horizontal,dtype= int, endpoint=False ).tolist()
 
@@ -360,7 +340,6 @@ def update_som_fig(n_clicks, check_annotations):
         colorscale='Viridis',
         #colorscale=colorscale,
         #font_colors=font_colors,
-        
         showscale=True #leyenda de colores
         )
     fig.update_layout(title_text='Clases ganadoras por neurona')
@@ -369,22 +348,20 @@ def update_som_fig(n_clicks, check_annotations):
 
     
     #########################################################
-    # ANNOTATED HEATMAPD RAPIDOOO
+    # ANNOTATED HEATMAPD RAPID
     
     #TODO
     #type= heatmap para mas precision
     #heatmapgl
-    #trace = dict(type='heatmapgl', z=data_to_plot, colorscale = 'Jet')
-    trace = dict(type='heatmap', z=data_to_plot, colorscale = 'Jet')
+    #trace = dict(type='heatmapgl', z=data_to_plot, colorscale = DEFAULT_HEATMAP_COLORSCALE)
+    trace = dict(type='heatmap', z=data_to_plot, colorscale = DEFAULT_HEATMAP_COLORSCALE)
     data=[trace]
 
     data.append({'type': 'scattergl',
-                    'mode': 'text',
-                    'text': 'a'
-                    })
-    
+                    'mode': 'text'
+                })
     layout = {}
-    layout['title'] = 'Mapa de neuronas ganadoras'
+    #layout['title'] = 'Mapa de neuronas ganadoras'
     layout['xaxis']  ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
     layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
     #layout['width'] = 700
@@ -396,14 +373,17 @@ def update_som_fig(n_clicks, check_annotations):
 
     if(check_annotations):
         print('Empezando a anotar')
-        annotations = pu.make_annotations(data_to_plot, colorscale = 'Jet', reversescale= False)
+        annotations = pu.make_annotations(data_to_plot, colorscale = DEFAULT_HEATMAP_COLORSCALE, reversescale= False)
         print('Fin de la anotacion')
         layout['annotations'] = annotations
     
 
+
+
+    children = pu.get_fig_div_with_info(fig,'winners_map', 'Mapa de neuronas ganadoras',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,neurona_padre=None)
     print('\nVISUALIZACION:renderfinalizado\n')
 
-    return fig
+    return children
 
 
 
@@ -421,7 +401,6 @@ def update_mapa_componentes_fig(click,names):
     with open(SESSION_DATA_FILE_DIR) as json_file:
         datos_entrenamiento = json.load(json_file)
 
-
     params = session_data.get_som_model_info_dict()
     tam_eje_vertical = params['tam_eje_vertical'] 
     tam_eje_horizontal = params['tam_eje_horizontal'] 
@@ -430,24 +409,16 @@ def update_mapa_componentes_fig(click,names):
     lista_de_indices = []
     print('Las  dimensiones del mapa entrenado son:',tam_eje_vertical,tam_eje_horizontal)
 
-
     for n in names:
         lista_de_indices.append(nombres_atributos.index(n) )
     
-
     pesos = som.get_weights()
 
     traces = []
 
-
-
-
-
     xaxis_dict ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
     yaxis_dict  ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
        
-
-
     for i in lista_de_indices:
         
         #figure= go.Figure(layout= {"height": 300,'width' : 300, 'title': nombres_atributos[i], 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict},
@@ -462,19 +433,9 @@ def update_mapa_componentes_fig(click,names):
             ) 
         )
 
-
-
     print('render finalizado')
     return traces
   
-
-
-
-
-
-
-
-
 
 
 # Checklist seleccionar todos mapas de componentes
@@ -495,39 +456,89 @@ def on_form_change(check):
     else:
         return []
 
-
-
-
     
-
-
+'''
+#Etiquetar freq map
+@app.callback(Output('frequency_map', 'figure'),
+              Input('check_annotations_freq', 'value'),
+              State('frequency_map', 'figure'),
+              State('ver', 'n_clicks'),
+              prevent_initial_call=True )
+def annotate_freq_map_som(check_annotations, fig,n_clicks):
     
+    if(n_clicks is None):
+        raise PreventUpdate
+
+    params = session_data.get_som_model_info_dict()
+    tam_eje_vertical = params['tam_eje_vertical']
+    tam_eje_horizontal = params['tam_eje_horizontal']
+
+    layout = {}
+    layout['title'] = 'Mapa de neuronas ganadoras'
+    layout['xaxis']  ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
+    layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
+    data = fig['data']
+
+    #TODO LLAMAR A FUNCIONA CREADA EN PLOT UTILS
+    if(check_annotations  ): #fig already ploted
+        trace = data[0]
+        data_to_plot = trace['z'] 
+        #To replace None values with NaN values
+        data_to_plot_1 = np.array(data_to_plot, dtype=np.float64)
+        annotations = pu.make_annotations(data_to_plot_1, colorscale = DEFAULT_HEATMAP_COLORSCALE, reversescale= False)
+        layout['annotations'] = annotations
+        
+   
+    fig_updated = dict(data=data, layout=layout)
+    return fig_updated
+
+
+'''
+
+
+
+
+
+
+
+
 #Actualizar mapas de frecuencias
-@app.callback(Output('frequency_map','figure'),
+@app.callback(Output('div_frequency_map','children'),
               Input('frequency_map_button','n_clicks'),
+              State('check_annotations_freq', 'value'),
               prevent_initial_call=True 
               )
-def update_mapa_frecuencias_fig(click):
+def update_mapa_frecuencias_fig(click, check_annotations):
 
     som = session_data.get_modelo() 
-    som =  session_data.get_modelo()
-    dataset = session_data.get_dataset()
-    data = dataset[:,:-1]
+    model_data = session_data.get_data()
     params = session_data.get_som_model_info_dict()
     tam_eje_horizontal = params['tam_eje_horizontal'] 
+    tam_eje_vertical = params['tam_eje_vertical']
 
+    frequencies = som.activation_response(model_data)
+    frequencies_list = frequencies.tolist()
+    
     xaxis_dict ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
     yaxis_dict  ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
-       
+    layout = {}
+    layout = { 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict}
 
+    if(check_annotations):
+        annotations = pu.make_annotations(frequencies_list, colorscale = DEFAULT_HEATMAP_COLORSCALE, reversescale= False)
+        layout['annotations'] = annotations
+    
 
-    #frequencies is a np matrix
-    frequencies = som.activation_response(data)
-    figure= go.Figure(layout= {'title': 'Mapa de frecuencias absolutas', 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict},
-                          data=go.Heatmap(z=frequencies.tolist(),showscale= True)                              
-    ) 
-    return figure
-   
+    trace = dict(type='heatmap', z=frequencies_list, colorscale = DEFAULT_HEATMAP_COLORSCALE)
+    data=[trace]
+    data.append({'type': 'scattergl',
+                    'mode': 'text'
+                })
+ 
+    figure = dict(data=data, layout=layout)
+    children = pu.get_fig_div_with_info(figure,'frequency_map','Mapa de frecuencias',tam_eje_horizontal, tam_eje_vertical)
+
+    return children
   
 
 
