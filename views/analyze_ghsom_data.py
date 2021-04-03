@@ -16,13 +16,14 @@ from datetime import datetime
 import plotly.graph_objects as go
 
 from  views.session_data import session_data
-from  config.config import *
+from  config.config import SESSION_DATA_FILE_DIR,DEFAULT_HEATMAP_PX_HEIGHT, DEFAULT_HEATMAP_PX_WIDTH
 import pickle
 
 from  os.path import normpath 
 from re import search 
 
 import networkx as nx
+from views.plot_utils import get_fig_div_with_info
 
 
 
@@ -168,122 +169,6 @@ def analyze_ghsom_data():
 ##################################################################
 
 
-def get_gsom_plotted_graph(figure_id,name, gsom,neurons_mapped_targets):
-    '''
-        Aux fun to plot gsom to heatmaps
-    
-        Args:
-            figure_id(string):
-            gsom(gsom):gsom to plot
-            mapped_data(data): data mappaed to the gsom through the neuron parent of the gsom
-        Returns:
-            figure(plotly)
-    '''
-
-    #TODO add annotations arg to this fun
-
-    tam_eje_vertical,tam_eje_horizontal=  gsom.map_shape()
-
-
-    #visualizacion
-
-    data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
-
-    # Obtener clases representativas de cada neurona
-    for i in range(tam_eje_vertical):
-        for j in range(tam_eje_horizontal):
-
-            if((i,j) in neurons_mapped_targets):
-
-                if(session_data.get_discrete_data() ):        #showing the class more represented in each neuron
-                    c = Counter(neurons_mapped_targets[(i,j)])
-                    data_to_plot[i][j] = c.most_common(1)[0][0]
-                else: #continuos data: mean of the mapped values in each neuron
-                    data_to_plot[i][j]  = np.mean(neurons_mapped_targets[(i,j)])
-    
-            else:
-                data_to_plot[i][j] = None
-
-
-    
-    #type= heatmap para mas precision
-    #heatmapgl
-    trace = dict(type='heatmap', z=data_to_plot, colorscale = 'Jet')
-    data=[trace]
-
-    # Here's the key part - Scattergl text! 
-    
-
-
-    data.append({'type': 'scattergl',
-                    'mode': 'text',
-                    #'x': x_ticks,
-                    #'y': y_ticks,
-                    'text': 'a'
-                    })
-    
-    layout = {}
-    layout['xaxis']  ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
-    layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }   
-    layout['width'] = 500
-    layout['height']= 500
-    #layout['title'] = name
-    #layout['x'] = 'Longitud(neuronas) del GSOM'
-    #layout['y'] = 'Longitud(neuronas) del GSOM'
-
-    annotations = []
-    fig = dict(data=data, layout=layout)
-    return fig
-    
-
-
-#Plot fig eight titles and gso size
-def get_figure_complete_div(fig,fig_id, title,gsom_level,tam_eje_horizontal, tam_eje_vertical,neurona_padre):
-    '''
-
-        neurona_padre: None or str tuple if it exits
-    '''
-
-    
-    if(neurona_padre is not None):
-        div_info_neurona_padre = html.Div(children = [
-            dbc.Badge('Neurona padre:', pill=True, color="light", className="mr-1"),
-            dbc.Badge(neurona_padre, pill=True, color="info", className="mr-1")
-        ])
-       
-    else:
-        div_info_neurona_padre= ''
-
-
-
-
-    div_inf_grid = html.Div(children = [
-        html.H3(title),
-
-        html.Div(children= [
-            dbc.Badge('Nivel '+ str(gsom_level), pill=True , color="info", className="mr-1"),
-            div_info_neurona_padre
-        ], style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-direction': 'column '}),
-
-        html.Div(children= [
-            dbc.Badge(tam_eje_horizontal, pill=True, color="info", className="mr-1"),
-            dbc.Badge('x', pill=True, color="light", className="mr-1"),
-            dbc.Badge(tam_eje_vertical, pill=True, color="info", className="mr-1"),
-            dbc.Badge('neuronas.', pill=True, color="light", className="mr-1")
-        ], style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'})
-        
-    ], style={'margin': '0 auto','width': '100%', 'display': 'flex','align-items': 'center', 'justify-content': 'center',
-                'flex-wrap': 'wrap', 'flex-direction': 'column ' })
-
-
-      
-    children =[ div_inf_grid, dcc.Graph(id=fig_id,figure=fig)  ]
-    '''
-    div = html.Div(children=children, style={'margin': '0 auto','width': '100%', 'display': 'flex',
-                                             'align-items': 'center', 'justify-content': 'center',
-                                            'flex-wrap': 'wrap', 'flex-direction': 'column ' } )
-    '''
-    return children
 
 
 
@@ -394,14 +279,6 @@ def get_ghsom_fig():
     )
 
 
-    #TODO: esto es por esttetica del color, si va muy lento borrar
-    '''
-    node_adjacencies = []
-    for node, adjacencies in enumerate(g.adjacency() ) :
-        node_adjacencies.append(len(adjacencies[1]))
-
-    node_trace.marker.color = node_adjacencies
-    '''
 
     data1=[edge_trace, node_trace]
 
@@ -423,10 +300,7 @@ def get_ghsom_fig():
 
 
 
-
-#For calculating u-matrix distiances
-
-#Aux fun
+#Aux fun for calculating u-matrix distiances
 def get_distances(weights_map, saved_distances, x,y,a,b):
     '''
         Aux. fun for ver_umatrix_gsom_fig callbacks to optimize the calc. of umatrix
@@ -446,9 +320,11 @@ def get_distances(weights_map, saved_distances, x,y,a,b):
 
 
 
+
 ##################################################################
 #                       CALLBACKS
 ##################################################################
+
 
 #Control de pliegues y carga del grafo de la estructura del ghsom
 @app.callback(
@@ -486,17 +362,11 @@ def toggle_accordion(n1, n2,n3,n4, is_open1, is_open2,is_open3,is_open4):
 
 
 
-
-
-
-
 #Winners map del punto seleccionado del grafo
 @app.callback(Output('winners_map_ghsom','children'),
               Output('dcc_ghsom_graph_1','figure'),
-
               Input('dcc_ghsom_graph_1','clickData'),
               State('dcc_ghsom_graph_1','figure'),
-
               prevent_initial_call=True 
               )
 def view_winner_map_by_selected_point(clickdata,figure):
@@ -510,71 +380,13 @@ def view_winner_map_by_selected_point(clickdata,figure):
     punto_clickeado = points[0]
     cord_horizontal_punto_clickeado = punto_clickeado['x']
     cord_vertical_punto_clickeado = punto_clickeado['y'] 
-    
-    
-    nodes_dict = session_data.get_ghsom_nodes_by_coord_dict()
-    ghsom = nodes_dict[(cord_vertical_punto_clickeado,cord_horizontal_punto_clickeado)]
-    tam_eje_vertical,tam_eje_horizontal=  ghsom.map_shape()
 
-    g = session_data.get_ghsom_structure_graph()
-    neurons_mapped_targets = g.nodes[ghsom]['neurons_mapped_targets']
-    level = g.nodes[ghsom]['nivel']
+    #Actualizar  COLOR DEL punto seleccionado en el grafo
+    data_g = []
+    data_g.append(figure['data'][0])
+    data_g.append(figure['data'][1])
 
-    #visualizacion
-    data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
-    positions={}
-
-    #TODO MIRAR SI ESTO ESTA:solo para el input dataset tiene que serrrrrr
-
-    # Obtener clases representativas de cada neurona
-    if(session_data.get_discrete_data() ):     #showing the class more represented in each neuron
-        for i in range(tam_eje_vertical):
-            for j in range(tam_eje_horizontal):
-                if((i,j) in neurons_mapped_targets):
-                        c = Counter(neurons_mapped_targets[(i,j)])
-                        data_to_plot[i][j] = c.most_common(1)[0][0]
-                else:
-                    data_to_plot[i][j] = None
-    else:#continuos data: mean of the mapped values in each neuron
-        for i in range(tam_eje_vertical):
-            for j in range(tam_eje_horizontal):
-                if((i,j) in neurons_mapped_targets):
-                        data_to_plot[i][j]  = np.mean(neurons_mapped_targets[(i,j)])
-                else:
-                    data_to_plot[i][j] = None
-
-    #MAPA DE NEURONAS GANADORAS
-    #type= heatmap para mas precision
-    #heatmapgl
-    trace = dict(type='heatmap', z=data_to_plot, colorscale = 'Jet')
-    data=[trace]
-
-    
-    data.append({'type': 'scattergl',
-                    'mode': 'text'
-                })
-    
-    layout = {}
-    layout['xaxis']  ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
-    layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
-    layout['width'] = 700
-    layout['height']= 700
-    
-    #layout['title'] = 'Mapa de neuronas ganadoras'
-    annotations = []
-    fig = dict(data=data, layout=layout)
-
-    children = get_figure_complete_div(fig,'winnersmap_fig_ghsom','Mapa de neuronas ganadoras',level,tam_eje_horizontal, tam_eje_vertical,None)
-
-
-
-
-    #actualizar  COLOR DEL punto seleccionado en el grafo
-    data = []
-    data.append(figure['data'][0])
-    data.append(figure['data'][1])
-
-    data.append( go.Scattergl(
+    data_g.append( go.Scattergl(
         x=[cord_horizontal_punto_clickeado], 
         y=[cord_vertical_punto_clickeado],
         mode='markers',
@@ -582,15 +394,259 @@ def view_winner_map_by_selected_point(clickdata,figure):
             color = 'blue',
             size=14)
     ))
-    figure['data'] = data
-
+    figure['data'] = data_g
     
+    
+    #Mapa de neuronas ganadoras del gsom seleccionado en el grafo
+    nodes_dict = session_data.get_ghsom_nodes_by_coord_dict()
+    ghsom = nodes_dict[(cord_vertical_punto_clickeado,cord_horizontal_punto_clickeado)]
+    tam_eje_vertical,tam_eje_horizontal=  ghsom.map_shape()
+
+    g = session_data.get_ghsom_structure_graph()
+    neurons_mapped_targets = g.nodes[ghsom]['neurons_mapped_targets']
+    level = g.nodes[ghsom]['nivel']
+    data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
+    neurona_padre_string = None
+    if('neurona_padre_pos' in g.nodes[ghsom] ):
+            cord_ver,cord_hor = g.nodes[ghsom]['neurona_padre_pos']
+            neurona_padre_string = '(' + str(cord_hor) + ','+ str(cord_ver) + ')'
+
+    # Obtener clases representativas de cada neurona
+    #Discrete data: most common class
+    if(session_data.get_discrete_data() ):     
+        for i in range(tam_eje_vertical):
+            for j in range(tam_eje_horizontal):
+                if((i,j) in neurons_mapped_targets):
+                        c = Counter(neurons_mapped_targets[(i,j)])
+                        data_to_plot[i][j] = c.most_common(1)[0][0]
+                else:
+                    data_to_plot[i][j] = np.nan
+    else:#continuos data: mean of the mapped values in each neuron
+        for i in range(tam_eje_vertical):
+            for j in range(tam_eje_horizontal):
+                if((i,j) in neurons_mapped_targets):
+                        data_to_plot[i][j]  = np.mean(neurons_mapped_targets[(i,j)])
+                else:
+                    data_to_plot[i][j] = np.nan
+
+
+    #heatmapgl
+    trace = dict(type='heatmap', z=data_to_plot, colorscale = 'Jet')
+    data=[trace]
+    data.append({'type': 'scattergl',
+                    'mode': 'text'
+                })
+    layout = {}
+    layout['xaxis']  ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
+    layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
+    layout['width'] = DEFAULT_HEATMAP_PX_WIDTH
+    layout['height']= DEFAULT_HEATMAP_PX_HEIGHT
+    #layout['title'] = 'Mapa de neuronas ganadoras'
+    annotations = []
+    fig = dict(data=data, layout=layout)
+
+    children = get_fig_div_with_info(fig,'winnersmap_fig_ghsom','Mapa de neuronas ganadoras',tam_eje_horizontal, tam_eje_vertical,level,neurona_padre_string)
+
     print('\nVISUALIZACION:ghsom renderfinalizado\n')
-
-
     return children, figure
 
 
+
+
+
+# Checklist seleccionar todos mapas de componentes
+@app.callback(
+    Output('dropdown_atrib_names_ghsom','value'),
+    Input("check_seleccionar_todos_mapas_ghsom", "value"),
+    prevent_initial_call=True
+    )
+def on_form_change(check):
+
+    if(check):
+        with open(SESSION_DATA_FILE_DIR) as json_file:
+            datos_entrenamiento = json.load(json_file)
+
+        nombres = datos_entrenamiento['columns_names']
+        atribs= nombres[0:len(nombres)-1]
+        return atribs
+    else:
+        return []
+
+
+
+#Actualizar mapas de componentes
+@app.callback(Output('component_plans_figures_ghsom_div','children'),
+              Output('dcc_ghsom_graph_2','figure'),
+              Input('dcc_ghsom_graph_2','clickData'),
+              State('dcc_ghsom_graph_2','figure'),
+              State('dropdown_atrib_names_ghsom','value'),
+              prevent_initial_call=True 
+              )
+def update_mapa_componentes_ghsom_fig(clickdata,fig_grafo,names):
+
+
+    if(clickdata is None):
+        raise PreventUpdate
+
+    #{'points': [{'curveNumber': 0, 'x': 0, 'y': 0, 'z': 0}]}
+    points = clickdata['points']
+    punto_clickeado = points[0]
+    cord_horizontal_punto_clickeado = punto_clickeado['x']
+    cord_vertical_punto_clickeado = punto_clickeado['y'] 
+
+    #Actualizar  COLOR DEL punto seleccionado en el grafo
+    data_g = []
+    data_g.append(fig_grafo['data'][0])
+    data_g.append(fig_grafo['data'][1])
+
+    data_g.append( go.Scattergl(
+        x=[cord_horizontal_punto_clickeado], 
+        y=[cord_vertical_punto_clickeado],
+        mode='markers',
+        marker=dict(
+            color = 'blue',
+            size=14)
+    ))
+    fig_grafo['data'] = data_g
+    
+
+    #Mapa de componentes del gsom seleccionado en el grafo
+    nodes_dict = session_data.get_ghsom_nodes_by_coord_dict()
+    gsom = nodes_dict[(cord_vertical_punto_clickeado,cord_horizontal_punto_clickeado)]
+    tam_eje_vertical,tam_eje_horizontal=  gsom.map_shape()
+    weights_map= gsom.get_weights_map()
+    # weights_map[(row,col)] = np vector whith shape=n_feauters, dtype=np.float32
+
+
+    #TODO: quietar json de  Getting selected attrribs indexes
+    with open(SESSION_DATA_FILE_DIR) as json_file:
+        datos_entrenamiento = json.load(json_file)
+
+    nombres_columnas = datos_entrenamiento['columns_names']
+    nombres_atributos = nombres_columnas[0:len(nombres_columnas)-1]
+    lista_de_indices = []
+    for n in names:
+        lista_de_indices.append(nombres_atributos.index(n) )
+    
+
+
+    traces = []
+    xaxis_dict ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
+    yaxis_dict  ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
+
+    for k in lista_de_indices:
+        data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
+        for i in range(tam_eje_vertical):
+            for j in range(tam_eje_horizontal):
+                data_to_plot[i][j] = weights_map[(i,j)][k]
+        
+        figure= go.Figure(layout= {"height": 300,'width' : 300, 'title': nombres_atributos[k], 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict },
+                          data=go.Heatmap(z=data_to_plot,showscale= True)                                                      
+        ) 
+        id ='graph-{}'.format(k)
+        traces.append(
+            html.Div(children= dcc.Graph(id=id,figure=figure)
+            ) 
+        )
+
+
+    return traces, fig_grafo
+
+
+
+
+#Ver UMatrix GHSOM
+@app.callback(Output('umatrix_div_fig_ghsom','children'),
+              Output('dcc_ghsom_graph_3','figure'),
+              Input('dcc_ghsom_graph_3','clickData'),
+              State('dcc_ghsom_graph_3','figure'),
+              prevent_initial_call=True 
+              )
+def ver_umatrix_ghsom_fig(clickdata,fig_grafo):
+
+
+    if(clickdata is None):
+        raise PreventUpdate
+
+    points = clickdata['points']
+    punto_clickeado = points[0]
+    cord_horizontal_punto_clickeado = punto_clickeado['x']
+    cord_vertical_punto_clickeado = punto_clickeado['y'] 
+    
+    #Actualizar  COLOR DEL punto seleccionado en el grafo
+    data_g = []
+    data_g.append(fig_grafo['data'][0])
+    data_g.append(fig_grafo['data'][1])
+
+    data_g.append( go.Scattergl(
+        x=[cord_horizontal_punto_clickeado], 
+        y=[cord_vertical_punto_clickeado],
+        mode='markers',
+        marker=dict(
+            color = 'blue',
+            size=14)
+    ))
+    fig_grafo['data'] = data_g
+
+
+    #umatrix del gsom seleccionado en el grafo
+    nodes_dict = session_data.get_ghsom_nodes_by_coord_dict()
+    gsom = nodes_dict[(cord_vertical_punto_clickeado,cord_horizontal_punto_clickeado)]
+    tam_eje_vertical,tam_eje_horizontal=  gsom.map_shape()
+    weights_map= gsom.get_weights_map()
+    data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
+    saved_distances= {} #for saving distances
+    # saved_distances[i,j,a,b] with (i,j) and (a,b) neuron cords
+
+    #TODO borrar:
+    '''
+    debugg
+    for i in range(tam_eje_vertical):
+        for j in range(tam_eje_horizontal):
+            print('pesos[][]: ',i, j, '---:  ',weights_map[(i,j)])
+    print('eje x e y: ',tam_eje_vertical,tam_eje_horizontal)
+
+    '''
+    for i in range(tam_eje_vertical):
+        for j in range(tam_eje_horizontal):
+            neuron_neighbords = []
+
+            if(j-1 >= 0): #bottom   neighbor
+                neuron_neighbords.append( get_distances(weights_map, saved_distances, i,j,i,j-1))
+            if(j+1 < tam_eje_horizontal):#top  neighbor
+                neuron_neighbords.append( get_distances(weights_map, saved_distances, i,j,i,j+1))
+            if(i-1 >= 0): #  #left  neighbor
+                neuron_neighbords.append( get_distances(weights_map, saved_distances, i,j,i-1,j))
+            if(i+1 < tam_eje_vertical ): #right neighbor
+                neuron_neighbords.append( get_distances(weights_map, saved_distances, i,j,i+1,j))
+
+            if(any(neuron_neighbords) ):
+                data_to_plot[i][j] = sum(neuron_neighbords)/len(neuron_neighbords)
+
+    #TODO BORRAR
+    '''
+    debug
+    print('distancias' )
+    for item in saved_distances.items():
+        print(item)
+    '''
+    trace = dict(type='heatmap', z=data_to_plot, colorscale = 'Jet')
+    data=[trace]
+    data.append({'type': 'scattergl',
+                    'mode': 'text'
+                })
+    layout = {}
+    layout['xaxis']  ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
+    layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }  
+    layout['width'] = DEFAULT_HEATMAP_PX_WIDTH
+    layout['height']= DEFAULT_HEATMAP_PX_HEIGHT
+    annotations = []
+    fig = dict(data=data, layout=layout)
+    children = [ dcc.Graph(id='umatrix_fig_ghsom',figure=fig)  ]
+
+    print('\nVISUALIZACION:gsom renderfinalizado\n')
+
+    return children, fig_grafo
 
 
 
@@ -622,20 +678,12 @@ def save_ghsom_model(n_clicks,name,isvalid):
         return ''
 
     data = []
-
     params = session_data.get_ghsom_model_info_dict()
-
     data.append('ghsom')
     data.append(params)
     data.append(session_data.get_modelo())
 
-    '''
-    now = datetime.now()
-    dt_string = now.strftime("%Y_%m_%d__%H_%M")
-    filename = 'ghsom_model_' + dt_string + '.pickle'
-    '''
     filename =   name +  '_ghsom.pickle'
-
     with open(DIR_SAVED_MODELS + filename, 'wb') as handle:
         pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
@@ -644,200 +692,3 @@ def save_ghsom_model(n_clicks,name,isvalid):
 
 
 
-
-
-
-
-
-
-
-# Checklist seleccionar todos mapas de componentes
-@app.callback(
-    Output('dropdown_atrib_names_ghsom','value'),
-    Input("check_seleccionar_todos_mapas_ghsom", "value"),
-    prevent_initial_call=True
-    )
-def on_form_change(check):
-
-    if(check):
-        with open(SESSION_DATA_FILE_DIR) as json_file:
-            datos_entrenamiento = json.load(json_file)
-
-        nombres = datos_entrenamiento['columns_names']
-        atribs= nombres[0:len(nombres)-1]
-        return atribs
-    else:
-        return []
-
-
-
-#Actualizar mapas de componentes
-@app.callback(Output('component_plans_figures_ghsom_div','children'),
-              Input('dcc_ghsom_graph_2','clickData'),
-              State('dropdown_atrib_names_ghsom','value'),
-              prevent_initial_call=True 
-              )
-def update_mapa_componentes_ghsom_fig(clickdata,names):
-
-
-    if(clickdata is None):
-        raise PreventUpdate
-
-    print('clikedpoint:',clickdata)
-    #{'points': [{'curveNumber': 0, 'x': 0, 'y': 0, 'z': 0}]}
-    points = clickdata['points']
-    punto_clickeado = points[0]
-    cord_horizontal_punto_clickeado = punto_clickeado['x']
-    cord_vertical_punto_clickeado = punto_clickeado['y'] 
-    
-    nodes_dict = session_data.get_ghsom_nodes_by_coord_dict()
-    gsom = nodes_dict[(cord_vertical_punto_clickeado,cord_horizontal_punto_clickeado)]
-    tam_eje_vertical,tam_eje_horizontal=  gsom.map_shape()
-
-
-    
-    #Weights MAP
-    weights_map= gsom.get_weights_map()
-    # weights_map[(row,col)] = np vector whith shape=n_feauters, dtype=np.float32
-
-
-
-
-    # Getting selected attrribs indexes
-    with open(SESSION_DATA_FILE_DIR) as json_file:
-        datos_entrenamiento = json.load(json_file)
-
-    nombres_columnas = datos_entrenamiento['columns_names']
-    nombres_atributos = nombres_columnas[0:len(nombres_columnas)-1]
-    lista_de_indices = []
-
-   
-
-    for n in names:
-        lista_de_indices.append(nombres_atributos.index(n) )
-    
-
-    traces = []
-
-
-    xaxis_dict ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
-    yaxis_dict  ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
-
-    for k in lista_de_indices:
-        data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
-        for i in range(tam_eje_vertical):
-            for j in range(tam_eje_horizontal):
-                data_to_plot[i][j] = weights_map[(i,j)][k]
-        
-      
-       
-
-        figure= go.Figure(layout= {"height": 300,'width' : 300, 'title': nombres_atributos[k], 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict },
-                          data=go.Heatmap(z=data_to_plot,showscale= True)                                                      
-        ) 
-
-        id ='graph-{}'.format(k)
-
-        traces.append(
-            html.Div(children= dcc.Graph(id=id,figure=figure)
-            ) 
-        )
-                   
-    return traces
-
-
-
-
-
-
-#Ver UMatrix GHSOM
-@app.callback(Output('umatrix_div_fig_ghsom','children'),
-              Input('dcc_ghsom_graph_3','clickData'),
-              prevent_initial_call=True 
-              )
-def ver_umatrix_ghsom_fig(clickdata):
-
-
-    if(clickdata is None):
-        raise PreventUpdate
-
-    print('clikedpoint:',clickdata)
-    #{'points': [{'curveNumber': 0, 'x': 0, 'y': 0, 'z': 0}]}
-    points = clickdata['points']
-    punto_clickeado = points[0]
-    cord_horizontal_punto_clickeado = punto_clickeado['x']
-    cord_vertical_punto_clickeado = punto_clickeado['y'] 
-    
-    nodes_dict = session_data.get_ghsom_nodes_by_coord_dict()
-    gsom = nodes_dict[(cord_vertical_punto_clickeado,cord_horizontal_punto_clickeado)]
-    tam_eje_vertical,tam_eje_horizontal=  gsom.map_shape()
-
-    
-
-    #Weights MAP
-    weights_map= gsom.get_weights_map()
-    # weights_map[(row,col)] = np vector whith shape=n_feauters, dtype=np.float32
-
-
-    data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
-
-    saved_distances= {} #for saving distances
-    # saved_distances[i,j,a,b] with (i,j) and (a,b) neuron cords
-
-    '''
-    debugg
-    for i in range(tam_eje_vertical):
-        for j in range(tam_eje_horizontal):
-            print('pesos[][]: ',i, j, '---:  ',weights_map[(i,j)])
-    print('eje x e y: ',tam_eje_vertical,tam_eje_horizontal)
-
-    '''
-    for i in range(tam_eje_vertical):
-        for j in range(tam_eje_horizontal):
-
-            neuron_neighbords = []
-           
-            
-            if(j-1 >= 0): #bottom   neighbor
-                neuron_neighbords.append( get_distances(weights_map, saved_distances, i,j,i,j-1))
-            if(j+1 < tam_eje_horizontal):#top  neighbor
-                neuron_neighbords.append( get_distances(weights_map, saved_distances, i,j,i,j+1))
-            if(i-1 >= 0): #  #left  neighbor
-                neuron_neighbords.append( get_distances(weights_map, saved_distances, i,j,i-1,j))
-            if(i+1 < tam_eje_vertical ): #right neighbor
-                neuron_neighbords.append( get_distances(weights_map, saved_distances, i,j,i+1,j))
-
-            if(any(neuron_neighbords) ):
-                data_to_plot[i][j] = sum(neuron_neighbords)/len(neuron_neighbords)
-
-    '''
-    debug
-    print('distancias' )
-    for item in saved_distances.items():
-        print(item)
-    '''
-    trace = dict(type='heatmap', z=data_to_plot, colorscale = 'Jet')
-    data=[trace]
-
-    
-    data.append({'type': 'scattergl',
-                    'mode': 'text',
-                    'text': 'a'
-                    })
-    
-    layout = {}
-    layout['xaxis']  ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
-    layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }  
-    layout['width'] = 700
-    layout['height']= 700
-    annotations = []
-    fig = dict(data=data, layout=layout)
-
-
-    children = [ dcc.Graph(id='umatrix_fig_ghsom',figure=fig)  ]
-
-    print('\nVISUALIZACION:gsom renderfinalizado\n')
-
-
-
-    return children

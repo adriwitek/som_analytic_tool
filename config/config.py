@@ -6,6 +6,10 @@
 APP_NAME = 'SOM Analytic Tool'
 PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
 
+DEFAULT_HEATMAP_PX_HEIGHT = 700
+DEFAULT_HEATMAP_PX_WIDTH = 700
+
+
 #Models
 GHSOM_MAX_SUBLEVELS_VIEW = 25
 GHSOM_MAX_SUBMAPS_SIZE_VIEW = 200

@@ -1,4 +1,7 @@
 import plotly.colors as clrs
+import dash_core_components as dcc
+import dash_html_components as html
+import dash_bootstrap_components as dbc
 from plotly.graph_objs import graph_objs
 import numpy as np
 
@@ -115,3 +118,64 @@ def make_annotations(data, colorscale, reversescale):
                     )
                 )
     return annotations
+
+
+
+
+
+
+#Plot fig with titles and gsom size
+def get_fig_div_with_info(fig,fig_id, title,tam_eje_horizontal, tam_eje_vertical,gsom_level= None,neurona_padre=None):
+    '''
+
+        neurona_padre: None or str tuple if it exits
+    '''
+
+    
+    if(neurona_padre is not None):
+        div_info_neurona_padre = html.Div(children = [
+            dbc.Badge('Neurona padre:', pill=True, color="light", className="mr-1"),
+            dbc.Badge(neurona_padre, pill=True, color="info", className="mr-1")
+        ])
+       
+    else:
+        div_info_neurona_padre= ''
+
+
+    if(gsom_level is not None):
+        div_info_nivel_gsom = html.Div(children = [
+             dbc.Badge('Nivel '+ str(gsom_level), pill=True , color="info", className="mr-1")
+        ])
+    else:
+        div_info_nivel_gsom = ''
+
+    
+
+
+    div_inf_grid = html.Div(children = [
+        html.H3(title),
+
+        html.Div(children= [
+            div_info_nivel_gsom,
+            div_info_neurona_padre
+        ], style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-direction': 'column '}),
+
+        html.Div(children= [
+            dbc.Badge(tam_eje_horizontal, pill=True, color="info", className="mr-1"),
+            dbc.Badge('x', pill=True, color="light", className="mr-1"),
+            dbc.Badge(tam_eje_vertical, pill=True, color="info", className="mr-1"),
+            dbc.Badge('neuronas.', pill=True, color="light", className="mr-1")
+        ], style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'})
+        
+    ], style={'margin': '0 auto','width': '100%', 'display': 'flex','align-items': 'center', 'justify-content': 'center',
+                'flex-wrap': 'wrap', 'flex-direction': 'column ' })
+
+
+      
+    children =[ div_inf_grid, dcc.Graph(id=fig_id,figure=fig)  ]
+    '''
+    div = html.Div(children=children, style={'margin': '0 auto','width': '100%', 'display': 'flex',
+                                             'align-items': 'center', 'justify-content': 'center',
+                                            'flex-wrap': 'wrap', 'flex-direction': 'column ' } )
+    '''
+    return children
