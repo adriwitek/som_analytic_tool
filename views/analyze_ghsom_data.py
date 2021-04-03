@@ -384,6 +384,7 @@ def toggle_accordion(n1, n2,n3,n4, is_open1, is_open2,is_open3,is_open4):
 
 #Winners map del punto seleccionado del grafo
 @app.callback(Output('winners_map_ghsom','children'),
+              Output('dcc_ghsom_graph_1','figure'),
               Input('dcc_ghsom_graph_1','clickData'),
               Input('check_annotations_winmap_ghsom','value'),
               State('dcc_ghsom_graph_1','figure'),
@@ -476,8 +477,7 @@ def view_winner_map_by_selected_point(clickdata,check_annotations,figure):
     children = pu.get_fig_div_with_info(fig,'winnersmap_fig_ghsom','Mapa de neuronas ganadoras',tam_eje_horizontal, tam_eje_vertical,level,neurona_padre_string)
 
     print('\nVISUALIZACION:ghsom renderfinalizado\n')
-    return children
-
+    return children,figure
 
 
 
