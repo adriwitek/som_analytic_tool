@@ -40,7 +40,7 @@ def analyze_gsom_data():
             #Card Mapa neurona winners
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Mapa de neuronas ganadoras",color="link",id="button_collapse_gsom_1"))
+                    html.H2(dbc.Button("Mapa de neuronas ganadoras",color="link",id="button_collapse_gsom_1"),style={'textAlign': 'center'})
                 ),
                 dbc.Collapse(id="collapse_gsom_1",children=
                     dbc.CardBody(children=[ 
@@ -65,7 +65,7 @@ def analyze_gsom_data():
             #Card: Component plans
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Mapa de componentes",color="link",id="button_collapse_gsom_2"))
+                    html.H2(dbc.Button("Mapa de componentes",color="link",id="button_collapse_gsom_2"),style={'textAlign': 'center'})
                 ),
                 dbc.Collapse(id="collapse_gsom_2",children=
                     dbc.CardBody(children=[
@@ -101,7 +101,7 @@ def analyze_gsom_data():
             #Card: U Matrix
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Matriz U",color="link",id="button_collapse_gsom_3"))
+                    html.H2(dbc.Button("Matriz U",color="link",id="button_collapse_gsom_3"),style={'textAlign': 'center'})
                 ),
                 dbc.Collapse(id="collapse_gsom_3",children=
                     dbc.CardBody(children=[
@@ -130,7 +130,7 @@ def analyze_gsom_data():
             #Card: Guardar modelo
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Guardar modelo entrenado",color="link",id="button_collapse_gsom_4"))
+                    html.H2(dbc.Button("Guardar modelo entrenado",color="link",id="button_collapse_gsom_4"),style={'textAlign': 'center'})
                 ),
                 dbc.Collapse(id="collapse_gsom_4",children=
                     dbc.CardBody(children=[

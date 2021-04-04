@@ -38,7 +38,7 @@ def analyze_som_data():
             #TODO div con la fig
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Mapa de neuronas ganadoras",color="link",id="button_collapse_1"))
+                    html.H2(dbc.Button("Mapa de neuronas ganadoras",color="link",id="button_collapse_1"),style={'textAlign': 'center'})
                 ),
                 dbc.Collapse(id="collapse_1",children=
                     dbc.CardBody(children=[ 
@@ -61,7 +61,7 @@ def analyze_som_data():
             #Card: Frecuencias de activacion
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Mapa de frecencias de activacion",color="link",id="button_collapse_4"))
+                    html.H2(dbc.Button("Mapa de frecencias de activacion",color="link",id="button_collapse_4"),style={'textAlign': 'center'})
                 ),
                 dbc.Collapse(id="collapse_4",children=
                     dbc.CardBody(children=[
@@ -85,7 +85,7 @@ def analyze_som_data():
             #Card: Component plans
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Mapa de componentes",color="link",id="button_collapse_2"))
+                    html.H2(dbc.Button("Mapa de componentes",color="link",id="button_collapse_2"),style={'textAlign': 'center'})
                 ),
                 dbc.Collapse(id="collapse_2",children=
                     dbc.CardBody(children=[
@@ -121,7 +121,7 @@ def analyze_som_data():
             #Card: U Matrix
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Matriz U",color="link",id="button_collapse_3"))
+                    html.H2(dbc.Button("Matriz U",color="link",id="button_collapse_3"),style={'textAlign': 'center'})
                 ),
                 dbc.Collapse(id="collapse_3",children=
                     dbc.CardBody(children=[
@@ -152,7 +152,7 @@ def analyze_som_data():
             #Card: Guardar modelo
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Guardar modelo entrenado",color="link",id="button_collapse_5"))
+                    html.H2(dbc.Button("Guardar modelo entrenado",color="link",id="button_collapse_5"),style={'textAlign': 'center'})
                 ),
                 dbc.Collapse(id="collapse_5",children=
                     dbc.CardBody(children=[
@@ -540,13 +540,6 @@ def update_umatrix(n_clicks,check_annotations):
     umatrix = som.distance_map()
     params = session_data.get_som_model_info_dict()
     tam_eje_horizontal = params['tam_eje_horizontal'] 
-    '''
-    xaxis_dict ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
-    yaxis_dict  ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
-    figure= go.Figure(layout= {'title': 'Matriz U', 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict},
-                          data=go.Heatmap(z=,showscale= True)                              
-    ) 
-    '''
     figure = pu.create_heatmap_figure(umatrix.tolist() ,tam_eje_horizontal,check_annotations, title ='Matriz U')
     return  html.Div(children= dcc.Graph(id='graph_u_matrix',figure=figure))
 

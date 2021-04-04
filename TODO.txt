@@ -34,6 +34,7 @@ monstar quantizatio errors y mas metricas
 
 #PREGUNTAS
 rango de la tasa de aprendizaje?
+wiiners map en discrete data, si hay mas de un maximo escoger calse
 
 #DUDAS IMPLEMENTACION
 
