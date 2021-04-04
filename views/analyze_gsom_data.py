@@ -21,6 +21,7 @@ import pickle
 
 from  os.path import normpath 
 from re import search 
+import views.plot_utils as pu
 
 
 fig = go.Figure()
@@ -46,8 +47,11 @@ def analyze_gsom_data():
                         html.Div([dcc.Graph(id='winners_map_gsom',figure=fig)],
                           style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}
                         ),
-                        html.Div( 
-                            [dbc.Button("Ver", id="ver_winners_map_gsom_button", className="mr-2", color="primary")],
+                        html.Div([  
+                                dbc.Checklist(options=[{"label": "Etiquetar Neuronas", "value": 1}],
+                                            value=[],
+                                            id="check_annotations_win_gsom"),
+                                dbc.Button("Ver", id="ver_winners_map_gsom_button", className="mr-2", color="primary")],
                             style={'textAlign': 'center'}
                         )
                     ]),
@@ -75,6 +79,9 @@ def analyze_gsom_data():
                                     options=[{"label": "Seleccionar todos", "value": 1}],
                                     value=[],
                                     id="check_seleccionar_todos_mapas_gsom"),
+                                dbc.Checklist(  options=[{"label": "Etiquetar Neuronas", "value": 1}],
+                                                value=[],
+                                                id="check_annotations_comp_gsom"),
                                 dbc.Button("Ver Mapas de Componentes", id="ver_mapas_componentes_button_gsom", className="mr-2", color="primary")],
                                 style={'textAlign': 'center'}
                             ),
@@ -101,7 +108,10 @@ def analyze_gsom_data():
                                 style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}
                         ),
                         html.Div( 
-                            [dbc.Button("Ver", id="ver_umatrix_gsom_button", className="mr-2", color="primary")],
+                            [dbc.Checklist(  options=[{"label": "Etiquetar Neuronas", "value": 1}],
+                                                value=[],
+                                                id="check_annotations_umax_gsom"),
+                            dbc.Button("Ver", id="ver_umatrix_gsom_button", className="mr-2", color="primary")],
                             style={'textAlign': 'center'}
                         )
 
@@ -163,6 +173,28 @@ def analyze_gsom_data():
 
 
 
+##################################################################
+#                       AUX FUNCTIONS
+##################################################################
+
+#Aux fun
+def get_distances(weights_map, saved_distances, x,y,a,b):
+    '''
+        Aux. fun for ver_umatrix_gsom_fig callbacks to optimize the calc. of umatrix
+    '''
+    if (  (x,y,a,b) in saved_distances ):
+        return saved_distances[(x,y,a,b)]
+    elif (  (a,b,x,y) in saved_distances):
+        return saved_distances[(a,b,x,y)]
+    else:
+        v1 = weights_map[(x,y)]
+        v2 = weights_map[(a,b)]
+        distancia = np.linalg.norm(v1-v2) # euclidean distance
+        saved_distances[(x,y,a,b)] = distancia
+        return distancia
+
+
+
 
 ##################################################################
 #                       CALLBACKS
@@ -194,35 +226,24 @@ def toggle_accordion(n1, n2,n3,n4, is_open1, is_open2,is_open3,is_open4):
 
 
 
-
-
-
-
-
 #Winners map
 @app.callback(Output('winners_map_gsom','figure'),
               Input('ver_winners_map_gsom_button','n_clicks'),
+              State('check_annotations_win_gsom','value'),
               prevent_initial_call=True 
               )
-def update_winner_map_gsom(click):
+def update_winner_map_gsom(click,check_annotations):
 
     params = session_data.get_gsom_model_info_dict()
     tam_eje_vertical = params['tam_eje_vertical']
     tam_eje_horizontal = params['tam_eje_horizontal']
-
     dataset = session_data.get_dataset()
-    data = dataset[:,:-1]
-    targets = dataset[:,-1:]
-    n_samples = dataset.shape[0]
-    n_features = dataset.shape[1]
-
-
+    data = session_data.get_data()
     zero_unit = session_data.get_modelo()
     gsom = zero_unit.child_map
     
 
     #visualizacion
-
     data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
     positions={}
 
@@ -236,61 +257,30 @@ def update_winner_map_gsom(click):
             positions[(r,c)] = []
             positions[(r,c)].append(dataset[i][-1]) 
 
-    #print('posiciones:', positions)
 
-    # Obtener clases representativas de cada neurona
-    for i in range(tam_eje_vertical):
-        for j in range(tam_eje_horizontal):
-            if((i,j) in positions):
-
-                if(session_data.get_discrete_data() ):        #showing the class more represented in each neuron
-                    c = Counter(positions[(i,j)])
-                    data_to_plot[i][j] = c.most_common(1)[0][0]
-                else: #continuos data: mean of the mapped values in each neuron
-                    data_to_plot[i][j]  = np.mean(positions[(i,j)])
-    
-            else:
-                data_to_plot[i][j] = None
-
-   
+   #Discrete data: most common class
+    if(session_data.get_discrete_data() ):     
+        for i in range(tam_eje_vertical):
+            for j in range(tam_eje_horizontal):
+                if((i,j) in positions):
+                        c = Counter(positions[(i,j)])
+                        data_to_plot[i][j] = c.most_common(1)[0][0]
+                else:
+                    data_to_plot[i][j] = np.nan
+    else:#continuos data: mean of the mapped values in each neuron
+        for i in range(tam_eje_vertical):
+            for j in range(tam_eje_horizontal):
+                if((i,j) in positions):
+                        data_to_plot[i][j]  = np.mean(positions[(i,j)])
+                else:
+                    data_to_plot[i][j] = np.nan
         
 
     #print('data_to_plot:',data_to_plot)
-    
-    #type= heatmap para mas precision
-    #heatmapgl
-    trace = dict(type='heatmap', z=data_to_plot, colorscale = 'Jet')
-    data=[trace]
-
-    # Here's the key part - Scattergl text! 
-    
-
-
-    data.append({'type': 'scattergl',
-                    'mode': 'text',
-                    #'x': x_ticks,
-                    #'y': y_ticks,
-                    'text': 'a'
-                    })
-    
-    layout = {}
-    layout['xaxis']  ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
-    layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
-    layout['height']= 700
-    annotations = []
-    fig = dict(data=data, layout=layout)
-
-    #Poner o no etiquetas...
-
-    print('\nVISUALIZACION:gsom renderfinalizado\n')
+    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,check_annotations, title = None)
 
     return fig
    
-
-
-
-
-
 
 
 #Habilitar boton ver_mapas_componentes_button_gsom
@@ -304,35 +294,28 @@ def enable_ver_mapas_componentes_button(values):
         return True
 
 
+
+
 #Actualizar mapas de componentes
 @app.callback(Output('component_plans_figures_gsom_div','children'),
               Input('ver_mapas_componentes_button_gsom','n_clicks'),
               State('dropdown_atrib_names_gsom','value'),
+              State('check_annotations_comp_gsom','value'),
               prevent_initial_call=True 
               )
-def update_mapa_componentes_gsom_fig(click,names):
+def update_mapa_componentes_gsom_fig(click,names, check_annotations):
 
 
     params = session_data.get_gsom_model_info_dict()
     tam_eje_vertical = params['tam_eje_vertical']
     tam_eje_horizontal = params['tam_eje_horizontal']
-
-
-    dataset = session_data.get_dataset()
-    data = dataset[:,:-1]
-    targets = dataset[:,-1:]
-    n_samples = dataset.shape[0]
-    n_features = dataset.shape[1]
-
-
+ 
     zero_unit = session_data.get_modelo()
     gsom = zero_unit.child_map
     
     #Weights MAP
     weights_map= gsom.get_weights_map()
     # weights_map[(row,col)] = np vector whith shape=n_feauters, dtype=np.float32
-
-
 
 
     # Getting selected attrribs indexes
@@ -343,17 +326,11 @@ def update_mapa_componentes_gsom_fig(click,names):
     nombres_atributos = nombres_columnas[0:len(nombres_columnas)-1]
     lista_de_indices = []
 
-   
-
     for n in names:
         lista_de_indices.append(nombres_atributos.index(n) )
     
 
     traces = []
-
-
-    xaxis_dict ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
-    yaxis_dict  ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
 
     for k in lista_de_indices:
         data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
@@ -362,12 +339,12 @@ def update_mapa_componentes_gsom_fig(click,names):
                 data_to_plot[i][j] = weights_map[(i,j)][k]
         
       
-       
-
+        figure = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,check_annotations, title = nombres_atributos[k])
+        '''
         figure= go.Figure(layout= {"height": 300,'width' : 300, 'title': nombres_atributos[k], 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict },
                           data=go.Heatmap(z=data_to_plot,showscale= True)                                                      
         ) 
-
+        '''
         id ='graph-{}'.format(k)
 
         traces.append(
@@ -375,7 +352,6 @@ def update_mapa_componentes_gsom_fig(click,names):
             ) 
         )
                    
-    print('render finalizado')
     return traces
   
 
@@ -401,30 +377,16 @@ def on_form_change(check):
 
 
 
-#Aux fun
-def get_distances(weights_map, saved_distances, x,y,a,b):
-    '''
-        Aux. fun for ver_umatrix_gsom_fig callbacks to optimize the calc. of umatrix
-    '''
-    if (  (x,y,a,b) in saved_distances ):
-        return saved_distances[(x,y,a,b)]
-    elif (  (a,b,x,y) in saved_distances):
-        return saved_distances[(a,b,x,y)]
-    else:
-        v1 = weights_map[(x,y)]
-        v2 = weights_map[(a,b)]
-        distancia = np.linalg.norm(v1-v2) # euclidean distance
-        saved_distances[(x,y,a,b)] = distancia
-        return distancia
 
 
 
 #Ver UMatrix GSOM
 @app.callback(Output('umatrix_div_fig_gsom','children'),
               Input('ver_umatrix_gsom_button','n_clicks'),
+              State('check_annotations_umax_gsom','value'),
               prevent_initial_call=True 
               )
-def ver_umatrix_gsom_fig(click):
+def ver_umatrix_gsom_fig(click, check_annotations):
 
     print('Button clicked, calculating umatrix')
 
@@ -480,6 +442,9 @@ def ver_umatrix_gsom_fig(click):
     for item in saved_distances.items():
         print(item)
     '''
+    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,check_annotations, title = None)
+
+    '''
     trace = dict(type='heatmap', z=data_to_plot, colorscale = 'Jet')
     data=[trace]
 
@@ -498,16 +463,13 @@ def ver_umatrix_gsom_fig(click):
     layout['height']= 700
     annotations = []
     fig = dict(data=data, layout=layout)
-
-
+    '''
     
     children = [ dcc.Graph(id='umatrix_fig_gsom',figure=fig)  ]
 
-    print('\nVISUALIZACION:gsom renderfinalizado\n')
-
-
-
     return children
+
+
 
 
 #Save file name
@@ -545,11 +507,6 @@ def save_gsom_model(n_clicks,name,isvalid):
     data.append(params)
     data.append(session_data.get_modelo())
 
-    '''
-    now = datetime.now()
-    dt_string = now.strftime("%Y_%m_%d__%H_%M")
-    filename = 'gsom_model_' + dt_string + '.pickle'
-    '''
     filename =   name +  '_gsom.pickle'
 
     with open(DIR_SAVED_MODELS + filename, 'wb') as handle:

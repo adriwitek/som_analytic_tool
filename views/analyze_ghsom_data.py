@@ -190,11 +190,6 @@ def analyze_ghsom_data():
 
 
 
-
-
-
-
-
 # Grafo de la estructura del ghsom
 # This 2 funcs are splitted in 2 for eficience. reason
 def get_ghsom_graph_div(fig,dcc_graph_id):

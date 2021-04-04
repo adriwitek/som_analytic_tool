@@ -357,8 +357,7 @@ def update_som_fig(n_clicks, check_annotations):
     '''
 
     
-    #########################################################
-    # ANNOTATED HEATMAPD RAPID
+  
     
     #TODO
     #type= heatmap para mas precision
