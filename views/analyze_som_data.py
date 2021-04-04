@@ -100,6 +100,11 @@ def analyze_som_data():
                                 options=[{"label": "Seleccionar todos", "value": 1}],
                                 value=[],
                                 id="check_seleccionar_todos_mapas"),
+
+                            dbc.Checklist(options=[{"label": "Etiquetar Neuronas", "value": 1}],
+                                       value=[],
+                                       id="check_annotations_comp"),
+                                        
                             dbc.Button("Ver Mapas de Componentes", id="ver_mapas_componentes_button", className="mr-2", color="primary")],
                             style={'textAlign': 'center'}
                         ),
@@ -120,18 +125,23 @@ def analyze_som_data():
                 ),
                 dbc.Collapse(id="collapse_3",children=
                     dbc.CardBody(children=[
-                        #METER AQUI LO QUE SEAA
+
                     html.H5("U-Matrix"),
                     html.H6("Returns the distance map of the weights.Each cell is the normalised sum of the distances betweena neuron and its neighbours. Note that this method usesthe euclidean distance"),
-                    html.Div( 
-                            [dbc.Button("Ver", id="umatrix_button", className="mr-2", color="primary")],
-                            style={'textAlign': 'center'}
-                    ),
-
+                    
                     html.Div(id='umatrix_figure_div', children=[''],
                                 style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+                    ),
+
+                    html.Div([dbc.Button("Ver", id="umatrix_button", className="mr-2", color="primary"),
+                            dbc.Checklist(options=[{"label": "Etiquetar Neuronas", "value": 1}],
+                                       value=[],
+                                       id="check_annotations_umax")
+                            ],
+                            style={'textAlign': 'center'}
                     )
 
+                   
                     ])
 
                     ),
@@ -386,15 +396,69 @@ def update_som_fig(n_clicks, check_annotations):
     return children
 
 
+    
+
+#Etiquetar freq map
+@app.callback(Output('frequency_map', 'figure'),
+              Input('check_annotations_freq', 'value'),
+              State('frequency_map', 'figure'),
+              State('frequency_map_button', 'n_clicks'),
+              prevent_initial_call=True )
+def annotate_freq_map_som(check_annotations, fig,n_clicks):
+    
+    if(n_clicks is None):
+        raise PreventUpdate
+
+    layout = fig['layout']
+    data = fig['data']
+
+    if(check_annotations  ): #fig already ploted
+        trace = data[0]
+        data_to_plot = trace['z'] 
+        #To replace None values with NaN values
+        data_to_plot_1 = np.array(data_to_plot, dtype=np.float64)
+        annotations = pu.make_annotations(data_to_plot_1, colorscale = DEFAULT_HEATMAP_COLORSCALE, reversescale= False)
+        layout['annotations'] = annotations
+    else:   
+        layout['annotations'] = []
+
+    fig_updated = dict(data=data, layout=layout)
+    return fig_updated
+
+
+#Actualizar mapas de frecuencias
+@app.callback(Output('div_frequency_map','children'),
+              Input('frequency_map_button','n_clicks'),
+              State('check_annotations_freq', 'value'),
+              prevent_initial_call=True 
+              )
+def update_mapa_frecuencias_fig(click, check_annotations):
+
+    som = session_data.get_modelo() 
+    model_data = session_data.get_data()
+    params = session_data.get_som_model_info_dict()
+    tam_eje_horizontal = params['tam_eje_horizontal'] 
+    tam_eje_vertical = params['tam_eje_vertical']
+
+    frequencies = som.activation_response(model_data)
+    frequencies_list = frequencies.tolist()
+    
+    figure = pu.create_heatmap_figure(frequencies_list,tam_eje_horizontal,check_annotations)
+
+    children = pu.get_fig_div_with_info(figure,'frequency_map','Mapa de frecuencias',tam_eje_horizontal, tam_eje_vertical)
+
+    return children
+  
 
 
 #Actualizar mapas de componentes
 @app.callback(Output('component_plans_figures_div','children'),
               Input('ver_mapas_componentes_button','n_clicks'),
               State('dropdown_atrib_names','value'),
+              State('check_annotations_comp', 'value'),
               prevent_initial_call=True 
               )
-def update_mapa_componentes_fig(click,names):
+def update_mapa_componentes_fig(click,names,check_annotations):
 
     #TODO quitar el json
     som = session_data.get_modelo()
@@ -402,40 +466,27 @@ def update_mapa_componentes_fig(click,names):
         datos_entrenamiento = json.load(json_file)
 
     params = session_data.get_som_model_info_dict()
-    tam_eje_vertical = params['tam_eje_vertical'] 
     tam_eje_horizontal = params['tam_eje_horizontal'] 
     nombres_columnas = datos_entrenamiento['columns_names']
     nombres_atributos = nombres_columnas[0:len(nombres_columnas)-1]
     lista_de_indices = []
-    print('Las  dimensiones del mapa entrenado son:',tam_eje_vertical,tam_eje_horizontal)
 
     for n in names:
         lista_de_indices.append(nombres_atributos.index(n) )
     
     pesos = som.get_weights()
-
     traces = []
-
-    xaxis_dict ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
-    yaxis_dict  ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
+   
        
     for i in lista_de_indices:
-        
-        #figure= go.Figure(layout= {"height": 300,'width' : 300, 'title': nombres_atributos[i], 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict},
-        figure= go.Figure(layout= { 'title': nombres_atributos[i], 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict},
-                          data=go.Heatmap(z=pesos[:,:,i].tolist(),showscale= True)                                                      
-        ) 
 
+        figure = pu.create_heatmap_figure(pesos[:,:,i].tolist() ,tam_eje_horizontal,check_annotations, title = nombres_atributos[i])
         id ='graph-{}'.format(i)
+        traces.append(html.Div(children= dcc.Graph(id=id,figure=figure)) )
 
-        traces.append(
-            html.Div(children= dcc.Graph(id=id,figure=figure)
-            ) 
-        )
-
-    print('render finalizado')
     return traces
   
+
 
 
 # Checklist seleccionar todos mapas de componentes
@@ -456,115 +507,31 @@ def on_form_change(check):
     else:
         return []
 
-    
-'''
-#Etiquetar freq map
-@app.callback(Output('frequency_map', 'figure'),
-              Input('check_annotations_freq', 'value'),
-              State('frequency_map', 'figure'),
-              State('ver', 'n_clicks'),
-              prevent_initial_call=True )
-def annotate_freq_map_som(check_annotations, fig,n_clicks):
-    
-    if(n_clicks is None):
-        raise PreventUpdate
-
-    params = session_data.get_som_model_info_dict()
-    tam_eje_vertical = params['tam_eje_vertical']
-    tam_eje_horizontal = params['tam_eje_horizontal']
-
-    layout = {}
-    layout['title'] = 'Mapa de neuronas ganadoras'
-    layout['xaxis']  ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
-    layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
-    data = fig['data']
-
-    #TODO LLAMAR A FUNCIONA CREADA EN PLOT UTILS
-    if(check_annotations  ): #fig already ploted
-        trace = data[0]
-        data_to_plot = trace['z'] 
-        #To replace None values with NaN values
-        data_to_plot_1 = np.array(data_to_plot, dtype=np.float64)
-        annotations = pu.make_annotations(data_to_plot_1, colorscale = DEFAULT_HEATMAP_COLORSCALE, reversescale= False)
-        layout['annotations'] = annotations
-        
-   
-    fig_updated = dict(data=data, layout=layout)
-    return fig_updated
-
-
-'''
-
-
-
-
-
-
-
-
-#Actualizar mapas de frecuencias
-@app.callback(Output('div_frequency_map','children'),
-              Input('frequency_map_button','n_clicks'),
-              State('check_annotations_freq', 'value'),
-              prevent_initial_call=True 
-              )
-def update_mapa_frecuencias_fig(click, check_annotations):
-
-    som = session_data.get_modelo() 
-    model_data = session_data.get_data()
-    params = session_data.get_som_model_info_dict()
-    tam_eje_horizontal = params['tam_eje_horizontal'] 
-    tam_eje_vertical = params['tam_eje_vertical']
-
-    frequencies = som.activation_response(model_data)
-    frequencies_list = frequencies.tolist()
-    
-    xaxis_dict ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
-    yaxis_dict  ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
-    layout = {}
-    layout = { 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict}
-
-    if(check_annotations):
-        annotations = pu.make_annotations(frequencies_list, colorscale = DEFAULT_HEATMAP_COLORSCALE, reversescale= False)
-        layout['annotations'] = annotations
-    
-
-    trace = dict(type='heatmap', z=frequencies_list, colorscale = DEFAULT_HEATMAP_COLORSCALE)
-    data=[trace]
-    data.append({'type': 'scattergl',
-                    'mode': 'text'
-                })
- 
-    figure = dict(data=data, layout=layout)
-    children = pu.get_fig_div_with_info(figure,'frequency_map','Mapa de frecuencias',tam_eje_horizontal, tam_eje_vertical)
-
-    return children
-  
-
 
       
 #U-matrix
 @app.callback(Output('umatrix_figure_div','children'),
               Input('umatrix_button','n_clicks'),
+              Input('check_annotations_umax', 'value'),
               prevent_initial_call=True 
               )
-def update_umatrix(click):
+def update_umatrix(n_clicks,check_annotations):
+
+    if(n_clicks is None):
+        raise PreventUpdate
 
     som = session_data.get_modelo()
     umatrix = som.distance_map()
     params = session_data.get_som_model_info_dict()
     tam_eje_horizontal = params['tam_eje_horizontal'] 
-
+    '''
     xaxis_dict ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
     yaxis_dict  ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
-       
-
     figure= go.Figure(layout= {'title': 'Matriz U', 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict},
-                          data=go.Heatmap(z=umatrix.tolist(),showscale= True)                              
+                          data=go.Heatmap(z=,showscale= True)                              
     ) 
-
-
-    print('render finalizado')
+    '''
+    figure = pu.create_heatmap_figure(umatrix.tolist() ,tam_eje_horizontal,check_annotations, title ='Matriz U')
     return  html.Div(children= dcc.Graph(id='graph_u_matrix',figure=figure))
 
 
@@ -606,11 +573,6 @@ def save_som_model(n_clicks,name,isvalid):
     data.append(params)
     data.append(session_data.get_modelo())
 
-    '''
-    now = datetime.now()
-    dt_string = now.strftime("%Y_%m_%d__%H_%M")
-    filename = 'gsom_model_' + dt_string + '.pickle'
-    '''
     filename =   name +  '_som.pickle'
 
     with open(DIR_SAVED_MODELS + filename, 'wb') as handle:

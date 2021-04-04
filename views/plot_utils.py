@@ -4,6 +4,8 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 from plotly.graph_objs import graph_objs
 import numpy as np
+from  config.config import DEFAULT_HEATMAP_COLORSCALE
+
 
 def to_rgb_color_list(color_str, default):
     if "rgb" in color_str:
@@ -149,17 +151,13 @@ def get_fig_div_with_info(fig,fig_id, title,tam_eje_horizontal, tam_eje_vertical
 
         neurona_padre: None or str tuple if it exits
     '''
-
-    
     if(neurona_padre is not None):
         div_info_neurona_padre = html.Div(children = [
             dbc.Badge('Neurona padre:', pill=True, color="light", className="mr-1"),
             dbc.Badge(neurona_padre, pill=True, color="info", className="mr-1")
         ])
-       
     else:
         div_info_neurona_padre= ''
-
 
     if(gsom_level is not None):
         div_info_nivel_gsom = html.Div(children = [
@@ -167,8 +165,6 @@ def get_fig_div_with_info(fig,fig_id, title,tam_eje_horizontal, tam_eje_vertical
         ])
     else:
         div_info_nivel_gsom = ''
-
-    
 
 
     div_inf_grid = html.Div(children = [
@@ -190,7 +186,6 @@ def get_fig_div_with_info(fig,fig_id, title,tam_eje_horizontal, tam_eje_vertical
                 'flex-wrap': 'wrap', 'flex-direction': 'column ' })
 
 
-      
     children =[ div_inf_grid, dcc.Graph(id=fig_id,figure=fig)  ]
     '''
     div = html.Div(children=children, style={'margin': '0 auto','width': '100%', 'display': 'flex',
@@ -201,3 +196,30 @@ def get_fig_div_with_info(fig,fig_id, title,tam_eje_horizontal, tam_eje_vertical
 
 
 
+
+
+def create_heatmap_figure(data,tam_eje_horizontal,check_annotations, title = None):
+
+    xaxis_dict ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
+    yaxis_dict  ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
+    layout = { 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict}
+
+    
+
+    if(title is not None):
+        layout['title'] = title
+
+    if(check_annotations):
+        annotations = make_annotations(data, colorscale = DEFAULT_HEATMAP_COLORSCALE, reversescale= False)
+        layout['annotations'] = annotations
+    #TODO
+    #heatmapgl
+    trace = dict(type='heatmap', z=data, colorscale = DEFAULT_HEATMAP_COLORSCALE)
+    data=[trace]
+    data.append({'type': 'scattergl',
+                    'mode': 'text'
+                })
+
+    figure = dict(data=data, layout=layout)
+
+    return figure

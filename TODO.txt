@@ -22,6 +22,7 @@ problemas al borrar carptetas como saved data
 LOS TICKS DE LOS HEATMPAS EMPIEZAN EN -0.5 AUNQUE LA CASILLA ESTA BIEN CENTRADA
 quitar forma hexagonal del som
 mapas de componentes del ghsom tienenf orma rara
+etiquetar sin pulsar boton en mapas de componentes som
 
 #PREGUNTAS
 rango de la tasa de aprendizaje?
