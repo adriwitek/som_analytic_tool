@@ -24,7 +24,7 @@ from re import search
 import views.plot_utils as pu
 
 
-fig = go.Figure()
+#fig = go.Figure()
 
 
 
@@ -44,8 +44,10 @@ def analyze_gsom_data():
                 ),
                 dbc.Collapse(id="collapse_gsom_1",children=
                     dbc.CardBody(children=[ 
-                        html.Div([dcc.Graph(id='winners_map_gsom',figure=fig)],
-                          style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}
+                        html.Div(id = 'div_winners_map_gsom',children='',
+                                style={'margin': '0 auto','width': '100%', 'display': 'flex',
+                                                    'align-items': 'center', 'justify-content': 'center',
+                                                   'flex-wrap': 'wrap', 'flex-direction': 'column ' } 
                         ),
                         html.Div([  
                                 dbc.Checklist(options=[{"label": "Etiquetar Neuronas", "value": 1}],
@@ -105,7 +107,9 @@ def analyze_gsom_data():
                     dbc.CardBody(children=[
 
                         html.Div(id = 'umatrix_div_fig_gsom',children = '',
-                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}
+                                style={'margin': '0 auto','width': '100%', 'display': 'flex',
+                                                   'align-items': 'center', 'justify-content': 'center',
+                                                  'flex-wrap': 'wrap', 'flex-direction': 'column ' } 
                         ),
                         html.Div( 
                             [dbc.Checklist(  options=[{"label": "Etiquetar Neuronas", "value": 1}],
@@ -227,7 +231,7 @@ def toggle_accordion(n1, n2,n3,n4, is_open1, is_open2,is_open3,is_open4):
 
 
 #Winners map
-@app.callback(Output('winners_map_gsom','figure'),
+@app.callback(Output('div_winners_map_gsom','children'),
               Input('ver_winners_map_gsom_button','n_clicks'),
               State('check_annotations_win_gsom','value'),
               prevent_initial_call=True 
@@ -278,8 +282,9 @@ def update_winner_map_gsom(click,check_annotations):
 
     #print('data_to_plot:',data_to_plot)
     fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,check_annotations, title = None)
+    children = pu.get_fig_div_with_info(fig,'winners_map_gsom', 'Mapa de Neuronas Ganadoras',tam_eje_horizontal, tam_eje_vertical)
 
-    return fig
+    return children
    
 
 
@@ -339,16 +344,14 @@ def update_mapa_componentes_gsom_fig(click,names, check_annotations):
                 data_to_plot[i][j] = weights_map[(i,j)][k]
         
       
-        figure = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,check_annotations, title = nombres_atributos[k])
-        '''
-        figure= go.Figure(layout= {"height": 300,'width' : 300, 'title': nombres_atributos[k], 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict },
-                          data=go.Heatmap(z=data_to_plot,showscale= True)                                                      
-        ) 
-        '''
         id ='graph-{}'.format(k)
+        figure = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,check_annotations, title = nombres_atributos[k])
+        children = pu.get_fig_div_with_info(figure,id, '',None, None,gsom_level= None,neurona_padre=None)
+
+        
 
         traces.append(
-            html.Div(children= dcc.Graph(id=id,figure=figure)
+            html.Div(children= children
             ) 
         )
                    
@@ -443,29 +446,7 @@ def ver_umatrix_gsom_fig(click, check_annotations):
         print(item)
     '''
     fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,check_annotations, title = None)
-
-    '''
-    trace = dict(type='heatmap', z=data_to_plot, colorscale = 'Jet')
-    data=[trace]
-
-    
-    data.append({'type': 'scattergl',
-                    'mode': 'text',
-                    #'x': x_ticks,
-                    #'y': y_ticks,
-                    'text': 'a'
-                    })
-    
-    layout = {}
-    layout['xaxis']  ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
-    layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }  
-    layout['width'] = 700
-    layout['height']= 700
-    annotations = []
-    fig = dict(data=data, layout=layout)
-    '''
-    
-    children = [ dcc.Graph(id='umatrix_fig_gsom',figure=fig)  ]
+    children =  pu.get_fig_div_with_info(fig,'umatrix_fig_gsom', 'Matriz U',tam_eje_horizontal, tam_eje_vertical)
 
     return children
 

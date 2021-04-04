@@ -23,27 +23,30 @@ LOS TICKS DE LOS HEATMPAS EMPIEZAN EN -0.5 AUNQUE LA CASILLA ESTA BIEN CENTRADA
 quitar forma hexagonal del som
 mapas de componentes del ghsom tienenf orma rara
 etiquetar sin pulsar boton en mapas de componentes som
+hacer un generador de los diseños de analyze_* paandole com parametros una lista de ids, codigo mas limpio y facil de editar
+
+
+#FUNCIONALIDAD NUEVA
+guardar/cargar soms entrenados
+
 
 #PREGUNTAS
 rango de la tasa de aprendizaje?
 
-
-
-#FUNCIONALIDAD
-guardar/cargar soms entrenados
-
-
-
-
-
-
-
-
-#mejorar?
-    Improving performance with memoization
-
-
-
 #DUDAS IMPLEMENTACION
 
 La u matrix en gsom, no es exactamente igual que la umatrix en gsom
+
+
+
+
+
+
+
+
+----------------------------------
+#mejorar?
+    Improving performance with memoization ?
+
+
+

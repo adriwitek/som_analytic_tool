@@ -23,7 +23,6 @@ from  os.path import normpath
 from re import search 
 
 import networkx as nx
-from views.plot_utils import get_fig_div_with_info, make_annotations
 import views.plot_utils as pu
 
 
@@ -446,7 +445,7 @@ def view_winner_map_by_selected_point(clickdata,check_annotations,figure):
                 else:
                     data_to_plot[i][j] = np.nan
 
-
+    '''
     #heatmapgl
     trace = dict(type='heatmap', z=data_to_plot, colorscale = DEFAULT_HEATMAP_COLORSCALE)
     data=[trace]
@@ -469,7 +468,13 @@ def view_winner_map_by_selected_point(clickdata,check_annotations,figure):
         layout['annotations'] = annotations
 
     fig = dict(data=data, layout=layout)
+    '''
+    fig =  pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,check_annotations, title = None)
+
     children = pu.get_fig_div_with_info(fig,'winnersmap_fig_ghsom','Mapa de neuronas ganadoras',tam_eje_horizontal, tam_eje_vertical,level,neurona_padre_string)
+
+
+
 
     print('\nVISUALIZACION:ghsom renderfinalizado\n')
     return children,figure
@@ -557,8 +562,7 @@ def update_mapa_componentes_ghsom_fig(clickdata,check_annotations,fig_grafo,name
 
 
     traces = []
-    xaxis_dict ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
-    yaxis_dict  ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
+    
 
     for k in lista_de_indices:
         data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
@@ -567,7 +571,9 @@ def update_mapa_componentes_ghsom_fig(clickdata,check_annotations,fig_grafo,name
                 data_to_plot[i][j] = weights_map[(i,j)][k]
         
 
-        #layout = {"height": 500,'width' : 500, 'title': nombres_atributos[k], 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict }
+        figure =  pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,check_annotations, title = nombres_atributos[k])
+
+        '''
         layout = {'title': nombres_atributos[k], 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict }
         #Annotations
         if(check_annotations  ): 
@@ -580,7 +586,7 @@ def update_mapa_componentes_ghsom_fig(clickdata,check_annotations,fig_grafo,name
                           data=go.Heatmap(z=data_to_plot,showscale= True)                                                      
         ) 
 
-        
+        '''
         id ='graph-{}'.format(k)
         traces.append(
             html.Div(children= dcc.Graph(id=id,figure=figure)
@@ -669,6 +675,8 @@ def ver_umatrix_ghsom_fig(clickdata,check_annotations,fig_grafo):
     for item in saved_distances.items():
         print(item)
     '''
+
+    '''
     trace = dict(type='heatmap', z=data_to_plot, colorscale = DEFAULT_HEATMAP_COLORSCALE)
     data=[trace]
     data.append({'type': 'scattergl',
@@ -688,6 +696,9 @@ def ver_umatrix_ghsom_fig(clickdata,check_annotations,fig_grafo):
         layout['annotations'] = annotations
 
     fig = dict(data=data, layout=layout)
+    '''
+    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,check_annotations, title = None)
+
     children = [ dcc.Graph(id='umatrix_fig_ghsom',figure=fig)  ]
 
     print('\nVISUALIZACION:gsom renderfinalizado\n')

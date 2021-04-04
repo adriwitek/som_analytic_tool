@@ -23,7 +23,7 @@ import json
 import  plotly.express as px
 import plotly.graph_objects as go
 import plotly.figure_factory as ff
-from views.custom_annotated_heatmap import create_annotated_heatmap as custom_heatmap
+#from views.custom_annotated_heatmap import create_annotated_heatmap as custom_heatmap
 
 from  views.session_data import session_data
 from  config.config import *

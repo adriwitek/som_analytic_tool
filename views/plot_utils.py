@@ -167,6 +167,18 @@ def get_fig_div_with_info(fig,fig_id, title,tam_eje_horizontal, tam_eje_vertical
         div_info_nivel_gsom = ''
 
 
+    if(tam_eje_horizontal is None or tam_eje_vertical  is None ):
+        div_info_dimensions = ''
+    else:
+        div_info_dimensions =  html.Div(children= [
+                dbc.Badge(tam_eje_horizontal, pill=True, color="info", className="mr-1"),
+                dbc.Badge('x', pill=True, color="light", className="mr-1"),
+                dbc.Badge(tam_eje_vertical, pill=True, color="info", className="mr-1"),
+                dbc.Badge('neuronas.', pill=True, color="light", className="mr-1")
+            ], style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'})
+
+
+
     div_inf_grid = html.Div(children = [
         html.H3(title),
 
@@ -174,13 +186,8 @@ def get_fig_div_with_info(fig,fig_id, title,tam_eje_horizontal, tam_eje_vertical
             div_info_nivel_gsom,
             div_info_neurona_padre
         ], style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-direction': 'column '}),
-
-        html.Div(children= [
-            dbc.Badge(tam_eje_horizontal, pill=True, color="info", className="mr-1"),
-            dbc.Badge('x', pill=True, color="light", className="mr-1"),
-            dbc.Badge(tam_eje_vertical, pill=True, color="info", className="mr-1"),
-            dbc.Badge('neuronas.', pill=True, color="light", className="mr-1")
-        ], style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'})
+        div_info_dimensions
+       
         
     ], style={'margin': '0 auto','width': '100%', 'display': 'flex','align-items': 'center', 'justify-content': 'center',
                 'flex-wrap': 'wrap', 'flex-direction': 'column ' })
