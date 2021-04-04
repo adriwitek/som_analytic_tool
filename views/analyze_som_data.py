@@ -305,33 +305,50 @@ def update_som_fig(n_clicks, check_annotations):
     targets = dataset[:,-1:]
     
 
-    #print('targets',[t for t in targets])
     targets_list = [t[0] for t in targets.tolist()]
-    #print('targetssss',targets_list)
+
+    #'data and labels must have the same length.
     labels_map = som.labels_map(data, targets_list)
     data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
+
+    targets_freq = {}
+    for t in targets_list:
+        if (t in targets_freq):
+            targets_freq[t] += 1
+        else:
+            targets_freq[t] = 1
+    lista_targets_unicos = list(targets_freq.keys())
+    #print('lista de targets unicos', lista_targets_unicos)
+
+    
     #labeled heatmap does not support nonetypes
     data_to_plot[:] = np.nan
 
     if(session_data.get_discrete_data() ):
         #showing the class more represented in each neuron
         for position in labels_map.keys():
-            label_fracs = [ labels_map[position][t] for t in targets_list]
+            label_fracs = [ labels_map[position][t] for t in lista_targets_unicos]
             max_value= max(label_fracs)
             winner_class_index = label_fracs.index(max_value)
-            data_to_plot[position[0]][position[1]] = targets_list[winner_class_index]
+            data_to_plot[position[0]][position[1]] = lista_targets_unicos[winner_class_index]
     else: #continuos data: mean of the mapped values in each neuron
+        
         for position in labels_map.keys():
+         
             #fractions
-            label_fracs = [ labels_map[position][t] for t in targets_list]
-            data_to_plot[position[0]][position[1]] = np.mean(label_fracs)
+            label_fracs = [ labels_map[position][t] for t in lista_targets_unicos]
+            #print('label_fracs', label_fracs)
+            mean_div = sum(label_fracs)
+            mean = sum([a*b for a,b in zip(lista_targets_unicos,label_fracs)])
+            mean = mean/ mean_div
+            data_to_plot[position[0]][position[1]] = mean
+        
 
     
 
 
     '''
-    x_ticks = np.linspace(0, tam_eje_vertical,tam_eje_vertical, dtype= int,endpoint=False).tolist()
-    y_ticks = np.linspace(0, tam_eje_horizontal,tam_eje_horizontal,dtype= int, endpoint=False ).tolist()
+ 
 
     ######################################
     # ANNOTATED HEATMAPD LENTO

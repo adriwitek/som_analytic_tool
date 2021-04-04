@@ -56,7 +56,8 @@ def display_page(pathname):
     elif pathname == URLS['ANALYZE_GHSOM_URL']:
         return analyze_ghsom_data()
     else:
-        return '404'
+        #return '404'
+        return Home()
 
 
 
