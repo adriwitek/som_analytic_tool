@@ -114,7 +114,7 @@ class Sesion():
 
 
 
-    def set_gsom_model_info_dict(self,tam_eje_vertical,tam_eje_horizontal,tau_2,learning_rate,decadency,sigma,epocas_gsom,max_iter_gsom, check_semilla,seed):
+    def set_gsom_model_info_dict(self,tam_eje_vertical,tam_eje_horizontal,tau_1,learning_rate,decadency,sigma,epocas_gsom,max_iter_gsom, check_semilla,seed):
 
         #Only one model could be used at once
         self.som_params= None
@@ -123,7 +123,7 @@ class Sesion():
 
         self.gsom_params['tam_eje_vertical'] = tam_eje_vertical
         self.gsom_params['tam_eje_horizontal'] =tam_eje_horizontal
-        self.gsom_params['tau_2'] = tau_2 
+        self.gsom_params['tau_1'] = tau_1
         self.gsom_params['learning_rate'] = learning_rate
         self.gsom_params['decadency'] = decadency
         self.gsom_params['sigma'] = sigma

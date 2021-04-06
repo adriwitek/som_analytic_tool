@@ -27,10 +27,11 @@ hacer un generador de los diseños de analyze_* paandole com parametros una list
 etiquetar neuronas si ulsar botn ver en som ya que es menos rapido
 
 #FUNCIONALIDAD NUEVA
+MOSTRAR LOS PARAMETROS CON LOS QUE FUE ENTRENADO E MODELO AL CARGAR MODELO
 guardar/cargar soms entrenados
 grid con sectore de clases pro cada neurona
 monstar quantizatio errors y mas metricas
-
+GUARDAR LOS PARAMETROS CON LOS QUE SE CREOY ENTRENO CADA MODELO
 
 #PREGUNTAS
 rango de la tasa de aprendizaje?

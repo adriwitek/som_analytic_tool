@@ -88,14 +88,20 @@ class GSOM:
         mapped_neurons = 0
         changed_neurons = 0
 
+        #anniadido
+        assert self.__parent_quantization_error is not None, "Parent Quantization Error must not be None"
+
         for neuron in self.neurons.values():
             changed_neurons += 1 if neuron.has_changed_from_previous_epoch() else 0
             if neuron.has_dataset():
                 MQE += neuron.compute_quantization_error()
                 mapped_neurons += 1
 
-        return ((MQE / mapped_neurons) >= (self.__t1 * self.__parent_quantization_error)) and \
-               (changed_neurons > int(np.round(mapped_neurons/5)))
+        #TODO
+        #print('condicion',((MQE / mapped_neurons) >= (self.__t1 * self.__parent_quantization_error)), str((MQE / mapped_neurons)) )
+        return ((MQE / mapped_neurons) >= (self.__t1 * self.__parent_quantization_error)) 
+        #Quitada esta clausula
+        # and \ (changed_neurons > int(np.round(mapped_neurons/5)))
 
     def __map_data_to_neurons(self):
         self.__clear_neurons_dataset()

@@ -25,10 +25,10 @@ def train_som_view():
                         #style={'textAlign': 'center'}
                         children=[
 
-                            html.H5(children='Tamaño del grid(Eje vertical):'),
+                            html.H5(children='Tamaño del mapa(Eje vertical):'),
                             dcc.Input(id="tam_eje_vertical", type="number", value=2,step=1,min=1),
 
-                            html.H5(children='Tamaño del grid(Eje horizontal):'),
+                            html.H5(children='Tamaño del mapa(Eje horizontal):'),
                             dcc.Input(id="tam_eje_horizontal", type="number", value=2,step=1,min=1),
 
                             html.H5(children='Tasa de aprendizaje:'),

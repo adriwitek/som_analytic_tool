@@ -20,12 +20,12 @@ formulario_ghsom =  dbc.ListGroupItem([
                     html.H4('Elección de parámetros',className="card-title"  ),
 
                     html.H5(children='Tau 1:'),
-                    dcc.Slider(id='tau1_slider', min=0,max=1,step=0.00001,value=0.1),
-                    dcc.Input(id="tau1", type="number", value="0.1",step=0.00001,min=0,max=1),
+                    dcc.Slider(id='tau1_slider', min=0,max=1,step=0.0001,value=0.1),
+                    dcc.Input(id="tau1", type="number", value="0.1",step=0.0000001,min=0,max=1),
 
                     html.H5(children='Tau 2:'),
-                    dcc.Input(id="tau2", type="number", value="0.0001",step=0.00001,min=0,max=1),
-                    dcc.Slider(id='tau2_slider', min=0,max=1,step=0.00001,value=0.0001),
+                    dcc.Input(id="tau2", type="number", value="0.0001",step=0.0000001,min=0,max=1),
+                    dcc.Slider(id='tau2_slider', min=0,max=1,step=0.0001,value=0.0001),
 
                     html.H5(children='Tasa de aprendizaje:'),
                     dcc.Input(id="tasa_aprendizaje", type="number", value="0.15",step=0.01,min=0,max=5),
@@ -133,7 +133,7 @@ layout = html.Div(children=[
     Output("tau1", "value"),
     Output("tau1_slider", "value"),
     Input("tau1", "value"),
-    Input("tau1_slider", "value"), prevent_initial_call=True)
+    Input("tau1_slider", "value"))
 def sync_slider_tau1(tau1, slider_value):
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
@@ -146,7 +146,7 @@ def sync_slider_tau1(tau1, slider_value):
     Output("tau2", "value"),
     Output("tau2_slider", "value"),
     Input("tau2", "value"),
-    Input("tau2_slider", "value"), prevent_initial_call=True)
+    Input("tau2_slider", "value"))
 def sync_slider_tau2(tau2, slider_value):
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]

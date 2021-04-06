@@ -33,6 +33,8 @@ class GHSOM:
 
         active_dataset = len(zero_unit.input_dataset)
 
+
+        #TODO BORRAR ESTO
         #network
         self.structure_graph= nx.Graph()
         self.structure_graph.add_node(zero_unit.child_map)
