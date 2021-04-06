@@ -30,8 +30,10 @@ etiquetar neuronas si ulsar botn ver en som ya que es menos rapido
 MOSTRAR LOS PARAMETROS CON LOS QUE FUE ENTRENADO E MODELO AL CARGAR MODELO
 guardar/cargar soms entrenados
 grid con sectore de clases pro cada neurona
-monstar quantizatio errors y mas metricas
+monstar quantizatio errors y mas metricas AL FINALIZAR EL ENTRENAMIENTO
+monstrar los parametros de entrenamiento en la carga
 GUARDAR LOS PARAMETROS CON LOS QUE SE CREOY ENTRENO CADA MODELO
+TIEMPO TRANSCURRIDO DEL ENTRENAMIENTO
 
 #PREGUNTAS
 rango de la tasa de aprendizaje?
