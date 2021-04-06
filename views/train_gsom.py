@@ -17,7 +17,7 @@ import numpy as np
 from  views.session_data import session_data
 from  config.config import *
 
-from multiprocessing import Pool
+import time
 
 
 # Formulario SOM
@@ -183,6 +183,9 @@ def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,ta
 
 
     data = session_data.get_data()
+
+    start = time.time()
+
   
     initial_map_size = (tam_eje_vertical_gsom, tam_eje_horizontal_gsom)
     neuron_builder = NeuronBuilder(1, growing_metric="qe")    #tau2= 1valur not used in gsom
@@ -240,7 +243,10 @@ def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,ta
     session_data.set_gsom_model_info_dict(tam_eje_vertical,tam_eje_horizontal,tau_1,tasa_aprendizaje_gsom,decadencia_gsom,sigma_gausiana,epocas_gsom,max_iter_gsom, check_semilla, seed)
     session_data.set_modelo(zero_unit)
 
+
+    end = time.time()
     print('ENTRENAMIENTO DEL GSOM FINALIZADO\n')
+    print('Tiempo transcurrido en el entrenamiento:',str(end - start))
 
     #TODO
     return 'Gsom entrenado'

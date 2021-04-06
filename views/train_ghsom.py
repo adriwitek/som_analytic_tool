@@ -13,6 +13,7 @@ from models.ghsom.GSOM import GSOM
 
 from  views.session_data import session_data
 from  config.config import *
+import time
 
 
 # Formulario GHSOM
@@ -212,7 +213,6 @@ def enable_train_ghsom_button(tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussi
               prevent_initial_call=True )
 def train_ghsom(n_clicks,tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,epocas_ghsom, max_iter_ghsom, semilla, check_semilla):
 
-    print('button clickedddddddddddd\n', flush=True)
     tau1 = float(tau1)
     tau2 = float(tau2)
     tasa_aprendizaje=float(tasa_aprendizaje)
@@ -225,13 +225,12 @@ def train_ghsom(n_clicks,tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,e
     else:
         seed = None
 
+
+    start = time.time()
+
     dataset = session_data.get_dataset()
     data = session_data.get_data() 
-    print('debug point 1')
 
-
-    
-    
     ghsom = GHSOM(input_dataset = data, t1= tau1, t2= tau2, learning_rate= tasa_aprendizaje, decay= decadencia, gaussian_sigma=sigma_gaussiana, growing_metric="qe")
     zero_unit = ghsom.train(epochs_number=epocas_ghsom, dataset_percentage=1, min_dataset_size=1, seed=seed, grow_maxiter=max_iter_ghsom)
     session_data.set_ghsom_model_info_dict(tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,epocas_ghsom,max_iter_ghsom,check_semilla,seed)
@@ -239,6 +238,9 @@ def train_ghsom(n_clicks,tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,e
     session_data.set_modelo(zero_unit)
     print('ENTRENAMIENTO DEL GHSOM FINALIZADO\n')
     #print('zerounit:',zero_unit)
+    
+    end = time.time()
+    print('Tiempo transcurrido en el entrenamiento:',str(end - start))
 
     
     return 'entrenamiento_completado'

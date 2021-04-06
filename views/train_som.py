@@ -15,6 +15,7 @@ import plotly.graph_objects as go
 
 from  views.session_data import session_data
 from  config.config import *
+import time
 
 def train_som_view():
 
@@ -215,7 +216,9 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
     else:
         seed = None
 
-
+    
+    start = time.time()
+    
     # TRAINING
     dataset = session_data.get_dataset()
 
@@ -247,6 +250,9 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
     session_data.set_modelo(som)                                                   
 
     print('ENTRENAMIENTO SOM FINALIZADO')
+    end = time.time()
+    print('Tiempo transcurrido en el entrenamiento:',str(end - start))
+
 
     return 'Entrenamiento completado'
 
