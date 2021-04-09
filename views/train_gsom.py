@@ -246,7 +246,7 @@ def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,ta
 
     end = time.time()
     print('ENTRENAMIENTO DEL GSOM FINALIZADO\n')
-    print('Tiempo transcurrido en el entrenamiento:',str(end - start))
+    print('Tiempo transcurrido en el entrenamiento:',str(end - start),'segundos')
 
     #TODO
     return 'Gsom entrenado'

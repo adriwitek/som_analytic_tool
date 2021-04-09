@@ -469,7 +469,7 @@ class MiniSom(object):
             that the neuron i,j have been winner.
         """
         self._check_input_len(data)
-        a = zeros((self._weights.shape[0], self._weights.shape[1]))
+        a = zeros((self._weights.shape[0], self._weights.shape[1]),dtype=int)
         for x in data:
             a[self.winner(x)] += 1
         return a

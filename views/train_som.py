@@ -251,7 +251,7 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
 
     print('ENTRENAMIENTO SOM FINALIZADO')
     end = time.time()
-    print('Tiempo transcurrido en el entrenamiento:',str(end - start))
+    print('Tiempo transcurrido en el entrenamiento:',str(end - start),'segundos')
 
 
     return 'Entrenamiento completado'

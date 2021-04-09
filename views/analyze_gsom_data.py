@@ -62,6 +62,27 @@ def analyze_gsom_data():
 
 
 
+            #Card Mapa frecuencias
+            dbc.Card([
+                dbc.CardHeader(
+                    html.H2(dbc.Button("Mapa de frecuencias",color="link",id="button_collapse_gsom_5"),style={'textAlign': 'center'})
+                ),
+                dbc.Collapse(id="collapse_gsom_5",children=
+                    dbc.CardBody(children=[ 
+                        html.Div(id = 'div_freq_map_gsom',children='',
+                                style={'margin': '0 auto','width': '100%', 'display': 'flex',
+                                                    'align-items': 'center', 'justify-content': 'center',
+                                                   'flex-wrap': 'wrap', 'flex-direction': 'column ' } 
+                        ),
+                        html.Div([  
+                                dbc.Button("Ver", id="ver_freq_map_gsom_button", className="mr-2", color="primary")],
+                            style={'textAlign': 'center'}
+                        )
+                    ]),
+                ),
+            ]),
+
+
             #Card: Component plans
             dbc.Card([
                 dbc.CardHeader(
@@ -205,11 +226,11 @@ def get_distances(weights_map, saved_distances, x,y,a,b):
 ##################################################################
 
 @app.callback(
-    [Output(f"collapse_gsom_{i}", "is_open") for i in range(1, 5)],
-    [Input(f"button_collapse_gsom_{i}", "n_clicks") for i in range(1, 5)],
-    [State(f"collapse_gsom_{i}", "is_open") for i in range(1, 5)],
+    [Output(f"collapse_gsom_{i}", "is_open") for i in range(1, 6)],
+    [Input(f"button_collapse_gsom_{i}", "n_clicks") for i in range(1, 6)],
+    [State(f"collapse_gsom_{i}", "is_open") for i in range(1, 6)],
     prevent_initial_call=True)
-def toggle_accordion(n1, n2,n3,n4, is_open1, is_open2,is_open3,is_open4):
+def toggle_accordion(n1, n2,n3,n4,n5, is_open1, is_open2,is_open3,is_open4,is_open5):
     ctx = dash.callback_context
 
     if not ctx.triggered:
@@ -218,14 +239,16 @@ def toggle_accordion(n1, n2,n3,n4, is_open1, is_open2,is_open3,is_open4):
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
     if button_id == "button_collapse_gsom_1" and n1:
-        return not is_open1, is_open2, is_open3,is_open4
+        return not is_open1, is_open2, is_open3,is_open4, is_open5
     elif button_id == "button_collapse_gsom_2" and n2:
-        return is_open1, not is_open2, is_open3,is_open4
+        return is_open1, not is_open2, is_open3,is_open4, is_open5
     elif button_id == "button_collapse_gsom_3" and n3:
-        return is_open1, is_open2, not is_open3,is_open4
+        return is_open1, is_open2, not is_open3,is_open4,is_open5
     elif button_id == "button_collapse_gsom_4" and n4:
-        return is_open1, is_open2, is_open3, not is_open4
-    return False, False, False,False
+        return is_open1, is_open2, is_open3, not is_open4, is_open5
+    elif button_id == "button_collapse_gsom_5" and n5:
+        return is_open1, is_open2, is_open3,is_open4, not is_open5
+    return False, False, False,False,False
 
 
 
@@ -286,6 +309,42 @@ def update_winner_map_gsom(click,check_annotations):
 
     return children
    
+
+
+
+
+#Frequency map
+@app.callback(Output('div_freq_map_gsom','children'),
+              Input('ver_freq_map_gsom_button','n_clicks'),
+              prevent_initial_call=True 
+              )
+def update_freq_map_gsom(click):
+
+    params = session_data.get_gsom_model_info_dict()
+    tam_eje_vertical = params['tam_eje_vertical']
+    tam_eje_horizontal = params['tam_eje_horizontal']
+    data = session_data.get_data()
+    zero_unit = session_data.get_modelo()
+    gsom = zero_unit.child_map
+    
+
+    #visualizacion
+    data_to_plot = np.zeros([tam_eje_vertical ,tam_eje_horizontal],dtype=int)
+
+    # Getting winnig neurons for each data element
+    for i,d in enumerate(data):
+        winner_neuron = gsom.winner_neuron(d)[0][0]
+        r, c = winner_neuron.position
+        data_to_plot[r][c] = data_to_plot[r][c] + 1
+     
+
+    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,True, title = None)
+    children = pu.get_fig_div_with_info(fig,'freq_map_gsom', 'Mapa de Frecuencias por Neurona',tam_eje_horizontal, tam_eje_vertical)
+
+    return children
+
+
+
 
 
 #Habilitar boton ver_mapas_componentes_button_gsom

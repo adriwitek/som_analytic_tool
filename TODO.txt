@@ -1,17 +1,14 @@
 #INTERFAZ
 404 con flask, no mejor warnng y redirigir
 revisar maximos y minimos de los parametros
-sincronizar slider y valores
 filtrar por tipo de archivo y leerlo en consecuencia bien, no solo csv
 dash_bootstrap_components en dependencias
 train ghsom aádir parametros interfaz como epocas etc
 numero de interaciones al formulario del som
 cambiar href por macros
 mirar que el numeo de datos cogidos es el correcto
-separar datos discretos de continuos(calses sobretodoc)
 controlar varios cliks al visualizar porque se fatidias todo
 boton logout que borre el json
-si ALL esta en names en mapas de componentes los subtitulos fallan
 quitar opcion de mapa hexagonal en som?
 variable global para el nombre del archivo
 en visualizar som se crea antes una figura que no vale para nada
@@ -25,6 +22,7 @@ mapas de componentes del ghsom tienenf orma rara
 etiquetar sin pulsar boton en mapas de componentes som
 hacer un generador de los diseños de analyze_* paandole com parametros una lista de ids, codigo mas limpio y facil de editar
 etiquetar neuronas si ulsar botn ver en som ya que es menos rapido
+pagina de cambiar configuracion
 
 #FUNCIONALIDAD NUEVA
 MOSTRAR LOS PARAMETROS CON LOS QUE FUE ENTRENADO E MODELO AL CARGAR MODELO
@@ -33,7 +31,6 @@ grid con sectore de clases pro cada neurona
 monstar quantizatio errors y mas metricas AL FINALIZAR EL ENTRENAMIENTO
 monstrar los parametros de entrenamiento en la carga
 GUARDAR LOS PARAMETROS CON LOS QUE SE CREOY ENTRENO CADA MODELO
-TIEMPO TRANSCURRIDO DEL ENTRENAMIENTO
 
 #PREGUNTAS
 rango de la tasa de aprendizaje?

@@ -240,7 +240,7 @@ def train_ghsom(n_clicks,tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,e
     #print('zerounit:',zero_unit)
     
     end = time.time()
-    print('Tiempo transcurrido en el entrenamiento:',str(end - start))
+    print('Tiempo transcurrido en el entrenamiento:',str(end - start),'segundos')
 
     
     return 'entrenamiento_completado'

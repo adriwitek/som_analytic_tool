@@ -65,6 +65,31 @@ def analyze_ghsom_data():
             ]),
 
 
+
+            #Card Mapa frecuencias
+            dbc.Card([
+                dbc.CardHeader(
+                    html.H2(dbc.Button("Mapa de frecuencias",color="link",id="button_collapse_ghsom_5"),style={'textAlign': 'center'})
+                ),
+                dbc.Collapse(id="collapse_ghsom_5",children=
+                    dbc.CardBody(children=[ 
+
+                         html.Div(id = 'grafo_ghsom_4',children = '',
+                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+                        ),
+
+                        html.Div(id = 'div_freq_map_ghsom',children='',
+                                style={'margin': '0 auto','width': '100%', 'display': 'flex',
+                                                    'align-items': 'center', 'justify-content': 'center',
+                                                   'flex-wrap': 'wrap', 'flex-direction': 'column ' } 
+                        )
+                    ]),
+                ),
+            ]),
+
+
+
+
             #Card: Component plans
             dbc.Card([
                 dbc.CardHeader(
@@ -342,14 +367,15 @@ def get_distances(weights_map, saved_distances, x,y,a,b):
 
 #Control de pliegues y carga del grafo de la estructura del ghsom
 @app.callback(
-    [Output(f"collapse_ghsom_{i}", "is_open") for i in range(1, 5)],
+    [Output(f"collapse_ghsom_{i}", "is_open") for i in range(1, 6)],
     Output('grafo_ghsom_1','children'),
     Output('grafo_ghsom_2','children'),
     Output('grafo_ghsom_3','children'),
-    [Input(f"button_collapse_ghsom_{i}", "n_clicks") for i in range(1, 5)],
-    [State(f"collapse_ghsom_{i}", "is_open") for i in range(1, 5)],
+    Output('grafo_ghsom_4','children'),
+    [Input(f"button_collapse_ghsom_{i}", "n_clicks") for i in range(1, 6)],
+    [State(f"collapse_ghsom_{i}", "is_open") for i in range(1, 6)],
     prevent_initial_call=True)
-def toggle_accordion(n1, n2,n3,n4, is_open1, is_open2,is_open3,is_open4):
+def toggle_accordion(n1, n2,n3,n4,n5, is_open1, is_open2,is_open3,is_open4, is_open5):
     ctx = dash.callback_context
 
     if not ctx.triggered:
@@ -360,17 +386,20 @@ def toggle_accordion(n1, n2,n3,n4, is_open1, is_open2,is_open3,is_open4):
         div_1 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_1')
         div_2 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_2')
         div_3 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_3')
+        div_4 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_4')
 
         
     if button_id == "button_collapse_ghsom_1" and n1:
-        return not is_open1, is_open2, is_open3,is_open4, div_1,div_2,div_3
+        return not is_open1, is_open2, is_open3,is_open4,is_open5, div_1,div_2,div_3,div_4
     elif button_id == "button_collapse_ghsom_2" and n2:
-        return is_open1, not is_open2, is_open3,is_open4, div_1,div_2,div_3
+        return is_open1, not is_open2, is_open3,is_open4,is_open5, div_1,div_2,div_3,div_4
     elif button_id == "button_collapse_ghsom_3" and n3:
-        return is_open1, is_open2, not is_open3,is_open4, div_1,div_2,div_3
+        return is_open1, is_open2, not is_open3,is_open4,is_open5, div_1,div_2,div_3,div_4
     elif button_id == "button_collapse_ghsom_4" and n4:
-        return is_open1, is_open2, is_open3, not is_open4, div_1,div_2,div_3
-    return False, False, False,False, div_1,div_2,div_3
+        return is_open1, is_open2, is_open3, not is_open4,is_open5, div_1,div_2,div_3,div_4
+    elif button_id == "button_collapse_ghsom_5" and n5:
+        return is_open1, is_open2, is_open3, is_open4, not is_open5, div_1,div_2,div_3,div_4
+    return False, False, False,False,False, div_1,div_2,div_3,div_4
 
 
 
@@ -445,39 +474,81 @@ def view_winner_map_by_selected_point(clickdata,check_annotations,figure):
                 else:
                     data_to_plot[i][j] = np.nan
 
-    '''
-    #heatmapgl
-    trace = dict(type='heatmap', z=data_to_plot, colorscale = DEFAULT_HEATMAP_COLORSCALE)
-    data=[trace]
-    data.append({'type': 'scattergl',
-                    'mode': 'text'
-                })
-    layout = {}
-    layout['xaxis']  ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
-    layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
-    layout['width'] = DEFAULT_HEATMAP_PX_WIDTH
-    layout['height']= DEFAULT_HEATMAP_PX_HEIGHT
-    #layout['title'] = 'Mapa de neuronas ganadoras'
 
-
-    #Annotations
-    if(check_annotations  ): 
-        #Todo replace None values with NaN values
-        data_to_plot_1 = np.array(data_to_plot, dtype=np.float64)
-        annotations = pu.make_annotations(data_to_plot_1, colorscale = DEFAULT_HEATMAP_COLORSCALE, reversescale= False)
-        layout['annotations'] = annotations
-
-    fig = dict(data=data, layout=layout)
-    '''
     fig =  pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,check_annotations, title = None)
-
     children = pu.get_fig_div_with_info(fig,'winnersmap_fig_ghsom','Mapa de neuronas ganadoras',tam_eje_horizontal, tam_eje_vertical,level,neurona_padre_string)
-
-
-
 
     print('\nVISUALIZACION:ghsom renderfinalizado\n')
     return children,figure
+
+
+
+
+
+
+
+
+#Frequency map
+@app.callback(Output('div_freq_map_ghsom','children'),
+              Output('dcc_ghsom_graph_4','figure'),
+              Input('dcc_ghsom_graph_4','clickData'),
+              State('dcc_ghsom_graph_4','figure'),
+              prevent_initial_call=True 
+              )
+def update_freq_map_ghsom(clickdata, figure):
+
+
+    if clickdata is  None:
+        raise PreventUpdate
+
+  
+    points = clickdata['points']
+    punto_clickeado = points[0]
+    cord_horizontal_punto_clickeado = punto_clickeado['x']
+    cord_vertical_punto_clickeado = punto_clickeado['y'] 
+
+    #Actualizar  COLOR DEL punto seleccionado en el grafo
+    data_g = []
+    data_g.append(figure['data'][0])
+    data_g.append(figure['data'][1])
+
+    data_g.append( go.Scattergl(
+        x=[cord_horizontal_punto_clickeado], 
+        y=[cord_vertical_punto_clickeado],
+        mode='markers',
+        marker=dict(
+            color = 'blue',
+            size=14)
+    ))
+    figure['data'] = data_g
+
+
+       
+    #Mapa Freq  del gsom seleccionado en el grafo
+    nodes_dict = session_data.get_ghsom_nodes_by_coord_dict()
+    gsom = nodes_dict[(cord_vertical_punto_clickeado,cord_horizontal_punto_clickeado)]
+    tam_eje_vertical,tam_eje_horizontal=  gsom.map_shape()
+
+    g = session_data.get_ghsom_structure_graph()
+    neurons_mapped_targets = g.nodes[gsom]['neurons_mapped_targets']
+    data_to_plot = np.zeros([tam_eje_vertical ,tam_eje_horizontal],dtype=int)
+
+    for i in range(tam_eje_vertical):
+        for j in range(tam_eje_horizontal):
+            if((i,j) in neurons_mapped_targets):
+                c = len(neurons_mapped_targets[(i,j)])
+                data_to_plot[i][j] = c
+            else:
+                data_to_plot[i][j] = 0
+
+
+    
+    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,True, title = None)
+    children = pu.get_fig_div_with_info(fig,'freq_map_ghsom', 'Mapa de Frecuencias por Neurona',tam_eje_horizontal, tam_eje_vertical)
+
+    return children,figure
+
+
 
 
 
