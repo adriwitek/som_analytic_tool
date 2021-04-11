@@ -220,7 +220,7 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
     start = time.time()
     
     # TRAINING
-    dataset = session_data.get_dataset()
+    
 
     #ojo en numpy: array[ejevertical][ejehorizontal] ,al contratio que en plotly
     session_data.set_som_model_info_dict(eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad,distance,sigma,iteracciones, pesos_init)
@@ -228,11 +228,7 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
     #TODO BORRAR ESTO DEL JSON
 
     #Plasmamos datos en el json
- 
-    data = dataset[:,:-1]
-    targets = dataset[:,-1:]
-    n_samples = dataset.shape[0]
-    n_features = dataset.shape[1]
+    data = session_data.get_data()
 
     som = minisom.MiniSom(x=eje_vertical, y=eje_horizontal, input_len=data.shape[1], sigma=sigma, learning_rate=tasa_aprendizaje,
                 neighborhood_function=vecindad, topology=topology,
@@ -244,7 +240,6 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
     elif(pesos_init == 'random'):   
         som.random_weights_init(data)
 
-    #TODO quitar el verbose
     print('Training som...')
     som.train(data, iteracciones, random_order=False, verbose=False)  
     session_data.set_modelo(som)                                                   

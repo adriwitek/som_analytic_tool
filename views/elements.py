@@ -73,7 +73,7 @@ table_header = [
 row1 = html.Tr([html.Td(id = 'id_15',children = html.Div(id='table_info_n_samples' ), ), html.Td(id= 'table_info_n_features')])
 table_body = [html.Tbody([row1])]
 
-table = dbc.Table(table_header + table_body, bordered=True)
+table = dbc.Table(table_header + table_body, bordered=True, style={'textAlign' : 'center' })
 
 
-   
+

@@ -121,11 +121,10 @@ def make_annotations(data, colorscale, reversescale):
                 )
     return annotations
 
-#TODO VER SI USO ESTO FUNCION AL FINAL
 def fig_add_annotations(figure):
     data = figure['data']
     trace = data[0]
-    print(trace)
+    #print(trace)
     data_to_plot = trace['z'] 
     #To replace None values with NaN values
     data_to_plot_1 = np.array(data_to_plot, dtype=np.float64)
@@ -135,7 +134,6 @@ def fig_add_annotations(figure):
     fig_updated = dict(data=data, layout=layout)
     return fig_updated
 
-#TODO VER SI USO ESTO FUNCION AL FINAL
 def fig_del_annotations(figure):
     data = figure['data']
     layout = figure['layout']

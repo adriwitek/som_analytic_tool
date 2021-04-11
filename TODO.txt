@@ -1,9 +1,7 @@
 #INTERFAZ
-404 con flask, no mejor warnng y redirigir
 revisar maximos y minimos de los parametros
 filtrar por tipo de archivo y leerlo en consecuencia bien, no solo csv
 dash_bootstrap_components en dependencias
-train ghsom aádir parametros interfaz como epocas etc
 numero de interaciones al formulario del som
 cambiar href por macros
 mirar que el numeo de datos cogidos es el correcto
@@ -17,7 +15,7 @@ quitar la carga de datos a traves de json
 organizar los imports no usados
 problemas al borrar carptetas como saved data
 LOS TICKS DE LOS HEATMPAS EMPIEZAN EN -0.5 AUNQUE LA CASILLA ESTA BIEN CENTRADA
-quitar forma hexagonal del som
+ forma hexagonal del som
 mapas de componentes del ghsom tienenf orma rara
 etiquetar sin pulsar boton en mapas de componentes som
 hacer un generador de los diseños de analyze_* paandole com parametros una lista de ids, codigo mas limpio y facil de editar
@@ -25,12 +23,23 @@ etiquetar neuronas si ulsar botn ver en som ya que es menos rapido
 pagina de cambiar configuracion
 
 #FUNCIONALIDAD NUEVA
+graficas del qe y topografic error
+mqe en el ghsom
+histogramas de qes y diagrma de cajas de qes
+MATRIZ  de correlacion de atributos y target, como en el notebook de feature selection o con un regression tree. 
+Most relevant feature plane en el notebook de Most relevant feature plane
+## Feature Selection based on self organizing maps del notebook
+error topgrafico en som en basic susgae notebook
+seleccion de atributos con los que entrenar el modelo
+som algoritmo con map y reduce para celerar el entrenamiento con spark pache
+
+
 MOSTRAR LOS PARAMETROS CON LOS QUE FUE ENTRENADO E MODELO AL CARGAR MODELO
 guardar/cargar soms entrenados
-grid con sectore de clases pro cada neurona
 monstar quantizatio errors y mas metricas AL FINALIZAR EL ENTRENAMIENTO
 monstrar los parametros de entrenamiento en la carga
 GUARDAR LOS PARAMETROS CON LOS QUE SE CREOY ENTRENO CADA MODELO
+
 
 #PREGUNTAS
 rango de la tasa de aprendizaje?

@@ -34,13 +34,30 @@ def analyze_som_data():
         html.Hr(),
         html.Div(children=[ 
 
-            #Card Mapa neurona winners
-            #TODO div con la fig
+
+
+            #Card Estadísticas
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Mapa de neuronas ganadoras",color="link",id="button_collapse_1"),style={'textAlign': 'center'})
+                    html.H2(dbc.Button("Estadísticas",color="link",id="button_collapse_1"),style={'textAlign': 'center', 'justify':'center'})
                 ),
                 dbc.Collapse(id="collapse_1",children=
+                    dbc.CardBody(children=[ 
+                        html.Div( id='div_estadisticas_som',children = '', style={'textAlign': 'center'}),
+                        html.Div([
+                            dbc.Button("Ver", id="ver_estadisticas_button", className="mr-2", color="primary")],
+                            style={'textAlign': 'center'}
+                        )
+                    ]),
+                ),
+            ]),
+
+            #Card Mapa neurona winners
+            dbc.Card([
+                dbc.CardHeader(
+                    html.H2(dbc.Button("Mapa de neuronas ganadoras",color="link",id="button_collapse_2"),style={'textAlign': 'center'})
+                ),
+                dbc.Collapse(id="collapse_2",children=
                     dbc.CardBody(children=[ 
                         html.Div( id='div_mapa_neuronas_ganadoras',children = ''),
                         html.Div([
@@ -56,14 +73,12 @@ def analyze_som_data():
 
 
 
-
-
             #Card: Frecuencias de activacion
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Mapa de frecencias de activacion",color="link",id="button_collapse_4"),style={'textAlign': 'center'})
+                    html.H2(dbc.Button("Mapa de frecencias de activación",color="link",id="button_collapse_3"),style={'textAlign': 'center'})
                 ),
-                dbc.Collapse(id="collapse_4",children=
+                dbc.Collapse(id="collapse_3",children=
                     dbc.CardBody(children=[
                         html.Div( id='div_frequency_map',children = ''),
                         html.Div([ 
@@ -85,9 +100,9 @@ def analyze_som_data():
             #Card: Component plans
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Mapa de componentes",color="link",id="button_collapse_2"),style={'textAlign': 'center'})
+                    html.H2(dbc.Button("Mapa de componentes",color="link",id="button_collapse_4"),style={'textAlign': 'center'})
                 ),
-                dbc.Collapse(id="collapse_2",children=
+                dbc.Collapse(id="collapse_4",children=
                     dbc.CardBody(children=[
                         html.H5("Seleccionar atributos para mostar:"),
                         dcc.Dropdown(
@@ -121,9 +136,9 @@ def analyze_som_data():
             #Card: U Matrix
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Matriz U",color="link",id="button_collapse_3"),style={'textAlign': 'center'})
+                    html.H2(dbc.Button("Matriz U",color="link",id="button_collapse_5"),style={'textAlign': 'center'})
                 ),
-                dbc.Collapse(id="collapse_3",children=
+                dbc.Collapse(id="collapse_5",children=
                     dbc.CardBody(children=[
 
                     html.H5("U-Matrix"),
@@ -152,9 +167,9 @@ def analyze_som_data():
             #Card: Guardar modelo
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Guardar modelo entrenado",color="link",id="button_collapse_5"),style={'textAlign': 'center'})
+                    html.H2(dbc.Button("Guardar modelo entrenado",color="link",id="button_collapse_6"),style={'textAlign': 'center'})
                 ),
-                dbc.Collapse(id="collapse_5",children=
+                dbc.Collapse(id="collapse_6",children=
                     dbc.CardBody(children=[
                   
                         html.Div(children=[
@@ -171,21 +186,9 @@ def analyze_som_data():
                 ),
             ])
 
-
-
         ])
 
-        
-        
-        
-    
-        
-    
-
-
-
     ])
-
 
 
 
@@ -203,17 +206,16 @@ def analyze_som_data():
 
 
 
-
 ##################################################################
 #                       CALLBACKS
 ##################################################################
 
 @app.callback(
-    [Output(f"collapse_{i}", "is_open") for i in range(1, 6)],
-    [Input(f"button_collapse_{i}", "n_clicks") for i in range(1, 6)],
-    [State(f"collapse_{i}", "is_open") for i in range(1, 6)],
+    [Output(f"collapse_{i}", "is_open") for i in range(1, 7)],
+    [Input(f"button_collapse_{i}", "n_clicks") for i in range(1, 7)],
+    [State(f"collapse_{i}", "is_open") for i in range(1, 7)],
     prevent_initial_call=True)
-def toggle_accordion(n1, n2,n3,n4,n5, is_open1, is_open2,is_open3,is_open4,is_open5):
+def toggle_accordion(n1, n2,n3,n4,n5,n6, is_open1, is_open2,is_open3,is_open4,is_open5,is_open6):
     ctx = dash.callback_context
 
     if not ctx.triggered:
@@ -222,16 +224,20 @@ def toggle_accordion(n1, n2,n3,n4,n5, is_open1, is_open2,is_open3,is_open4,is_op
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
     if button_id == "button_collapse_1" and n1:
-        return not is_open1, is_open2, is_open3,is_open4, is_open5
+        return not is_open1, is_open2, is_open3,is_open4, is_open5, is_open6
     elif button_id == "button_collapse_2" and n2:
-        return is_open1, not is_open2, is_open3,is_open4, is_open5
+        return is_open1, not is_open2, is_open3,is_open4, is_open5, is_open6
     elif button_id == "button_collapse_3" and n3:
-        return is_open1, is_open2, not is_open3,is_open4, is_open5
+        return is_open1, is_open2, not is_open3,is_open4, is_open5, is_open6
     elif button_id == "button_collapse_4" and n4:
-        return is_open1, is_open2, is_open3, not is_open4, is_open5
+        return is_open1, is_open2, is_open3, not is_open4, is_open5, is_open6
     elif button_id == "button_collapse_5" and n5:
-        return is_open1, is_open2, is_open3, is_open4, not is_open5
-    return False, False, False,False,False
+        return is_open1, is_open2, is_open3, is_open4, not is_open5, is_open6
+    elif button_id == "button_collapse_6" and n5:
+        return is_open1, is_open2, is_open3, is_open4, is_open5, not is_open6
+    return False, False, False,False,False,False
+
+
 
 
 #Habilitar boton ver_mapas_componentes_button
@@ -245,6 +251,45 @@ def enable_ver_mapas_componentes_button(values):
         return True
 
 
+
+#Estadisticas
+@app.callback(Output('div_estadisticas_som', 'children'),
+              Input('ver_estadisticas_button', 'n_clicks'),
+              prevent_initial_call=True )
+def ver_estadisticas_som(n_clicks):
+
+    som = session_data.get_modelo()
+    data = session_data.get_data()
+
+
+    # qe :average distance between each input sample and its best matching unit.
+    qe = som.quantization_error(data)
+    """tp : computed by finding
+        the best-matching and second-best-matching neuron in the map
+        for each input and then evaluating the positions.
+
+        A sample for which these two nodes are not adjacent counts as
+        an error. The topographic error is given by the
+        the total number of errors divided by the total of samples.
+
+        If the topographic error is 0, no error occurred.
+        If 1, the topology was not preserved for any of the samples."""
+    tp = som.topographic_error(data)
+    
+
+    #Table
+    table_header = [
+        html.Thead(html.Tr([html.Th("Magnitud"), html.Th("Valor")]))
+    ]
+    row1 = html.Tr([html.Td("Error de Cuantización"), html.Td(qe)])
+    row2 = html.Tr([html.Td("Error Topográfico"), html.Td(tp)])
+    table_body = [html.Tbody([row1, row2])]
+    table = dbc.Table(table_header + table_body,bordered=True,dark=False,hover=True,responsive=True,striped=True)
+    children = [table]
+
+    return children
+
+
 #Etiquetar Mapa neuonas ganadoras
 @app.callback(Output('winners_map', 'figure'),
               Input('check_annotations_winnersmap', 'value'),
@@ -255,28 +300,12 @@ def annotate_winners_map_som(check_annotations, fig,n_clicks):
     
     if(n_clicks is None):
         raise PreventUpdate
-
-    params = session_data.get_som_model_info_dict()
-    tam_eje_vertical = params['tam_eje_vertical']
-    tam_eje_horizontal = params['tam_eje_horizontal']
-
-    layout = {}
-    #layout['title'] = 'Mapa de neuronas ganadoras'
-    layout['xaxis']  ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
-    layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
-    data = fig['data']
-
-    #TODO LLAMAR A FUNCIONA CREADA EN PLOT UTILS
-    if(check_annotations  ): #fig already ploted
-        trace = data[0]
-        data_to_plot = trace['z'] 
-        #To replace None values with NaN values
-        data_to_plot_1 = np.array(data_to_plot, dtype=np.float64)
-        annotations = pu.make_annotations(data_to_plot_1, colorscale = DEFAULT_HEATMAP_COLORSCALE, reversescale= False)
-        layout['annotations'] = annotations
-        
    
-    fig_updated = dict(data=data, layout=layout)
+    if(check_annotations  ):
+        fig_updated = pu.fig_add_annotations(fig)
+    else:
+        fig_updated = pu.fig_del_annotations(fig)
+
     return fig_updated
 
 
@@ -290,15 +319,11 @@ def annotate_winners_map_som(check_annotations, fig,n_clicks):
               prevent_initial_call=True )
 def update_som_fig(n_clicks, check_annotations):
 
-    print('\nVISUALIZACION clicked\n')
-
-
     params = session_data.get_som_model_info_dict()
     tam_eje_vertical = params['tam_eje_vertical']
     tam_eje_horizontal = params['tam_eje_horizontal']
     
-    #TODO : cambiar esto por guardado bien del dataset
-
+ 
     som = session_data.get_modelo()
     dataset = session_data.get_dataset()
     data = session_data.get_data()
@@ -310,6 +335,9 @@ def update_som_fig(n_clicks, check_annotations):
     #'data and labels must have the same length.
     labels_map = som.labels_map(data, targets_list)
     data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
+    #labeled heatmap does not support nonetypes
+    data_to_plot[:] = np.nan
+
 
     targets_freq = {}
     for t in targets_list:
@@ -321,9 +349,6 @@ def update_som_fig(n_clicks, check_annotations):
     #print('lista de targets unicos', lista_targets_unicos)
 
     
-    #labeled heatmap does not support nonetypes
-    data_to_plot[:] = np.nan
-
     if(session_data.get_discrete_data() ):
         #showing the class more represented in each neuron
         for position in labels_map.keys():
@@ -387,23 +412,20 @@ def update_som_fig(n_clicks, check_annotations):
                     'mode': 'text'
                 })
     layout = {}
-    #layout['title'] = 'Mapa de neuronas ganadoras'
     layout['xaxis']  ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
     layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
-    #layout['width'] = 700
-    #layout['height']= 700
     fig = dict(data=data, layout=layout)
 
     #condition_Nones = not(val is None)
     #condition_nans= not(np.isnan(val))
 
+    '''
     if(check_annotations):
-        print('Empezando a anotar')
         annotations = pu.make_annotations(data_to_plot, colorscale = DEFAULT_HEATMAP_COLORSCALE, reversescale= False)
-        print('Fin de la anotacion')
         layout['annotations'] = annotations
-    
-
+    '''
+    if(check_annotations  ):
+        fig = pu.fig_add_annotations(fig)
 
 
     children = pu.get_fig_div_with_info(fig,'winners_map', 'Mapa de neuronas ganadoras',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,neurona_padre=None)
@@ -411,6 +433,8 @@ def update_som_fig(n_clicks, check_annotations):
 
     return children
 
+
+    
 
     
 
@@ -432,7 +456,7 @@ def annotate_freq_map_som(check_annotations, fig,n_clicks):
         trace = data[0]
         data_to_plot = trace['z'] 
         #To replace None values with NaN values
-        data_to_plot_1 = np.array(data_to_plot, dtype=np.float64)
+        data_to_plot_1 = np.array(data_to_plot, dtype=int)
         annotations = pu.make_annotations(data_to_plot_1, colorscale = DEFAULT_HEATMAP_COLORSCALE, reversescale= False)
         layout['annotations'] = annotations
     else:   
