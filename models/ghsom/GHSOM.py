@@ -54,6 +54,7 @@ class GHSOM:
             gmaps = dict()
             for _ in range(size):
                 neuron = neuron_queue.get()
+                '''
                 print('epochs_number:',str(epochs_number),
                     'self.__gaussian_sigma',str(self.__gaussian_sigma),
                     'self.__learning_rate',str(self.__learning_rate),
@@ -65,6 +66,7 @@ class GHSOM:
                     
                     
                     )
+                '''
 
                 gmaps[neuron] = (pool.apply_async(neuron.child_map.train, (
                     epochs_number,

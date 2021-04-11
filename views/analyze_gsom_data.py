@@ -37,12 +37,28 @@ def analyze_gsom_data():
         html.Hr(),
         html.Div(children=[ 
 
+            #Card Estadísticas
+            dbc.Card([
+                dbc.CardHeader(
+                    html.H2(dbc.Button("Estadísticas",color="link",id="button_collapse_gsom_1"),style={'textAlign': 'center', 'justify':'center'})
+                ),
+                dbc.Collapse(id="collapse_gsom_1",children=
+                    dbc.CardBody(children=[ 
+                        html.Div( id='div_estadisticas_gsom',children = '', style={'textAlign': 'center'}),
+                        html.Div([
+                            dbc.Button("Ver", id="ver_estadisticas_gsom_button", className="mr-2", color="primary")],
+                            style={'textAlign': 'center'}
+                        )
+                    ]),
+                ),
+            ]),
+
             #Card Mapa neurona winners
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Mapa de neuronas ganadoras",color="link",id="button_collapse_gsom_1"),style={'textAlign': 'center'})
+                    html.H2(dbc.Button("Mapa de neuronas ganadoras",color="link",id="button_collapse_gsom_2"),style={'textAlign': 'center'})
                 ),
-                dbc.Collapse(id="collapse_gsom_1",children=
+                dbc.Collapse(id="collapse_gsom_2",children=
                     dbc.CardBody(children=[ 
                         html.Div(id = 'div_winners_map_gsom',children='',
                                 style={'margin': '0 auto','width': '100%', 'display': 'flex',
@@ -65,9 +81,9 @@ def analyze_gsom_data():
             #Card Mapa frecuencias
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Mapa de frecuencias",color="link",id="button_collapse_gsom_5"),style={'textAlign': 'center'})
+                    html.H2(dbc.Button("Mapa de frecuencias",color="link",id="button_collapse_gsom_3"),style={'textAlign': 'center'})
                 ),
-                dbc.Collapse(id="collapse_gsom_5",children=
+                dbc.Collapse(id="collapse_gsom_3",children=
                     dbc.CardBody(children=[ 
                         html.Div(id = 'div_freq_map_gsom',children='',
                                 style={'margin': '0 auto','width': '100%', 'display': 'flex',
@@ -86,9 +102,9 @@ def analyze_gsom_data():
             #Card: Component plans
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Mapa de componentes",color="link",id="button_collapse_gsom_2"),style={'textAlign': 'center'})
+                    html.H2(dbc.Button("Mapa de componentes",color="link",id="button_collapse_gsom_4"),style={'textAlign': 'center'})
                 ),
-                dbc.Collapse(id="collapse_gsom_2",children=
+                dbc.Collapse(id="collapse_gsom_4",children=
                     dbc.CardBody(children=[
                         dbc.CardBody(children=[
                             html.H5("Seleccionar atributos para mostar:"),
@@ -122,9 +138,9 @@ def analyze_gsom_data():
             #Card: U Matrix
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Matriz U",color="link",id="button_collapse_gsom_3"),style={'textAlign': 'center'})
+                    html.H2(dbc.Button("Matriz U",color="link",id="button_collapse_gsom_5"),style={'textAlign': 'center'})
                 ),
-                dbc.Collapse(id="collapse_gsom_3",children=
+                dbc.Collapse(id="collapse_gsom_5",children=
                     dbc.CardBody(children=[
 
                         html.Div(id = 'umatrix_div_fig_gsom',children = '',
@@ -151,9 +167,9 @@ def analyze_gsom_data():
             #Card: Guardar modelo
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Guardar modelo entrenado",color="link",id="button_collapse_gsom_4"),style={'textAlign': 'center'})
+                    html.H2(dbc.Button("Guardar modelo entrenado",color="link",id="button_collapse_gsom_6"),style={'textAlign': 'center'})
                 ),
-                dbc.Collapse(id="collapse_gsom_4",children=
+                dbc.Collapse(id="collapse_gsom_6",children=
                     dbc.CardBody(children=[
                   
                         html.Div(children=[
@@ -226,11 +242,11 @@ def get_distances(weights_map, saved_distances, x,y,a,b):
 ##################################################################
 
 @app.callback(
-    [Output(f"collapse_gsom_{i}", "is_open") for i in range(1, 6)],
-    [Input(f"button_collapse_gsom_{i}", "n_clicks") for i in range(1, 6)],
-    [State(f"collapse_gsom_{i}", "is_open") for i in range(1, 6)],
+    [Output(f"collapse_gsom_{i}", "is_open") for i in range(1, 7)],
+    [Input(f"button_collapse_gsom_{i}", "n_clicks") for i in range(1, 7)],
+    [State(f"collapse_gsom_{i}", "is_open") for i in range(1, 7)],
     prevent_initial_call=True)
-def toggle_accordion(n1, n2,n3,n4,n5, is_open1, is_open2,is_open3,is_open4,is_open5):
+def toggle_accordion(n1, n2,n3,n4,n5,n6, is_open1, is_open2,is_open3,is_open4,is_open5,is_open6):
     ctx = dash.callback_context
 
     if not ctx.triggered:
@@ -239,16 +255,18 @@ def toggle_accordion(n1, n2,n3,n4,n5, is_open1, is_open2,is_open3,is_open4,is_op
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
     if button_id == "button_collapse_gsom_1" and n1:
-        return not is_open1, is_open2, is_open3,is_open4, is_open5
+        return not is_open1, is_open2, is_open3,is_open4, is_open5, is_open6
     elif button_id == "button_collapse_gsom_2" and n2:
-        return is_open1, not is_open2, is_open3,is_open4, is_open5
+        return is_open1, not is_open2, is_open3,is_open4, is_open5, is_open6
     elif button_id == "button_collapse_gsom_3" and n3:
-        return is_open1, is_open2, not is_open3,is_open4,is_open5
+        return is_open1, is_open2, not is_open3,is_open4,is_open5, is_open6
     elif button_id == "button_collapse_gsom_4" and n4:
-        return is_open1, is_open2, is_open3, not is_open4, is_open5
+        return is_open1, is_open2, is_open3, not is_open4, is_open5, is_open6
     elif button_id == "button_collapse_gsom_5" and n5:
-        return is_open1, is_open2, is_open3,is_open4, not is_open5
-    return False, False, False,False,False
+        return is_open1, is_open2, is_open3,is_open4, not is_open5, is_open6
+    elif button_id == "button_collapse_gsom_6" and n6:
+        return is_open1, is_open2, is_open3,is_open4, is_open5, not is_open6
+    return False, False, False,False,False,False
 
 
 

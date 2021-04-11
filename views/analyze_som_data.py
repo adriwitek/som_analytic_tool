@@ -45,7 +45,7 @@ def analyze_som_data():
                     dbc.CardBody(children=[ 
                         html.Div( id='div_estadisticas_som',children = '', style={'textAlign': 'center'}),
                         html.Div([
-                            dbc.Button("Ver", id="ver_estadisticas_button", className="mr-2", color="primary")],
+                            dbc.Button("Ver", id="ver_estadisticas_som_button", className="mr-2", color="primary")],
                             style={'textAlign': 'center'}
                         )
                     ]),
@@ -254,7 +254,7 @@ def enable_ver_mapas_componentes_button(values):
 
 #Estadisticas
 @app.callback(Output('div_estadisticas_som', 'children'),
-              Input('ver_estadisticas_button', 'n_clicks'),
+              Input('ver_estadisticas_som_button', 'n_clicks'),
               prevent_initial_call=True )
 def ver_estadisticas_som(n_clicks):
 

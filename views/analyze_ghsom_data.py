@@ -35,16 +35,33 @@ def analyze_ghsom_data():
         html.Hr(),
         html.Div(children=[ 
 
-            #Card Mapa neurona winners
+
+            #Card Estadísticas
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Mapa de neuronas ganadoras",color="link",id="button_collapse_ghsom_1"),style={'textAlign': 'center'})
+                    html.H2(dbc.Button("Estadísticas",color="link",id="button_collapse_ghsom_1"),style={'textAlign': 'center', 'justify':'center'})
                 ),
                 dbc.Collapse(id="collapse_ghsom_1",children=
                     dbc.CardBody(children=[ 
+                        html.Div( id='div_estadisticas_ghsom',children = '', style={'textAlign': 'center'}),
+                        html.Div([
+                            dbc.Button("Ver", id="ver_estadisticas_ghsom_button", className="mr-2", color="primary")],
+                            style={'textAlign': 'center'}
+                        )
+                    ]),
+                ),
+            ]),
+
+            #Card Mapa neurona winners
+            dbc.Card([
+                dbc.CardHeader(
+                    html.H2(dbc.Button("Mapa de neuronas ganadoras",color="link",id="button_collapse_ghsom_2"),style={'textAlign': 'center'})
+                ),
+                dbc.Collapse(id="collapse_ghsom_2",children=
+                    dbc.CardBody(children=[ 
                     
                     
-                        html.Div(id = 'grafo_ghsom_1',children = '',
+                        html.Div(id = 'grafo_ghsom_winners',children = '',
                                 style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
                         ),
 
@@ -69,12 +86,12 @@ def analyze_ghsom_data():
             #Card Mapa frecuencias
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Mapa de frecuencias",color="link",id="button_collapse_ghsom_5"),style={'textAlign': 'center'})
+                    html.H2(dbc.Button("Mapa de frecuencias",color="link",id="button_collapse_ghsom_3"),style={'textAlign': 'center'})
                 ),
-                dbc.Collapse(id="collapse_ghsom_5",children=
+                dbc.Collapse(id="collapse_ghsom_3",children=
                     dbc.CardBody(children=[ 
 
-                         html.Div(id = 'grafo_ghsom_4',children = '',
+                         html.Div(id = 'grafo_ghsom_freq',children = '',
                                 style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
                         ),
 
@@ -93,9 +110,9 @@ def analyze_ghsom_data():
             #Card: Component plans
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Mapa de componentes",color="link",id="button_collapse_ghsom_2"),style={'textAlign': 'center'})
+                    html.H2(dbc.Button("Mapa de componentes",color="link",id="button_collapse_ghsom_4"),style={'textAlign': 'center'})
                 ),
-                dbc.Collapse(id="collapse_ghsom_2",children=
+                dbc.Collapse(id="collapse_ghsom_4",children=
                     dbc.CardBody(children=[
                         dbc.CardBody(children=[
                             html.H5("Seleccionar atributos para mostar:"),
@@ -112,7 +129,7 @@ def analyze_ghsom_data():
                                 style={'textAlign': 'center'}
                             ),
 
-                            html.Div(id = 'grafo_ghsom_2',children = '',
+                            html.Div(id = 'grafo_ghsom_cplans',children = '',
                                 style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
                             ),
 
@@ -137,12 +154,12 @@ def analyze_ghsom_data():
             #Card: U Matrix
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Matriz U",color="link",id="button_collapse_ghsom_3"),style={'textAlign': 'center'})
+                    html.H2(dbc.Button("Matriz U",color="link",id="button_collapse_ghsom_5"),style={'textAlign': 'center'})
                 ),
-                dbc.Collapse(id="collapse_ghsom_3",children=
+                dbc.Collapse(id="collapse_ghsom_5",children=
                     dbc.CardBody(children=[
 
-                        html.Div(id = 'grafo_ghsom_3',children = '',
+                        html.Div(id = 'grafo_ghsom_umatrix',children = '',
                                 style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
                         ),
 
@@ -165,9 +182,9 @@ def analyze_ghsom_data():
             #Card: Guardar modelo
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Guardar modelo entrenado",color="link",id="button_collapse_ghsom_4"),style={'textAlign': 'center'})
+                    html.H2(dbc.Button("Guardar modelo entrenado",color="link",id="button_collapse_ghsom_6"),style={'textAlign': 'center'})
                 ),
-                dbc.Collapse(id="collapse_ghsom_4",children=
+                dbc.Collapse(id="collapse_ghsom_6",children=
                     dbc.CardBody(children=[
                   
                         html.Div(children=[
@@ -367,19 +384,19 @@ def get_distances(weights_map, saved_distances, x,y,a,b):
 
 #Control de pliegues y carga del grafo de la estructura del ghsom
 @app.callback(
-    [Output(f"collapse_ghsom_{i}", "is_open") for i in range(1, 6)],
-    Output('grafo_ghsom_1','children'),
-    Output('grafo_ghsom_2','children'),
-    Output('grafo_ghsom_3','children'),
-    Output('grafo_ghsom_4','children'),
-    [Input(f"button_collapse_ghsom_{i}", "n_clicks") for i in range(1, 6)],
-    [State(f"collapse_ghsom_{i}", "is_open") for i in range(1, 6)],
+    [Output(f"collapse_ghsom_{i}", "is_open") for i in range(1, 7)],
+    Output('grafo_ghsom_winners','children'),
+    Output('grafo_ghsom_cplans','children'),
+    Output('grafo_ghsom_umatrix','children'),
+    Output('grafo_ghsom_freq','children'),
+    [Input(f"button_collapse_ghsom_{i}", "n_clicks") for i in range(1, 7)],
+    [State(f"collapse_ghsom_{i}", "is_open") for i in range(1, 7)],
     prevent_initial_call=True)
-def toggle_accordion(n1, n2,n3,n4,n5, is_open1, is_open2,is_open3,is_open4, is_open5):
+def toggle_accordion(n1, n2,n3,n4,n5,n6, is_open1, is_open2,is_open3,is_open4, is_open5, is_open6):
     ctx = dash.callback_context
 
     if not ctx.triggered:
-        return False, False, False, [],[],[]
+        return False, False, False,False,False,False, [],[],[],[]
     else:
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
         fig=  get_ghsom_fig()
@@ -390,16 +407,18 @@ def toggle_accordion(n1, n2,n3,n4,n5, is_open1, is_open2,is_open3,is_open4, is_o
 
         
     if button_id == "button_collapse_ghsom_1" and n1:
-        return not is_open1, is_open2, is_open3,is_open4,is_open5, div_1,div_2,div_3,div_4
+        return not is_open1, is_open2, is_open3,is_open4,is_open5,is_open6, div_1,div_2,div_3,div_4
     elif button_id == "button_collapse_ghsom_2" and n2:
-        return is_open1, not is_open2, is_open3,is_open4,is_open5, div_1,div_2,div_3,div_4
+        return is_open1, not is_open2, is_open3,is_open4,is_open5,is_open6, div_1,div_2,div_3,div_4
     elif button_id == "button_collapse_ghsom_3" and n3:
-        return is_open1, is_open2, not is_open3,is_open4,is_open5, div_1,div_2,div_3,div_4
+        return is_open1, is_open2, not is_open3,is_open4,is_open5,is_open6, div_1,div_2,div_3,div_4
     elif button_id == "button_collapse_ghsom_4" and n4:
-        return is_open1, is_open2, is_open3, not is_open4,is_open5, div_1,div_2,div_3,div_4
+        return is_open1, is_open2, is_open3, not is_open4,is_open5,is_open6, div_1,div_2,div_3,div_4
     elif button_id == "button_collapse_ghsom_5" and n5:
-        return is_open1, is_open2, is_open3, is_open4, not is_open5, div_1,div_2,div_3,div_4
-    return False, False, False,False,False, div_1,div_2,div_3,div_4
+        return is_open1, is_open2, is_open3, is_open4, not is_open5,is_open6, div_1,div_2,div_3,div_4
+    elif button_id == "button_collapse_ghsom_6" and n6:
+        return is_open1, is_open2, is_open3, is_open4, is_open5, not is_open6,div_1,div_2,div_3,div_4
+    return False, False, False,False,False,False, div_1,div_2,div_3,div_4
 
 
 
@@ -644,20 +663,6 @@ def update_mapa_componentes_ghsom_fig(clickdata,check_annotations,fig_grafo,name
 
         figure =  pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,check_annotations, title = nombres_atributos[k])
 
-        '''
-        layout = {'title': nombres_atributos[k], 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict }
-        #Annotations
-        if(check_annotations  ): 
-            #Todo replace None values with NaN values
-            data_to_plot_1 = np.array(data_to_plot, dtype=np.float64)
-            annotations = pu.make_annotations(data_to_plot_1, colorscale = DEFAULT_HEATMAP_COLORSCALE, reversescale= False)
-            layout['annotations'] = annotations
-
-        figure= go.Figure(layout= layout,
-                          data=go.Heatmap(z=data_to_plot,showscale= True)                                                      
-        ) 
-
-        '''
         id ='graph-{}'.format(k)
         traces.append(
             html.Div(children= dcc.Graph(id=id,figure=figure)
@@ -739,37 +744,8 @@ def ver_umatrix_ghsom_fig(clickdata,check_annotations,fig_grafo):
             if(any(neuron_neighbords) ):
                 data_to_plot[i][j] = sum(neuron_neighbords)/len(neuron_neighbords)
 
-    #TODO BORRAR
-    '''
-    debug
-    print('distancias' )
-    for item in saved_distances.items():
-        print(item)
-    '''
-
-    '''
-    trace = dict(type='heatmap', z=data_to_plot, colorscale = DEFAULT_HEATMAP_COLORSCALE)
-    data=[trace]
-    data.append({'type': 'scattergl',
-                    'mode': 'text'
-                })
-    layout = {}
-    layout['xaxis']  ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
-    layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }  
-    layout['width'] = DEFAULT_HEATMAP_PX_WIDTH
-    layout['height']= DEFAULT_HEATMAP_PX_HEIGHT
-    
-    #Annotations
-    if(check_annotations  ): 
-        #Todo replace None values with NaN values
-        data_to_plot_1 = np.array(data_to_plot, dtype=np.float64)
-        annotations = pu.make_annotations(data_to_plot_1, colorscale = DEFAULT_HEATMAP_COLORSCALE, reversescale= False)
-        layout['annotations'] = annotations
-
-    fig = dict(data=data, layout=layout)
-    '''
+ 
     fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,check_annotations, title = None)
-
     children = [ dcc.Graph(id='umatrix_fig_ghsom',figure=fig)  ]
 
     print('\nVISUALIZACION:gsom renderfinalizado\n')
