@@ -24,10 +24,6 @@ from re import search
 import views.plot_utils as pu
 
 
-#fig = go.Figure()
-
-
-
 
 def analyze_gsom_data():
 
@@ -268,6 +264,29 @@ def toggle_accordion(n1, n2,n3,n4,n5,n6, is_open1, is_open2,is_open3,is_open4,is
         return is_open1, is_open2, is_open3,is_open4, is_open5, not is_open6
     return False, False, False,False,False,False
 
+
+
+#Estadisticas
+@app.callback(Output('div_estadisticas_gsom', 'children'),
+              Input('ver_estadisticas_gsom_button', 'n_clicks'),
+              prevent_initial_call=True )
+def ver_estadisticas_gsom(n_clicks):
+
+    zero_unit = session_data.get_modelo()
+    gsom = zero_unit.child_map
+    qe, mqe = gsom.get_map_qe_and_mqe()
+
+    #Table
+    table_header = [
+        html.Thead(html.Tr([html.Th("Magnitud"), html.Th("Valor")]))
+    ]
+    row0 = html.Tr([html.Td("Error de Cuantización"), html.Td(qe)])
+    row1 = html.Tr([html.Td("Error de Cuantización Medio"), html.Td(mqe)])
+    table_body = [html.Tbody([row0,row1])]
+    table = dbc.Table(table_header + table_body,bordered=True,dark=False,hover=True,responsive=True,striped=True)
+    children = [table]
+
+    return children
 
 
 

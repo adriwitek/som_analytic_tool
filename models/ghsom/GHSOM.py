@@ -90,9 +90,10 @@ class GHSOM:
                         _neuron.input_dataset,
                         self.__new_map_weights(_neuron.position, gmap.weights_map[0])
                     )
-
-                    self.structure_graph.add_node(_neuron.child_map )
-                    self.structure_graph.add_edge( gmap , _neuron.child_map)
+                    
+                    #TODO BORRAR ESTO
+                    #self.structure_graph.add_node(_neuron.child_map )
+                    #self.structure_graph.add_edge( gmap , _neuron.child_map)
 
                     neuron_queue.put(_neuron)
 

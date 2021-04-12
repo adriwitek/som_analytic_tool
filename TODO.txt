@@ -21,6 +21,7 @@ etiquetar sin pulsar boton en mapas de componentes som
 hacer un generador de los diseños de analyze_* paandole com parametros una lista de ids, codigo mas limpio y facil de editar
 etiquetar neuronas si ulsar botn ver en som ya que es menos rapido
 pagina de cambiar configuracion
+en el ghsom el grafo construrlo en el entrenamiento y no despues?
 
 #FUNCIONALIDAD NUEVA
 graficas del qe y topografic error

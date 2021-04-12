@@ -43,11 +43,12 @@ def analyze_ghsom_data():
                 ),
                 dbc.Collapse(id="collapse_ghsom_1",children=
                     dbc.CardBody(children=[ 
-                        html.Div( id='div_estadisticas_ghsom',children = '', style={'textAlign': 'center'}),
-                        html.Div([
-                            dbc.Button("Ver", id="ver_estadisticas_ghsom_button", className="mr-2", color="primary")],
-                            style={'textAlign': 'center'}
-                        )
+
+                        html.Div(id = 'grafo_ghsom_estadisticas',children = '',
+                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+                        ),
+                        html.Div( id='div_estadisticas_ghsom',children = '', style={'textAlign': 'center'})
+                       
                     ]),
                 ),
             ]),
@@ -245,8 +246,6 @@ def get_ghsom_graph_div(fig,dcc_graph_id):
 # Grafo de la estructura del ghsom
 def get_ghsom_fig():
     zero_unit = session_data.get_modelo()
-    #TODO BORRAR ESTO EN GHSOM
-    #g = zero_unit.graph
     grafo = nx.Graph()
     dataset = session_data.get_dataset()
     g = zero_unit.child_map.get_structure_graph(grafo,dataset ,level=0)
@@ -385,6 +384,7 @@ def get_distances(weights_map, saved_distances, x,y,a,b):
 #Control de pliegues y carga del grafo de la estructura del ghsom
 @app.callback(
     [Output(f"collapse_ghsom_{i}", "is_open") for i in range(1, 7)],
+    Output('grafo_ghsom_estadisticas','children'),
     Output('grafo_ghsom_winners','children'),
     Output('grafo_ghsom_cplans','children'),
     Output('grafo_ghsom_umatrix','children'),
@@ -396,10 +396,11 @@ def toggle_accordion(n1, n2,n3,n4,n5,n6, is_open1, is_open2,is_open3,is_open4, i
     ctx = dash.callback_context
 
     if not ctx.triggered:
-        return False, False, False,False,False,False, [],[],[],[]
+        return False, False, False,False,False,False, [],[],[],[],[]
     else:
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
         fig=  get_ghsom_fig()
+        div_0 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_0')
         div_1 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_1')
         div_2 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_2')
         div_3 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_3')
@@ -407,18 +408,73 @@ def toggle_accordion(n1, n2,n3,n4,n5,n6, is_open1, is_open2,is_open3,is_open4, i
 
         
     if button_id == "button_collapse_ghsom_1" and n1:
-        return not is_open1, is_open2, is_open3,is_open4,is_open5,is_open6, div_1,div_2,div_3,div_4
+        return not is_open1, is_open2, is_open3,is_open4,is_open5,is_open6,div_0, div_1,div_2,div_3,div_4
     elif button_id == "button_collapse_ghsom_2" and n2:
-        return is_open1, not is_open2, is_open3,is_open4,is_open5,is_open6, div_1,div_2,div_3,div_4
+        return is_open1, not is_open2, is_open3,is_open4,is_open5,is_open6,div_0, div_1,div_2,div_3,div_4
     elif button_id == "button_collapse_ghsom_3" and n3:
-        return is_open1, is_open2, not is_open3,is_open4,is_open5,is_open6, div_1,div_2,div_3,div_4
+        return is_open1, is_open2, not is_open3,is_open4,is_open5,is_open6,div_0, div_1,div_2,div_3,div_4
     elif button_id == "button_collapse_ghsom_4" and n4:
-        return is_open1, is_open2, is_open3, not is_open4,is_open5,is_open6, div_1,div_2,div_3,div_4
+        return is_open1, is_open2, is_open3, not is_open4,is_open5,is_open6,div_0, div_1,div_2,div_3,div_4
     elif button_id == "button_collapse_ghsom_5" and n5:
-        return is_open1, is_open2, is_open3, is_open4, not is_open5,is_open6, div_1,div_2,div_3,div_4
+        return is_open1, is_open2, is_open3, is_open4, not is_open5,is_open6,div_0, div_1,div_2,div_3,div_4
     elif button_id == "button_collapse_ghsom_6" and n6:
-        return is_open1, is_open2, is_open3, is_open4, is_open5, not is_open6,div_1,div_2,div_3,div_4
-    return False, False, False,False,False,False, div_1,div_2,div_3,div_4
+        return is_open1, is_open2, is_open3, is_open4, is_open5, not is_open6,div_0,div_1,div_2,div_3,div_4
+    return False, False, False,False,False,False,div_0, div_1,div_2,div_3,div_4
+
+
+#Estadisticas del gsom  del punto seleccionado del grafo
+@app.callback(Output('div_estadisticas_ghsom','children'),
+              Output('dcc_ghsom_graph_0','figure'),
+              Input('dcc_ghsom_graph_0','clickData'),
+              State('dcc_ghsom_graph_0','figure'),
+              prevent_initial_call=True 
+              )
+def view_stats_map_by_selected_point(clickdata,figure):
+
+    if clickdata is  None:
+        raise PreventUpdate
+
+    points = clickdata['points']
+    punto_clickeado = points[0]
+    cord_horizontal_punto_clickeado = punto_clickeado['x']
+    cord_vertical_punto_clickeado = punto_clickeado['y'] 
+
+    #Actualizar  COLOR DEL punto seleccionado en el grafo
+    data_g = []
+    data_g.append(figure['data'][0])
+    data_g.append(figure['data'][1])
+
+    data_g.append( go.Scattergl(
+        x=[cord_horizontal_punto_clickeado], 
+        y=[cord_vertical_punto_clickeado],
+        mode='markers',
+        marker=dict(
+            color = 'blue',
+            size=14)
+    ))
+    figure['data'] = data_g
+
+
+    #Estadisticas del gsom seleccionado
+
+    nodes_dict = session_data.get_ghsom_nodes_by_coord_dict()
+    gsom = nodes_dict[(cord_vertical_punto_clickeado,cord_horizontal_punto_clickeado)]
+    qe, mqe = gsom.get_map_qe_and_mqe()
+
+    #Table
+    table_header = [
+        html.Thead(html.Tr([html.Th("Magnitud"), html.Th("Valor")]))
+    ]
+    row0 = html.Tr([html.Td("Error de Cuantización"), html.Td(qe)])
+    row1 = html.Tr([html.Td("Error de Cuantización Medio"), html.Td(mqe)])
+    table_body = [html.Tbody([row0,row1])]
+    table = dbc.Table(table_header + table_body,bordered=True,dark=False,hover=True,responsive=True,striped=True)
+    children = [table]
+
+    return children,figure
+
+
+
 
 
 

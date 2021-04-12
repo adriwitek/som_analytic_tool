@@ -255,8 +255,10 @@ class GSOM:
 
 
 
+    ###############################################################
+    ###                 added by adriwitek                      ###
+    ###############################################################
 
-    #added by adriwitek
     def get_weights_map(self):
         return self.weights_map[0]
 
@@ -305,3 +307,18 @@ class GSOM:
 
 
         return grafo
+
+
+    def get_map_qe_and_mqe(self):
+
+        self.__map_data_to_neurons()
+
+        MAP_QE = 0.0
+        mapped_neurons = 0
+
+        for neuron in self.neurons.values():
+            if neuron.has_dataset():
+                MAP_QE += neuron.compute_quantization_error()
+                mapped_neurons += 1
+
+        return MAP_QE , (MAP_QE / mapped_neurons)

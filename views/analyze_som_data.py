@@ -284,7 +284,7 @@ def ver_estadisticas_som(n_clicks):
         html.Thead(html.Tr([html.Th("Magnitud"), html.Th("Valor")]))
     ]
     row0 = html.Tr([html.Td("Error de Cuantización"), html.Td(mqe)])
-    row1 = html.Tr([html.Td("Media del Error de Cuantización"), html.Td(qe)])
+    row1 = html.Tr([html.Td("Error de Cuantización Medio"), html.Td(qe)])
     row2 = html.Tr([html.Td("Error Topográfico"), html.Td(tp)])
     table_body = [html.Tbody([row0,row1, row2])]
     table = dbc.Table(table_header + table_body,bordered=True,dark=False,hover=True,responsive=True,striped=True)
