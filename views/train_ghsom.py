@@ -220,27 +220,28 @@ def train_ghsom(n_clicks,tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,e
     sigma_gaussiana = float(sigma_gaussiana)
     epocas_ghsom = int(epocas_ghsom)
     max_iter_ghsom = int(max_iter_ghsom)
+    
     if(check_semilla):
         seed = int(semilla)
+        check = 1
     else:
         seed = None
+        check = 0
+
+    session_data.set_ghsom_model_info_dict(tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,epocas_ghsom,max_iter_ghsom,check,seed)
 
 
     start = time.time()
 
-    dataset = session_data.get_dataset()
     data = session_data.get_data() 
 
     ghsom = GHSOM(input_dataset = data, t1= tau1, t2= tau2, learning_rate= tasa_aprendizaje, decay= decadencia, gaussian_sigma=sigma_gaussiana, growing_metric="qe")
     zero_unit = ghsom.train(epochs_number=epocas_ghsom, dataset_percentage=1, min_dataset_size=1, seed=seed, grow_maxiter=max_iter_ghsom)
-    session_data.set_ghsom_model_info_dict(tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,epocas_ghsom,max_iter_ghsom,check_semilla,seed)
-
     session_data.set_modelo(zero_unit)
-    print('ENTRENAMIENTO DEL GHSOM FINALIZADO\n')
-    #print('zerounit:',zero_unit)
-    
     end = time.time()
-    print('Tiempo transcurrido en el entrenamiento:',str(end - start),'segundos')
+    
+    #print('zerounit:',zero_unit)
+    print('Entrenamiento GHSOM finalizado.\n Tiempo transcurrido en el entrenamiento:',str(end - start),'segundos')
 
     
     return 'entrenamiento_completado'

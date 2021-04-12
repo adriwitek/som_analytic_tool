@@ -491,12 +491,13 @@ class MiniSom(object):
         self._check_input_len(data)
         return norm(data-self.quantization(data), axis=1).mean()
 
-    def quantization_error_not_meaned(self, data):
+    def get_qe_and_mqe_errors(self, data):
         """Returns the quantization error computed as the average
         distance between each input sample and its best matching unit.
         Fun added, quantization_error return the mqe, this one return the qe. """
         self._check_input_len(data)
-        return norm(data-self.quantization(data), axis=1).sum()
+        numerador = norm(data-self.quantization(data), axis=1)
+        return numerador.sum(), numerador.mean()
 
     def topographic_error(self, data):
         """Returns the topographic error computed by finding

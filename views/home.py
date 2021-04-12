@@ -147,13 +147,11 @@ def update_target_type(radio_option):
 
     if (trigger_id == "radio_discrete_continuous"):
         
-
         if(radio_option == 1):
             session_data.set_discrete_data(True)
         else:
             session_data.set_discrete_data(False)
 
-     
         return  ''
 
 

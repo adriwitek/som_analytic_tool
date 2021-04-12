@@ -31,9 +31,11 @@ def analyze_ghsom_data():
     # Body
     body =  html.Div(children=[
         html.H4('Análisis de los datos',className="card-title"  ),
-        html.Hr(),
-        html.Div(children=[ 
 
+        html.H6('Parámetros de entrenamiento',className="card-title"  ),
+        html.Div(id = 'info_table_ghsom',children=info_trained_params_ghsom_table(),style={'textAlign': 'center'} ),
+
+        html.Div(children=[ 
 
             #Card Estadísticas
             dbc.Card([
@@ -230,6 +232,49 @@ def analyze_ghsom_data():
 ##################################################################
 
 
+def info_trained_params_ghsom_table():
+
+    info = session_data.get_ghsom_model_info_dict()
+
+    
+    #Table
+    table_header = [
+         html.Thead(html.Tr([
+                        html.Th("Tau 1"),
+                        html.Th("Tau 2"),
+                        html.Th("Tasa Aprendizaje"),
+                        html.Th("Decadencia"),
+                        html.Th("Sigma Gaussiana"),
+                        html.Th("Épocas por iteracción"),
+                        html.Th("Num. Máximo de Iteraciones"),
+                        html.Th("Semilla")
+        ]))
+    ]
+
+
+
+    if(info['check_semilla'] == 0):
+        semilla = 'No'
+    else:
+        semilla = 'Sí: ' + str(info['seed']) 
+   
+    row_1 = html.Tr([
+                    html.Td( info['tau_1']) ,
+                    html.Td( info['tau_2']) ,
+                    html.Td( info['learning_rate']),
+                    html.Td( info['decadency']) ,
+                    html.Td( info['sigma']) ,
+                    html.Td( info['epocas_gsom']) ,
+                    html.Td( info['max_iter_gsom']  ),
+                    html.Td( semilla )
+
+    ]) 
+
+    table_body = [html.Tbody([row_1])]
+    table = dbc.Table(table_header + table_body,bordered=True,dark=False,hover=True,responsive=True,striped=True)
+    children = [table]
+
+    return children
 
 # Grafo de la estructura del ghsom
 # This 2 funcs are splitted in 2 for eficience. reason

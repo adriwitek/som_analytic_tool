@@ -29,12 +29,14 @@ def analyze_som_data():
 
     # Body
     body =  html.Div(children=[
-        html.H4('Análisis de los datos',className="card-title"  ),
-        html.Hr(),
+        html.H4('Análisis de los datos \n',className="card-title"  ),
+
+        html.H6('Parámetros de entrenamiento',className="card-title"  ),
+        html.Div(id = 'info_table_som',children=info_trained_params_som_table(),style={'textAlign': 'center'} ),
+
         html.Div(children=[ 
 
-
-
+    
             #Card Estadísticas
             dbc.Card([
                 dbc.CardHeader(
@@ -75,7 +77,7 @@ def analyze_som_data():
             #Card: Frecuencias de activacion
             dbc.Card([
                 dbc.CardHeader(
-                    html.H2(dbc.Button("Mapa de frecencias de activación",color="link",id="button_collapse_3"),style={'textAlign': 'center'})
+                    html.H2(dbc.Button("Mapa de frecuencias de activación",color="link",id="button_collapse_3"),style={'textAlign': 'center'})
                 ),
                 dbc.Collapse(id="collapse_3",children=
                     dbc.CardBody(children=[
@@ -186,7 +188,6 @@ def analyze_som_data():
             ])
 
         ])
-
     ])
 
 
@@ -202,6 +203,55 @@ def analyze_som_data():
 
 
 
+
+
+##################################################################
+#                       AUX FUNCTIONS
+##################################################################
+
+
+def info_trained_params_som_table():
+
+    info = session_data.get_som_model_info_dict()
+    
+    #Table
+    table_header = [
+         html.Thead(html.Tr([
+                        html.Th("Tamaño Horizontal del Grid"),
+                        html.Th("Tamaño Vertical del Grid"),
+                        html.Th("Tasa Aprendizaje"),
+                        html.Th("Función de Vecindad"),
+                        html.Th("Función de Distancia"),
+                        html.Th("Sigma Gaussiana"),
+                        html.Th("Iteraciones"),
+                        html.Th("Inicialización de Pesos"),
+                        html.Th("Semilla")
+        ]))
+    ]
+
+      
+    if(info['check_semilla'] == 0):
+        semilla = 'No'
+    else:
+        semilla = 'Sí: ' + str(info['seed']) 
+
+    row_1 = html.Tr([html.Td( info['tam_eje_horizontal']),
+                    html.Td( info['tam_eje_vertical']),
+                     html.Td( info['learning_rate']) ,
+                     html.Td( info['neigh_fun']),
+                     html.Td( info['distance_fun']) ,
+                     html.Td( info['sigma']) ,
+                     html.Td( info['iteraciones'] ),
+                     html.Td( info['inicialitacion_pesos']),
+                     html.Td( semilla)
+
+    ]) 
+
+    table_body = [html.Tbody([row_1])]
+    table = dbc.Table(table_header + table_body,bordered=True,dark=False,hover=True,responsive=True,striped=True)
+    children = [table]
+
+    return children
 
 
 
@@ -260,11 +310,8 @@ def ver_estadisticas_som(n_clicks):
     som = session_data.get_modelo()
     data = session_data.get_data()
 
+    qe,mqe = som.get_qe_and_mqe_errors(data)
 
-    # minisom_qe = mqe :average distance between each input sample and its best matching unit.
-    mqe = som.quantization_error(data)
-    # real qe: sum not average of distance between each input sample and its best matching unit.
-    qe = som.quantization_error_not_meaned(data)
     """tp : computed by finding
         the best-matching and second-best-matching neuron in the map
         for each input and then evaluating the positions.
@@ -282,8 +329,8 @@ def ver_estadisticas_som(n_clicks):
     table_header = [
         html.Thead(html.Tr([html.Th("Magnitud"), html.Th("Valor")]))
     ]
-    row0 = html.Tr([html.Td("Error de Cuantización"), html.Td(mqe)])
-    row1 = html.Tr([html.Td("Error de Cuantización Medio"), html.Td(qe)])
+    row0 = html.Tr([html.Td("Error de Cuantización"), html.Td(qe)])
+    row1 = html.Tr([html.Td("Error de Cuantización Medio"), html.Td(mqe)])
     row2 = html.Tr([html.Td("Error Topográfico"), html.Td(tp)])
     table_body = [html.Tbody([row0,row1, row2])]
     table = dbc.Table(table_header + table_body,bordered=True,dark=False,hover=True,responsive=True,striped=True)

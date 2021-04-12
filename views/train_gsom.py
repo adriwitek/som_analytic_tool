@@ -175,11 +175,15 @@ def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,ta
     sigma_gausiana = float(sigma)
     epocas_gsom = int(epocas_gsom)
     max_iter_gsom = int(max_iter_gsom)
+
     if(check_semilla):
         seed = int(semilla)
+        check = 1
     else:
         seed = None
+        check = 0
 
+    session_data.set_gsom_model_info_dict(tam_eje_vertical_gsom,tam_eje_horizontal_gsom,tau_1,tasa_aprendizaje_gsom,decadencia_gsom,sigma_gausiana,epocas_gsom,max_iter_gsom, check, seed)
 
     data = session_data.get_data()
 
@@ -239,7 +243,6 @@ def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,ta
 
 
     tam_eje_vertical,tam_eje_horizontal=  gsom.map_shape()
-    session_data.set_gsom_model_info_dict(tam_eje_vertical,tam_eje_horizontal,tau_1,tasa_aprendizaje_gsom,decadencia_gsom,sigma_gausiana,epocas_gsom,max_iter_gsom, check_semilla, seed)
     session_data.set_modelo(zero_unit)
 
 

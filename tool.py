@@ -38,7 +38,6 @@ app.layout = get_layout
               Input('url', 'pathname'))
 def display_page(pathname):
     if pathname == '/':
-        #raise PreventUpdate
         return Home()
     elif pathname == URLS['TRAINING_SELECTION_URL']:
         return Training_selection()

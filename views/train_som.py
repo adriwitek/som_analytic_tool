@@ -212,8 +212,10 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
     iteracciones = int(iteracciones)
     if(check_semilla):
         seed = int(semilla)
+        check = 1
     else:
         seed = None
+        check = 0
 
     
     start = time.time()
@@ -222,7 +224,7 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
     
 
     #ojo en numpy: array[ejevertical][ejehorizontal] ,al contratio que en plotly
-    session_data.set_som_model_info_dict(eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad,distance,sigma,iteracciones, pesos_init)
+    session_data.set_som_model_info_dict(eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad,distance,sigma,iteracciones, pesos_init,check,seed)
     data = session_data.get_data()
 
     som = minisom.MiniSom(x=eje_vertical, y=eje_horizontal, input_len=data.shape[1], sigma=sigma, learning_rate=tasa_aprendizaje,

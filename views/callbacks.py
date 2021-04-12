@@ -27,7 +27,8 @@ import plotly.figure_factory as ff
 from  views.session_data import session_data
 from  config.config import *
 
- #TESTIN DATA
+#TODO BORRAR ESTO
+#TESTIN DATA
 #PARA NO TENER QUE RECARGAR EL DATASET EN LAS PRUEBAS
 data_to_plot = [[np.nan ,np.nan ,np.nan, np.nan, np.nan ,np.nan ,np.nan, 0],
                 [np.nan ,np.nan, np.nan ,5 ,np.nan, np.nan ,np.nan ,np.nan],
@@ -78,12 +79,6 @@ def dropdown_update_training_selection(n1,n2,n3,url):
 
 
 
-
-
-
-
-
-###################  TRAINING_SELECTION.PY CALLBACKS ######################
 
 # TODO BORRAR ESTA FUNCION
 #Actualizar tabla info dataset
