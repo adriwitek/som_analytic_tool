@@ -37,8 +37,7 @@ GHSOM_MAX_SUBMAPS_SIZE_VIEW = 200
 #DIR
 DIR_SAVED_MODELS='Saved_Data/'
 
-DIR_APP_DATA= '.appdata/'
-SESSION_DATA_FILE_DIR= DIR_APP_DATA + 'app_data.json'
+
 
 
 #URLS

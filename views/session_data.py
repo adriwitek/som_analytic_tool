@@ -4,7 +4,6 @@
     MEJORAR TODO ESTO!!!!!!!!!!
 '''
 import numpy as np
-import json
 import pickle
 
 from  config.config import *
@@ -18,13 +17,14 @@ class Sesion():
   
 
     def __init__(self):
-          #Dataset
+        #Dataset
         self.discrete_data = True
         self.file_data = None
         self.dataset = None     # numpy array
         self.n_samples = 0
         self.n_features = 0 
-    
+        self.columns_names= []
+
         #tipo de modelo
         self.modelo = None
         self.som_params= None
@@ -53,12 +53,31 @@ class Sesion():
         self.ghsom_nodes_by_coord_dict = {}
 
 
-    def set_dataset(self,dataset):
+    def set_dataset(self,dataset,columns_names):
         self.dataset = np.copy(dataset)
         self.n_samples, self.n_features=dataset.shape
+        self.columns_names = columns_names
 
     def get_dataset(self):
         return self.dataset
+
+    def get_dataset_columns_names(self):
+        return self.columns_names
+
+    def get_dataset_atrib_names(self):
+        return self.columns_names[0:len(self.columns_names)-1]
+
+    
+    def get_dataset_atrib_names_dcc_dropdown_format(self):
+
+        atribs=  self.get_dataset_atrib_names()
+        options = []  # must be a list of dicts per option
+
+        for n in atribs:
+            options.append({'label' : n, 'value': n})
+
+        return options
+
         
     def get_data(self):
         return self.dataset[:,:-1]
@@ -191,25 +210,9 @@ class Sesion():
     def set_ghsom_nodes_by_coord_dict(self,dict):
         self.ghsom_nodes_by_coord_dict = dict
 
-    @staticmethod
-    def session_data_dict():
-
-            session_data = {}
-
-            #Dataset
-            session_data['n_samples'] = 0
-            session_data['n_features'] = 0
-            session_data['discrete_data'] = True
-            session_data['columns_names'] = []
 
 
-
-            #SOM Params
-            session_data['som_tam_eje_vertical'] = 0 
-            session_data['som_tam_eje_horizontal'] = 0 
-
-            return session_data        
-
+            
 
     #TODO CAMBIAR ESTO:BORRARLO
     @staticmethod
@@ -234,25 +237,6 @@ class Sesion():
 
             return model_info     
 
-
-
-     
-        
-
-    @staticmethod
-    def get_nombres_atributos():
-
-        with open(SESSION_DATA_FILE_DIR) as json_file:
-            datos_entrenamiento = json.load(json_file)
-
-        nombres = datos_entrenamiento['columns_names']
-        atribs= nombres[0:len(nombres)-1]
-        options = []  # must be a list of dicts per option
-
-        for n in atribs:
-            options.append({'label' : n, 'value': n})
-
-        return options
 
     @staticmethod
     def save_model(model,filename):

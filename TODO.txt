@@ -6,12 +6,10 @@ numero de interaciones al formulario del som
 cambiar href por macros
 mirar que el numeo de datos cogidos es el correcto
 controlar varios cliks al visualizar porque se fatidias todo
-boton logout que borre el json
 quitar opcion de mapa hexagonal en som?
 variable global para el nombre del archivo
 en visualizar som se crea antes una figura que no vale para nada
 añadir el nombre del fichero cuando se guarda el modelo.
-quitar la carga de datos a traves de json
 organizar los imports no usados
 problemas al borrar carptetas como saved data
 LOS TICKS DE LOS HEATMPAS EMPIEZAN EN -0.5 AUNQUE LA CASILLA ESTA BIEN CENTRADA
@@ -25,14 +23,12 @@ en el ghsom el grafo construrlo en el entrenamiento y no despues?
 
 #FUNCIONALIDAD NUEVA
 graficas del qe y topografic error
-mqe en el ghsom
 histogramas de qes y diagrma de cajas de qes
 MATRIZ  de correlacion de atributos y target, como en el notebook de feature selection o con un regression tree. 
 Most relevant feature plane en el notebook de Most relevant feature plane
 ## Feature Selection based on self organizing maps del notebook
-error topgrafico en som en basic susgae notebook
 seleccion de atributos con los que entrenar el modelo
-som algoritmo con map y reduce para celerar el entrenamiento con spark pache
+som algoritmo con map y reduce para acelerar el entrenamiento con spark apache
 
 
 MOSTRAR LOS PARAMETROS CON LOS QUE FUE ENTRENADO E MODELO AL CARGAR MODELO

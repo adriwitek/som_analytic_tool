@@ -18,7 +18,6 @@ from views.train_ghsom import layout as layout_train_ghsom
 
 #from models.ghsom import GHSOM,GSOM
 import numpy as np
-import json
 
 import  plotly.express as px
 import plotly.graph_objects as go

@@ -14,7 +14,6 @@ from io import BytesIO
 from datetime import datetime
 import base64
 from pandas import read_csv
-import json
 import numpy as np
 
 from  views.session_data import session_data
@@ -102,9 +101,6 @@ def Home():
 #############################################################
 
  
-
-
-
 def div_info_dataset(filename,fecha_modificacion, n_samples, n_features):
     return html.Div(id='output_uploaded_file',children=[
                 html.P(children= 'Archivo:  ' + filename, style={'textAlign': 'center'} ),
@@ -177,8 +173,7 @@ def update_output( contents, filename, last_modified):
     if contents is not None:
         
 
-        #guarda_dataframe(contents)
-        #Esta carga necesita ser asi
+        #Esta carga tiene que ser asi
         try:
             if 'csv' in filename:
                 # Assume that the user uploaded a CSV file
@@ -196,31 +191,13 @@ def update_output( contents, filename, last_modified):
             return html.Div([ 'There was an error processing this file.'])
         
 
-       
-
         data = dataset.to_numpy()
-        #N_FEATURES = N-1 because of the target column
         n_samples, n_features=data.shape
+        columns_names = list(dataset.head())
+        session_data.set_dataset(data,columns_names)
 
-        session_data.set_dataset(data)
-        #Sesion.n_samples, Sesion.n_features=  n_samples, n_features-1
-        cadena_1 = 'Número de datos: ' + str(n_samples)
-        cadena_2 =  'Número de Atributos: ' + str(n_features - 1)
- 
-        
-        datos_entrenamiento = session_data.session_data_dict()
-        datos_entrenamiento['n_samples'] = n_samples
-        datos_entrenamiento['n_features'] = n_features-1
-        datos_entrenamiento['columns_names'] = list(dataset.head())
 
-        
-        with open(SESSION_DATA_FILE_DIR, 'w') as outfile:
-            json.dump(datos_entrenamiento, outfile)
-
-        # Give a default data dict with 0 clicks if there's no data.
-        
-        
-        
+        #N_FEATURES = N-1 because of the target column
         return (div_info_dataset(filename,
                                 datetime.utcfromtimestamp(last_modified).strftime('%d/%m/%Y %H:%M:%S'),
                                 str(n_samples),

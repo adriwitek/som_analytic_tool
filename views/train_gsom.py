@@ -11,7 +11,6 @@ import  views.elements as elements
 
 from models.ghsom.GSOM import GSOM 
 from models.ghsom.neuron.neuron_builder import NeuronBuilder
-import json
 import numpy as np
 
 from  views.session_data import session_data

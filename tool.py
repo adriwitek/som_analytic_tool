@@ -6,7 +6,6 @@ This separation is required to avoid circular imports: the files containing the 
 imported from index.py, the initial loading of index.py would ultimately require itself to be already imported, which cannot be satisfied.
 '''
 
-import os
 
 import dash_core_components as dcc
 import dash_html_components as html
@@ -62,6 +61,4 @@ def display_page(pathname):
 
 
 if __name__ == '__main__':
-    if os.path.exists(SESSION_DATA_FILE_DIR) :
-        os.remove(SESSION_DATA_FILE_DIR)
     app.run_server(debug=True)

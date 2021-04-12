@@ -6,7 +6,6 @@ import dash
 import  views.elements as elements
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
-import json
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from math import ceil
@@ -106,7 +105,7 @@ def analyze_gsom_data():
                             html.H5("Seleccionar atributos para mostar:"),
                             dcc.Dropdown(
                                 id='dropdown_atrib_names_gsom',
-                                options=session_data.get_nombres_atributos(),
+                                options=session_data.get_dataset_atrib_names_dcc_dropdown_format(),
                                 multi=True
                             ),
                             html.Div( 
@@ -418,13 +417,7 @@ def update_mapa_componentes_gsom_fig(click,names, check_annotations):
     weights_map= gsom.get_weights_map()
     # weights_map[(row,col)] = np vector whith shape=n_feauters, dtype=np.float32
 
-
-    # Getting selected attrribs indexes
-    with open(SESSION_DATA_FILE_DIR) as json_file:
-        datos_entrenamiento = json.load(json_file)
-
-    nombres_columnas = datos_entrenamiento['columns_names']
-    nombres_atributos = nombres_columnas[0:len(nombres_columnas)-1]
+    nombres_atributos = session_data.get_dataset_atrib_names()
     lista_de_indices = []
 
     for n in names:
@@ -465,11 +458,7 @@ def update_mapa_componentes_gsom_fig(click,names, check_annotations):
 def on_form_change(check):
 
     if(check):
-        with open(SESSION_DATA_FILE_DIR) as json_file:
-            datos_entrenamiento = json.load(json_file)
-
-        nombres = datos_entrenamiento['columns_names']
-        atribs= nombres[0:len(nombres)-1]
+        atribs = session_data.get_dataset_atrib_names()
         return atribs
     else:
         return []

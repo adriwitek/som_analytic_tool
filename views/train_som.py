@@ -7,7 +7,6 @@ from views.app import app
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 import  views.elements as elements
-import json
 from models.som import minisom
 import numpy as np
 import plotly.graph_objects as go
@@ -224,10 +223,6 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
 
     #ojo en numpy: array[ejevertical][ejehorizontal] ,al contratio que en plotly
     session_data.set_som_model_info_dict(eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad,distance,sigma,iteracciones, pesos_init)
-
-    #TODO BORRAR ESTO DEL JSON
-
-    #Plasmamos datos en el json
     data = session_data.get_data()
 
     som = minisom.MiniSom(x=eje_vertical, y=eje_horizontal, input_len=data.shape[1], sigma=sigma, learning_rate=tasa_aprendizaje,

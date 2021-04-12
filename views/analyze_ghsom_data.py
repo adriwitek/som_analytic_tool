@@ -6,7 +6,6 @@ import dash
 import  views.elements as elements
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
-import json
 from plotly.subplots import make_subplots
 from math import ceil
 import numpy as np
@@ -16,7 +15,7 @@ from datetime import datetime
 import plotly.graph_objects as go
 
 from  views.session_data import session_data
-from  config.config import SESSION_DATA_FILE_DIR,DEFAULT_HEATMAP_PX_HEIGHT, DEFAULT_HEATMAP_PX_WIDTH,DEFAULT_HEATMAP_COLORSCALE
+from  config.config import DEFAULT_HEATMAP_PX_HEIGHT, DEFAULT_HEATMAP_PX_WIDTH,DEFAULT_HEATMAP_COLORSCALE
 import pickle
 
 from  os.path import normpath 
@@ -119,7 +118,7 @@ def analyze_ghsom_data():
                             html.H5("Seleccionar atributos para mostar:"),
                             dcc.Dropdown(
                                 id='dropdown_atrib_names_ghsom',
-                                options=session_data.get_nombres_atributos(),
+                                options=session_data.get_dataset_atrib_names_dcc_dropdown_format(),
                                 multi=True
                             ),
                             html.Div( 
@@ -637,11 +636,7 @@ def update_freq_map_ghsom(clickdata, figure):
 def on_form_change(check):
 
     if(check):
-        with open(SESSION_DATA_FILE_DIR) as json_file:
-            datos_entrenamiento = json.load(json_file)
-
-        nombres = datos_entrenamiento['columns_names']
-        atribs= nombres[0:len(nombres)-1]
+        atribs = session_data.get_dataset_atrib_names()
         return atribs
     else:
         return []
@@ -694,13 +689,8 @@ def update_mapa_componentes_ghsom_fig(clickdata,check_annotations,fig_grafo,name
     weights_map= gsom.get_weights_map()
     # weights_map[(row,col)] = np vector whith shape=n_feauters, dtype=np.float32
 
+    nombres_atributos = session_data.get_dataset_atrib_names()
 
-    #TODO: quietar json de  Getting selected attrribs indexes
-    with open(SESSION_DATA_FILE_DIR) as json_file:
-        datos_entrenamiento = json.load(json_file)
-
-    nombres_columnas = datos_entrenamiento['columns_names']
-    nombres_atributos = nombres_columnas[0:len(nombres_columnas)-1]
     lista_de_indices = []
     for n in names:
         lista_de_indices.append(nombres_atributos.index(n) )
