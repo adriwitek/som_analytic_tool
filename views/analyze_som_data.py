@@ -262,8 +262,10 @@ def ver_estadisticas_som(n_clicks):
     data = session_data.get_data()
 
 
-    # qe :average distance between each input sample and its best matching unit.
-    qe = som.quantization_error(data)
+    # minisom_qe = mqe :average distance between each input sample and its best matching unit.
+    mqe = som.quantization_error(data)
+    # real qe: sum not average of distance between each input sample and its best matching unit.
+    qe = som.quantization_error_not_meaned(data)
     """tp : computed by finding
         the best-matching and second-best-matching neuron in the map
         for each input and then evaluating the positions.
@@ -281,9 +283,10 @@ def ver_estadisticas_som(n_clicks):
     table_header = [
         html.Thead(html.Tr([html.Th("Magnitud"), html.Th("Valor")]))
     ]
-    row1 = html.Tr([html.Td("Error de Cuantización"), html.Td(qe)])
+    row0 = html.Tr([html.Td("Error de Cuantización"), html.Td(mqe)])
+    row1 = html.Tr([html.Td("Media del Error de Cuantización"), html.Td(qe)])
     row2 = html.Tr([html.Td("Error Topográfico"), html.Td(tp)])
-    table_body = [html.Tbody([row1, row2])]
+    table_body = [html.Tbody([row0,row1, row2])]
     table = dbc.Table(table_header + table_body,bordered=True,dark=False,hover=True,responsive=True,striped=True)
     children = [table]
 
