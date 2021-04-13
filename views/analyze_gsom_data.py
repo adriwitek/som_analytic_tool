@@ -15,7 +15,9 @@ from datetime import datetime
 
 
 from  views.session_data import session_data
-from  config.config import *
+from  config.config import DIR_SAVED_MODELS
+
+
 import pickle
 
 from  os.path import normpath 
@@ -59,9 +61,7 @@ def analyze_gsom_data():
                 dbc.Collapse(id="collapse_gsom_2",children=
                     dbc.CardBody(children=[ 
                         html.Div(id = 'div_winners_map_gsom',children='',
-                                style={'margin': '0 auto','width': '100%', 'display': 'flex',
-                                                    'align-items': 'center', 'justify-content': 'center',
-                                                   'flex-wrap': 'wrap', 'flex-direction': 'column ' } 
+                                style= pu.get_single_heatmap_css_style()
                         ),
                         html.Div([  
                                 dbc.Checklist(options=[{"label": "Etiquetar Neuronas", "value": 1}],
@@ -84,9 +84,7 @@ def analyze_gsom_data():
                 dbc.Collapse(id="collapse_gsom_3",children=
                     dbc.CardBody(children=[ 
                         html.Div(id = 'div_freq_map_gsom',children='',
-                                style={'margin': '0 auto','width': '100%', 'display': 'flex',
-                                                    'align-items': 'center', 'justify-content': 'center',
-                                                   'flex-wrap': 'wrap', 'flex-direction': 'column ' } 
+                                style= pu.get_single_heatmap_css_style()
                         ),
                         html.Div([  
                                 dbc.Button("Ver", id="ver_freq_map_gsom_button", className="mr-2", color="primary")],
@@ -142,9 +140,7 @@ def analyze_gsom_data():
                     dbc.CardBody(children=[
 
                         html.Div(id = 'umatrix_div_fig_gsom',children = '',
-                                style={'margin': '0 auto','width': '100%', 'display': 'flex',
-                                                   'align-items': 'center', 'justify-content': 'center',
-                                                  'flex-wrap': 'wrap', 'flex-direction': 'column ' } 
+                                style= pu.get_single_heatmap_css_style()
                         ),
                         html.Div( 
                             [dbc.Checklist(  options=[{"label": "Etiquetar Neuronas", "value": 1}],
@@ -350,12 +346,14 @@ def ver_estadisticas_gsom(n_clicks):
 def update_winner_map_gsom(click,check_annotations):
 
     params = session_data.get_gsom_model_info_dict()
-    tam_eje_vertical = params['tam_eje_vertical']
-    tam_eje_horizontal = params['tam_eje_horizontal']
+    #tam_eje_vertical = params['tam_eje_vertical']
+    #tam_eje_horizontal = params['tam_eje_horizontal']
     dataset = session_data.get_dataset()
     data = session_data.get_data()
     zero_unit = session_data.get_modelo()
     gsom = zero_unit.child_map
+    tam_eje_vertical,tam_eje_horizontal=  gsom.map_shape()
+
     
 
     #visualizacion
@@ -391,8 +389,7 @@ def update_winner_map_gsom(click,check_annotations):
                     data_to_plot[i][j] = np.nan
         
 
-    #print('data_to_plot:',data_to_plot)
-    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,check_annotations, title = None)
+    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None)
     children = pu.get_fig_div_with_info(fig,'winners_map_gsom', 'Mapa de Neuronas Ganadoras',tam_eje_horizontal, tam_eje_vertical)
 
     return children
@@ -409,11 +406,14 @@ def update_winner_map_gsom(click,check_annotations):
 def update_freq_map_gsom(click):
 
     params = session_data.get_gsom_model_info_dict()
-    tam_eje_vertical = params['tam_eje_vertical']
-    tam_eje_horizontal = params['tam_eje_horizontal']
+    
+    #tam_eje_vertical = params['tam_eje_vertical']
+    #tam_eje_horizontal = params['tam_eje_horizontal']
     data = session_data.get_data()
     zero_unit = session_data.get_modelo()
     gsom = zero_unit.child_map
+    tam_eje_vertical,tam_eje_horizontal=  gsom.map_shape()
+
     
 
     #visualizacion
@@ -426,7 +426,7 @@ def update_freq_map_gsom(click):
         data_to_plot[r][c] = data_to_plot[r][c] + 1
      
 
-    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,True, title = None)
+    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,True, title = None)
     children = pu.get_fig_div_with_info(fig,'freq_map_gsom', 'Mapa de Frecuencias por Neurona',tam_eje_horizontal, tam_eje_vertical)
 
     return children
@@ -459,11 +459,13 @@ def update_mapa_componentes_gsom_fig(click,names, check_annotations):
 
 
     params = session_data.get_gsom_model_info_dict()
-    tam_eje_vertical = params['tam_eje_vertical']
-    tam_eje_horizontal = params['tam_eje_horizontal']
+    #tam_eje_vertical = params['tam_eje_vertical']
+    #tam_eje_horizontal = params['tam_eje_horizontal']
  
     zero_unit = session_data.get_modelo()
     gsom = zero_unit.child_map
+    tam_eje_vertical,tam_eje_horizontal=  gsom.map_shape()
+
     
     #Weights MAP
     weights_map= gsom.get_weights_map()
@@ -486,7 +488,7 @@ def update_mapa_componentes_gsom_fig(click,names, check_annotations):
         
       
         id ='graph-{}'.format(k)
-        figure = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,check_annotations, title = nombres_atributos[k])
+        figure = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = nombres_atributos[k])
         children = pu.get_fig_div_with_info(figure,id, '',None, None,gsom_level= None,neurona_padre=None)
 
         
@@ -531,12 +533,14 @@ def ver_umatrix_gsom_fig(click, check_annotations):
     print('Button clicked, calculating umatrix')
 
     params = session_data.get_gsom_model_info_dict()
-    tam_eje_vertical = params['tam_eje_vertical']
-    tam_eje_horizontal = params['tam_eje_horizontal']
+    #tam_eje_vertical = params['tam_eje_vertical']
+    #tam_eje_horizontal = params['tam_eje_horizontal']
 
 
     zero_unit = session_data.get_modelo()
     gsom = zero_unit.child_map
+    tam_eje_vertical,tam_eje_horizontal=  gsom.map_shape()
+
     
 
     #Weights MAP
@@ -582,7 +586,7 @@ def ver_umatrix_gsom_fig(click, check_annotations):
     for item in saved_distances.items():
         print(item)
     '''
-    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,check_annotations, title = None)
+    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None)
     children =  pu.get_fig_div_with_info(fig,'umatrix_fig_gsom', 'Matriz U',tam_eje_horizontal, tam_eje_vertical)
 
     return children

@@ -4,7 +4,7 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 from plotly.graph_objs import graph_objs
 import numpy as np
-from  config.config import DEFAULT_HEATMAP_COLORSCALE
+from  config.config import DEFAULT_HEATMAP_COLORSCALE, DEFAULT_HEATMAP_PX_HEIGHT, DEFAULT_HEATMAP_PX_WIDTH
 
 
 def to_rgb_color_list(color_str, default):
@@ -203,13 +203,20 @@ def get_fig_div_with_info(fig,fig_id, title,tam_eje_horizontal, tam_eje_vertical
 
 
 
-def create_heatmap_figure(data,tam_eje_horizontal,check_annotations, title = None):
+def create_heatmap_figure(data,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None):
 
-    xaxis_dict ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
-    yaxis_dict  ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
+    if(tam_eje_horizontal >tam_eje_vertical ):
+        xaxis_dict ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
+        yaxis_dict  ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
+    else:
+        yaxis_dict ={'tickformat': ',d', 'range': [-0.5,(tam_eje_vertical-1)+0.5] , 'constrain' : "domain"}
+        xaxis_dict  ={'tickformat': ',d', 'scaleanchor': 'y','scaleratio': 1 }
+
     layout = { 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict}
-
-    
+    layout['width'] = 700
+    layout['height']= 700
+    #condition_Nones = not(val is None)
+    #condition_nans= not(np.isnan(val))
 
     if(title is not None):
         layout['title'] = title
@@ -227,4 +234,48 @@ def create_heatmap_figure(data,tam_eje_horizontal,check_annotations, title = Non
 
     figure = dict(data=data, layout=layout)
 
+
+    
+
     return figure
+
+
+
+
+
+
+    #TODO BORRAR ESTO SI LOS HEATMAPS VAN OK
+    '''
+ 
+
+    ######################################
+    # ANNOTATED HEATMAPD LENTO
+    #colorscale=[[np.nan, 'rgb(255,255,255)']]
+    #fig = ff.create_annotated_heatmap(
+    '''
+    '''
+    fig = custom_heatmap(
+        #x= x_ticks,
+        #y= y_ticks,
+        z=data_to_plot,
+        zmin=np.nanmin(data_to_plot),
+        zmax=np.nanmax(data_to_plot),
+        #xgap=5,
+        #ygap=5,
+        colorscale='Viridis',
+        #colorscale=colorscale,
+        #font_colors=font_colors,
+        showscale=True #leyenda de colores
+        )
+    fig.update_layout(title_text='Clases ganadoras por neurona')
+    fig['layout'].update(plot_bgcolor='white')
+    '''
+
+
+
+
+def get_single_heatmap_css_style():
+    style={'margin': '0 auto','width': '100%', 'display': 'flex',
+                                        'align-items': 'center', 'justify-content': 'center',
+                                        'flex-wrap': 'wrap', 'flex-direction': 'column ' }
+    return style

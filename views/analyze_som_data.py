@@ -14,6 +14,7 @@ import numpy as np
 
 from  views.session_data import session_data
 from  config.config import *
+from  config.config import  DIR_SAVED_MODELS
 import pickle
 from  os.path import normpath 
 from re import search 
@@ -60,7 +61,7 @@ def analyze_som_data():
                 ),
                 dbc.Collapse(id="collapse_2",children=
                     dbc.CardBody(children=[ 
-                        html.Div( id='div_mapa_neuronas_ganadoras',children = ''),
+                        html.Div( id='div_mapa_neuronas_ganadoras',children = '', style= pu.get_single_heatmap_css_style()),
                         html.Div([
                             dbc.Checklist(  options=[{"label": "Etiquetar Neuronas", "value": 1}],
                                             value=[],
@@ -81,7 +82,7 @@ def analyze_som_data():
                 ),
                 dbc.Collapse(id="collapse_3",children=
                     dbc.CardBody(children=[
-                        html.Div( id='div_frequency_map',children = ''),
+                        html.Div( id='div_frequency_map',children = '',style= pu.get_single_heatmap_css_style()),
                         html.Div([ 
                             dbc.Checklist(options=[{"label": "Etiquetar Neuronas", "value": 1}],
                                             value=[],
@@ -145,8 +146,7 @@ def analyze_som_data():
                     html.H5("U-Matrix"),
                     html.H6("Returns the distance map of the weights.Each cell is the normalised sum of the distances betweena neuron and its neighbours. Note that this method usesthe euclidean distance"),
                     
-                    html.Div(id='umatrix_figure_div', children=[''],
-                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+                    html.Div(id='umatrix_figure_div', children=[''],style= pu.get_single_heatmap_css_style()
                     ),
 
                     html.Div([dbc.Button("Ver", id="umatrix_button", className="mr-2", color="primary"),
@@ -418,65 +418,7 @@ def update_som_fig(n_clicks, check_annotations):
             data_to_plot[position[0]][position[1]] = mean
         
 
-    
-
-
-    '''
- 
-
-    ######################################
-    # ANNOTATED HEATMAPD LENTO
-    #colorscale=[[np.nan, 'rgb(255,255,255)']]
-    #fig = ff.create_annotated_heatmap(
-    '''
-    '''
-    fig = custom_heatmap(
-        #x= x_ticks,
-        #y= y_ticks,
-        z=data_to_plot,
-        zmin=np.nanmin(data_to_plot),
-        zmax=np.nanmax(data_to_plot),
-        #xgap=5,
-        #ygap=5,
-        colorscale='Viridis',
-        #colorscale=colorscale,
-        #font_colors=font_colors,
-        showscale=True #leyenda de colores
-        )
-    fig.update_layout(title_text='Clases ganadoras por neurona')
-    fig['layout'].update(plot_bgcolor='white')
-    '''
-
-    
-  
-    
-    #TODO
-    #type= heatmap para mas precision
-    #heatmapgl
-    #trace = dict(type='heatmapgl', z=data_to_plot, colorscale = DEFAULT_HEATMAP_COLORSCALE)
-    trace = dict(type='heatmap', z=data_to_plot, colorscale = DEFAULT_HEATMAP_COLORSCALE)
-    data=[trace]
-
-    data.append({'type': 'scattergl',
-                    'mode': 'text'
-                })
-    layout = {}
-    layout['xaxis']  ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
-    layout['yaxis'] ={'tickformat': ',d', 'scaleanchor': 'x','scaleratio': 1 }
-    fig = dict(data=data, layout=layout)
-
-    #condition_Nones = not(val is None)
-    #condition_nans= not(np.isnan(val))
-
-    '''
-    if(check_annotations):
-        annotations = pu.make_annotations(data_to_plot, colorscale = DEFAULT_HEATMAP_COLORSCALE, reversescale= False)
-        layout['annotations'] = annotations
-    '''
-    if(check_annotations  ):
-        fig = pu.fig_add_annotations(fig)
-
-
+    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations)
     children = pu.get_fig_div_with_info(fig,'winners_map', 'Mapa de neuronas ganadoras',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,neurona_padre=None)
     print('\nVISUALIZACION:renderfinalizado\n')
 
@@ -532,7 +474,7 @@ def update_mapa_frecuencias_fig(click, check_annotations):
     frequencies = som.activation_response(model_data)
     frequencies_list = frequencies.tolist()
     
-    figure = pu.create_heatmap_figure(frequencies_list,tam_eje_horizontal,check_annotations)
+    figure = pu.create_heatmap_figure(frequencies_list,tam_eje_horizontal,tam_eje_vertical,check_annotations)
 
     children = pu.get_fig_div_with_info(figure,'frequency_map','Mapa de frecuencias',tam_eje_horizontal, tam_eje_vertical)
 
@@ -552,6 +494,8 @@ def update_mapa_componentes_fig(click,names,check_annotations):
     som = session_data.get_modelo()
     params = session_data.get_som_model_info_dict()
     tam_eje_horizontal = params['tam_eje_horizontal'] 
+    tam_eje_vertical = params['tam_eje_vertical'] 
+
     nombres_atributos = session_data.get_dataset_atrib_names()
     lista_de_indices = []
 
@@ -564,7 +508,7 @@ def update_mapa_componentes_fig(click,names,check_annotations):
        
     for i in lista_de_indices:
 
-        figure = pu.create_heatmap_figure(pesos[:,:,i].tolist() ,tam_eje_horizontal,check_annotations, title = nombres_atributos[i])
+        figure = pu.create_heatmap_figure(pesos[:,:,i].tolist() ,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = nombres_atributos[i])
         id ='graph-{}'.format(i)
         traces.append(html.Div(children= dcc.Graph(id=id,figure=figure)) )
 
@@ -604,7 +548,8 @@ def update_umatrix(n_clicks,check_annotations):
     umatrix = som.distance_map()
     params = session_data.get_som_model_info_dict()
     tam_eje_horizontal = params['tam_eje_horizontal'] 
-    figure = pu.create_heatmap_figure(umatrix.tolist() ,tam_eje_horizontal,check_annotations, title ='Matriz U')
+    tam_eje_vertical = params['tam_eje_vertical'] 
+    figure = pu.create_heatmap_figure(umatrix.tolist() ,tam_eje_horizontal,tam_eje_vertical, check_annotations, title ='Matriz U')
     return  html.Div(children= dcc.Graph(id='graph_u_matrix',figure=figure))
 
 

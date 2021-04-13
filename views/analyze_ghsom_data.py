@@ -15,7 +15,7 @@ from datetime import datetime
 import plotly.graph_objects as go
 
 from  views.session_data import session_data
-from  config.config import DEFAULT_HEATMAP_PX_HEIGHT, DEFAULT_HEATMAP_PX_WIDTH,DEFAULT_HEATMAP_COLORSCALE
+from  config.config import DEFAULT_HEATMAP_PX_HEIGHT, DEFAULT_HEATMAP_PX_WIDTH,DEFAULT_HEATMAP_COLORSCALE, DIR_SAVED_MODELS
 import pickle
 
 from  os.path import normpath 
@@ -68,9 +68,7 @@ def analyze_ghsom_data():
                         ),
 
                         html.Div(   id = 'winners_map_ghsom',children = '',
-                                    style={'margin': '0 auto','width': '100%', 'display': 'flex',
-                                            'align-items': 'center', 'justify-content': 'center',
-                                            'flex-wrap': 'wrap', 'flex-direction': 'column ' } 
+                                    style= pu.get_single_heatmap_css_style()
                         ),
 
                         html.Div(
@@ -136,7 +134,7 @@ def analyze_ghsom_data():
                             ),
 
                             html.Div(id='component_plans_figures_ghsom_div', children=[''],
-                                    style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+                                    style= pu.get_single_heatmap_css_style()
                             ),
 
                             html.Div(dbc.Checklist(  options=[{"label": "Etiquetar Neuronas", "value": 1}],
@@ -166,7 +164,7 @@ def analyze_ghsom_data():
                         ),
 
                         html.Div(id = 'umatrix_div_fig_ghsom',children = '',
-                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}
+                                style= pu.get_single_heatmap_css_style()
                         ),
 
                         html.Div(dbc.Checklist(     options=[{"label": "Etiquetar Neuronas", "value": 1}],
@@ -594,7 +592,7 @@ def view_winner_map_by_selected_point(clickdata,check_annotations,figure):
                     data_to_plot[i][j] = np.nan
 
 
-    fig =  pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,check_annotations, title = None)
+    fig =  pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None)
     children = pu.get_fig_div_with_info(fig,'winnersmap_fig_ghsom','Mapa de neuronas ganadoras',tam_eje_horizontal, tam_eje_vertical,level,neurona_padre_string)
 
     print('\nVISUALIZACION:ghsom renderfinalizado\n')
@@ -662,7 +660,7 @@ def update_freq_map_ghsom(clickdata, figure):
 
 
     
-    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,True, title = None)
+    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,True, title = None)
     children = pu.get_fig_div_with_info(fig,'freq_map_ghsom', 'Mapa de Frecuencias por Neurona',tam_eje_horizontal, tam_eje_vertical)
 
     return children,figure
@@ -752,7 +750,7 @@ def update_mapa_componentes_ghsom_fig(clickdata,check_annotations,fig_grafo,name
                 data_to_plot[i][j] = weights_map[(i,j)][k]
         
 
-        figure =  pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,check_annotations, title = nombres_atributos[k])
+        figure =  pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = nombres_atributos[k])
 
         id ='graph-{}'.format(k)
         traces.append(
@@ -836,8 +834,8 @@ def ver_umatrix_ghsom_fig(clickdata,check_annotations,fig_grafo):
                 data_to_plot[i][j] = sum(neuron_neighbords)/len(neuron_neighbords)
 
  
-    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,check_annotations, title = None)
-    children = [ dcc.Graph(id='umatrix_fig_ghsom',figure=fig)  ]
+    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None)
+    children = pu.get_fig_div_with_info(fig,'umatrix_fig_ghsom', 'Matriz de Distancias Unificadas',tam_eje_horizontal, tam_eje_vertical)
 
     print('\nVISUALIZACION:gsom renderfinalizado\n')
 

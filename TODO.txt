@@ -20,11 +20,10 @@ en el ghsom el grafo construrlo en el entrenamiento y no despues?
 #FUNCIONALIDAD NUEVA
 graficas del qe y topografic error
 histogramas de qes y diagrma de cajas de qes
-MATRIZ  de correlacion de atributos y target, como en el notebook de feature selection o con un regression tree. 
+MATRIZ  de correlacion de atributos y target, como en el notebook de feature selection o con un regression tree. y seleccion de atributos con los que entrenar el modelo
 Most relevant feature plane en el notebook Democracy Index
-## Feature Selection based on self organizing maps del notebook
-seleccion de atributos con los que entrenar el modelo
 som algoritmo con map y reduce para acelerar el entrenamiento con spark apache
+borrar estas 2 macros no usadas? GHSOM_MAX_SUBLEVELS_VIEW = 25 y GHSOM_MAX_SUBMAPS_SIZE_VIEW = 200
 
 
 MOSTRAR LOS PARAMETROS CON LOS QUE FUE ENTRENADO E MODELO AL CARGAR MODELO

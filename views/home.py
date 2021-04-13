@@ -65,7 +65,10 @@ def Home():
                             style={'textAlign': 'center'}
                         )
                     ]),
+
+                    #TODO
                     #URL
+                
                     dbc.ListGroupItem([
                         html.H4('URL',style={'textAlign': 'center'} ),
                         dbc.Input(type= 'url', placeholder="Link del dataset", bs_size="md", className="mb-3"),
@@ -74,6 +77,7 @@ def Home():
                             style={'textAlign': 'center'}
                         )
                     ]),
+                    
                 ],flush=True,),
 
 
