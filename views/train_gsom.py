@@ -48,6 +48,19 @@ formulario_gsom =  dbc.ListGroupItem([
                     html.H5(children='Épocas:'),
                     dcc.Input(id="epocas_gsom", type="number", value="15",step=1,min=1),
 
+                    html.H5(children='Función de Desigualdad:'),
+                    dcc.Dropdown(
+                                id='dropdown_fun_desigualdad',
+                                options=[
+                                    {'label': 'Error de Cuantización', 'value': 'qe'},
+                                    {'label': 'Error de Cuantización Medio', 'value': 'mqe'}
+                                ],
+                                value='qe',
+                                searchable=False,
+                                style={'width': '35%'}
+                    ),
+
+
                     html.H5(children='Semilla:'),
                     html.Div( 
                             [dbc.Checklist(
@@ -131,14 +144,18 @@ def sync_slider_tau1(tau1, slider_value):
               Input('sigma_gsom','value'),
               Input('epocas_gsom','value'),
               Input('max_iter_gsom','value'),
+              Input('dropdown_fun_desigualdad','value'),
               Input('seed_gsom','value'),
               Input("check_semilla", "value"),
             )
-def enable_train_gsom_button(tam_eje_vertical_gsom,tam_eje_horizontal_gsom, tau1,tasa_aprendizaje_gsom,decadencia_gsom,sigma_gsom,epocas_gsom,max_iter_gsom,seed, check_semilla):
+def enable_train_gsom_button(tam_eje_vertical_gsom,tam_eje_horizontal_gsom, tau1,tasa_aprendizaje_gsom,decadencia_gsom,
+                            sigma_gsom,epocas_gsom,max_iter_gsom,fun_disimilitud,seed, check_semilla):
     '''Habilita el boton de train del gsom
 
     '''
-    parametros = [tam_eje_vertical_gsom,tam_eje_horizontal_gsom,tau1,tasa_aprendizaje_gsom,decadencia_gsom,sigma_gsom,epocas_gsom,max_iter_gsom]
+    parametros = [tam_eje_vertical_gsom,tam_eje_horizontal_gsom,tau1,tasa_aprendizaje_gsom,decadencia_gsom,
+                sigma_gsom,epocas_gsom,max_iter_gsom,fun_disimilitud]
+
     if(check_semilla):
         parametros.append(seed)
 
@@ -162,10 +179,12 @@ def enable_train_gsom_button(tam_eje_vertical_gsom,tam_eje_horizontal_gsom, tau1
               State('sigma_gsom', 'value'),
               State('epocas_gsom', 'value'),
               State('max_iter_gsom','value'),
+              State('dropdown_fun_desigualdad','value'),
               State('seed_gsom','value'),
               State("check_semilla", "value"),
               prevent_initial_call=True )
-def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,tasa_aprendizaje_gsom,decadencia_gsom,sigma,epocas_gsom,max_iter_gsom, semilla, check_semilla):
+def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,tasa_aprendizaje_gsom,decadencia_gsom,
+                    sigma,epocas_gsom,max_iter_gsom, fun_disimilitud, semilla, check_semilla):
     
     tam_eje_vertical_gsom =int(tam_eje_vertical_gsom)
     tam_eje_horizontal_gsom = int(tam_eje_horizontal_gsom)
@@ -183,7 +202,9 @@ def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,ta
         seed = None
         check = 0
 
-    session_data.set_gsom_model_info_dict(tam_eje_vertical_gsom,tam_eje_horizontal_gsom,tau_1,tasa_aprendizaje_gsom,decadencia_gsom,sigma_gausiana,epocas_gsom,max_iter_gsom, check, seed)
+    session_data.set_gsom_model_info_dict(tam_eje_vertical_gsom,tam_eje_horizontal_gsom,tau_1,tasa_aprendizaje_gsom,
+                                            decadencia_gsom,sigma_gausiana,epocas_gsom,max_iter_gsom,fun_disimilitud,
+                                             check, seed)
 
     data = session_data.get_data()
 
@@ -191,7 +212,7 @@ def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,ta
 
   
     initial_map_size = (tam_eje_vertical_gsom, tam_eje_horizontal_gsom)
-    neuron_builder = NeuronBuilder(1, growing_metric="qe")    #tau2= 1valur not used in gsom
+    neuron_builder = NeuronBuilder(1, growing_metric=fun_disimilitud)    #tau2= 1,valor not used in gsom
     zero_unit = neuron_builder.zero_neuron(data)
 
 
@@ -237,15 +258,8 @@ def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,ta
                             seed=seed,
                             maxiter=max_iter_gsom)
     gsom = zero_unit.child_map
-    
-   
     #matriz_de_pesos_neuronas = __gmap_to_matrix(gsom.weights_map)
-
-
-    tam_eje_vertical,tam_eje_horizontal=  gsom.map_shape()
     session_data.set_modelo(zero_unit)
-
-
     end = time.time()
     print('ENTRENAMIENTO DEL GSOM FINALIZADO\n')
     print('Tiempo transcurrido en el entrenamiento:',str(end - start),'segundos')

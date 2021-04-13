@@ -43,6 +43,18 @@ formulario_ghsom =  dbc.ListGroupItem([
                     html.H5(children='Épocas:'),
                     dcc.Input(id="epocas_ghsom", type="number", value="15",step=1,min=1),
 
+                    html.H5(children='Función de Desigualdad:'),
+                    dcc.Dropdown(
+                                id='dropdown_fun_desigualdad_ghsom',
+                                options=[
+                                    {'label': 'Error de Cuantización', 'value': 'qe'},
+                                    {'label': 'Error de Cuantización Medio', 'value': 'mqe'}
+                                ],
+                                value='qe',
+                                searchable=False,
+                                style={'width': '35%'}
+                    ),
+
                     html.H5(children='Semilla:'),
                     html.Div( 
                             [dbc.Checklist(
@@ -179,14 +191,16 @@ def select_seed(check):
               Input('sigma','value'),
               Input('max_iter_ghsom','value'),
               Input('epocas_ghsom','value'),
+              Input('dropdown_fun_desigualdad_ghsom','value'),
               Input('seed_ghsom','value'),
               Input("check_semilla_ghsom", "value"),
               )
-def enable_train_ghsom_button(tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,max_iter_ghsom, epocas_ghsom, seed, check_semilla):
+def enable_train_ghsom_button(tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,max_iter_ghsom, epocas_ghsom,
+                                fun_desigualdad, seed, check_semilla):
     '''Habilita el boton de train del ghsom
 
     '''
-    parametros = [tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana, max_iter_ghsom, epocas_ghsom ]
+    parametros = [tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana, max_iter_ghsom, epocas_ghsom, fun_desigualdad ]
 
     if(check_semilla):
         parametros.append(seed)
@@ -208,10 +222,12 @@ def enable_train_ghsom_button(tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussi
               State('sigma','value'),
               State('epocas_ghsom','value'),
               State('max_iter_ghsom','value'),
+              State('dropdown_fun_desigualdad_ghsom','value'),
               State('seed_ghsom','value'),
               State("check_semilla_ghsom", "value"),
               prevent_initial_call=True )
-def train_ghsom(n_clicks,tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,epocas_ghsom, max_iter_ghsom, semilla, check_semilla):
+def train_ghsom(n_clicks,tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,epocas_ghsom, max_iter_ghsom,
+                fun_desigualdad, semilla, check_semilla):
 
     tau1 = float(tau1)
     tau2 = float(tau2)
@@ -228,22 +244,23 @@ def train_ghsom(n_clicks,tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,e
         seed = None
         check = 0
 
-    session_data.set_ghsom_model_info_dict(tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,epocas_ghsom,max_iter_ghsom,check,seed)
+    session_data.set_ghsom_model_info_dict(tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,
+                                            epocas_ghsom,max_iter_ghsom,fun_desigualdad,check,seed)
 
 
     start = time.time()
 
     data = session_data.get_data() 
 
-    ghsom = GHSOM(input_dataset = data, t1= tau1, t2= tau2, learning_rate= tasa_aprendizaje, decay= decadencia, gaussian_sigma=sigma_gaussiana, growing_metric="qe")
-    zero_unit = ghsom.train(epochs_number=epocas_ghsom, dataset_percentage=1, min_dataset_size=1, seed=seed, grow_maxiter=max_iter_ghsom)
+    ghsom = GHSOM(input_dataset = data, t1= tau1, t2= tau2, learning_rate= tasa_aprendizaje, decay= decadencia,
+                     gaussian_sigma=sigma_gaussiana, growing_metric=fun_desigualdad)
+    zero_unit = ghsom.train(epochs_number=epocas_ghsom, dataset_percentage=1, min_dataset_size=1, seed=seed,
+                             grow_maxiter=max_iter_ghsom)
     session_data.set_modelo(zero_unit)
     end = time.time()
-    
     #print('zerounit:',zero_unit)
-    print('Entrenamiento GHSOM finalizado.\n Tiempo transcurrido en el entrenamiento:',str(end - start),'segundos')
 
-    
+    print('Entrenamiento GHSOM finalizado.\n Tiempo transcurrido en el entrenamiento:',str(end - start),'segundos')
     return 'entrenamiento_completado'
 
 

@@ -228,6 +228,7 @@ def info_trained_params_gsom_table():
                         html.Th("Sigma Gaussiana"),
                         html.Th("Épocas por iteracción"),
                         html.Th("Num. Máximo de Iteraciones"),
+                        html.Th("Función de Desigualdad"),
                         html.Th("Semilla")
         ]))
     ]
@@ -247,6 +248,7 @@ def info_trained_params_gsom_table():
                      html.Td( info['sigma']) ,
                      html.Td( info['epocas_gsom']) ,
                      html.Td( info['max_iter_gsom']  ),
+                     html.Td( info['fun_disimilitud']  ),
                      html.Td( semilla )
 
     ]) 
@@ -322,13 +324,22 @@ def ver_estadisticas_gsom(n_clicks):
     zero_unit = session_data.get_modelo()
     gsom = zero_unit.child_map
     qe, mqe = gsom.get_map_qe_and_mqe()
-
+    params = session_data.get_gsom_model_info_dict()
+    fun_disimilitud = params['fun_disimilitud']
+    
+  
     #Table
     table_header = [
         html.Thead(html.Tr([html.Th("Magnitud"), html.Th("Valor")]))
     ]
-    row0 = html.Tr([html.Td("Error de Cuantización"), html.Td(qe)])
-    row1 = html.Tr([html.Td("Error de Cuantización Medio"), html.Td(mqe)])
+    
+    if(fun_disimilitud == 'qe'):
+        row0 = html.Tr([html.Td(" Sumatorio de  Errores de Cuantización(neuronas)"), html.Td(qe)])
+        row1 = html.Tr([html.Td("Promedio de  Errores de Cuantización(neuronas)"), html.Td(mqe)])
+    else:
+        row0 = html.Tr([html.Td("Sumatorio de  Errores de Cuantización Medios(neuronas)"), html.Td(qe)])
+        row1 = html.Tr([html.Td("Promedio de  Errores de Cuantización Medios(neuronas)"), html.Td(mqe)])
+
     table_body = [html.Tbody([row0,row1])]
     table = dbc.Table(table_header + table_body,bordered=True,dark=False,hover=True,responsive=True,striped=True)
     children = [table]

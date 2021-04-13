@@ -137,7 +137,8 @@ class Sesion():
 
 
 
-    def set_gsom_model_info_dict(self,tam_eje_vertical,tam_eje_horizontal,tau_1,learning_rate,decadency,sigma,epocas_gsom,max_iter_gsom, check_semilla,seed):
+    def set_gsom_model_info_dict(self,tam_eje_vertical,tam_eje_horizontal,tau_1,learning_rate,decadency,sigma,epocas_gsom,max_iter_gsom,
+                                fun_disimilitud, check_semilla,seed):
 
         #Only one model could be used at once
         self.som_params= None
@@ -152,6 +153,7 @@ class Sesion():
         self.gsom_params['sigma'] = sigma
         self.gsom_params['epocas_gsom'] = epocas_gsom
         self.gsom_params['max_iter_gsom'] = max_iter_gsom
+        self.gsom_params['fun_disimilitud'] = fun_disimilitud
         self.gsom_params['check_semilla'] = check_semilla
         self.gsom_params['seed'] = seed
 
@@ -172,7 +174,8 @@ class Sesion():
 
 
 
-    def set_ghsom_model_info_dict(self,tau_1,tau_2,learning_rate,decadency,sigma,epocas_ghsom,max_iter_ghsom,check_semilla,seed):
+    def set_ghsom_model_info_dict(self,tau_1,tau_2,learning_rate,decadency,sigma,epocas_ghsom,max_iter_ghsom,
+                                    fun_disimilitud,check_semilla,seed):
 
         #Only one model could be used at once
         self.som_params= None
@@ -185,6 +188,7 @@ class Sesion():
         self.ghsom_params['sigma'] = sigma
         self.ghsom_params['epocas_gsom'] = epocas_ghsom
         self.ghsom_params['max_iter_gsom'] = max_iter_ghsom
+        self.ghsom_params['fun_disimilitud'] = fun_disimilitud
         self.ghsom_params['check_semilla'] = check_semilla
         self.ghsom_params['seed'] = seed
 

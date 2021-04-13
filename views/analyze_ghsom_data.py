@@ -245,6 +245,7 @@ def info_trained_params_ghsom_table():
                         html.Th("Sigma Gaussiana"),
                         html.Th("Épocas por iteracción"),
                         html.Th("Num. Máximo de Iteraciones"),
+                        html.Th("Función de Desigualdad"),
                         html.Th("Semilla")
         ]))
     ]
@@ -264,6 +265,7 @@ def info_trained_params_ghsom_table():
                     html.Td( info['sigma']) ,
                     html.Td( info['epocas_gsom']) ,
                     html.Td( info['max_iter_gsom']  ),
+                    html.Td( info['fun_disimilitud'] ),
                     html.Td( semilla )
 
     ]) 
@@ -502,13 +504,22 @@ def view_stats_map_by_selected_point(clickdata,figure):
     nodes_dict = session_data.get_ghsom_nodes_by_coord_dict()
     gsom = nodes_dict[(cord_vertical_punto_clickeado,cord_horizontal_punto_clickeado)]
     qe, mqe = gsom.get_map_qe_and_mqe()
+    params = session_data.get_ghsom_model_info_dict()
+    fun_disimilitud = params['fun_disimilitud']
+    
+
 
     #Table
     table_header = [
         html.Thead(html.Tr([html.Th("Magnitud"), html.Th("Valor")]))
     ]
-    row0 = html.Tr([html.Td("Error de Cuantización"), html.Td(qe)])
-    row1 = html.Tr([html.Td("Error de Cuantización Medio"), html.Td(mqe)])
+    if(fun_disimilitud == 'qe'):
+        row0 = html.Tr([html.Td("MAPA: Sumatorio de  Errores de Cuantización(neuronas)"), html.Td(qe)])
+        row1 = html.Tr([html.Td("MAPA: Promedio de  Errores de Cuantización(neuronas)"), html.Td(mqe)])
+    else:
+        row0 = html.Tr([html.Td("MAPA: Sumatorio de  Errores de Cuantización Medios(neuronas)"), html.Td(qe)])
+        row1 = html.Tr([html.Td("MAPA: Promedio de  Errores de Cuantización Medios(neuronas)"), html.Td(mqe)])
+
     table_body = [html.Tbody([row0,row1])]
     table = dbc.Table(table_header + table_body,bordered=True,dark=False,hover=True,responsive=True,striped=True)
     children = [table]
