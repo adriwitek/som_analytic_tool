@@ -12,7 +12,7 @@ from  views.session_data import session_data
 from  config.config import *
 
 
-from os import listdir
+from os import listdir,makedirs
 from os.path import isfile, join
 import pickle
 
@@ -141,6 +141,8 @@ def Training_selection():
 
  
 def get_app_saved_models():
+
+    makedirs(DIR_SAVED_MODELS, exist_ok=True)
 
     onlyfiles = [f for f in listdir(DIR_SAVED_MODELS) if isfile(join(DIR_SAVED_MODELS, f))]
 
