@@ -49,6 +49,7 @@ URLS= {
     'ANALYZE_SOM_URL' : '/analyze-som-data', 
     'ANALYZE_GSOM_URL' : '/analyze-gsom-data', 
     'ANALYZE_GHSOM_URL' : '/analyze-ghsom-data', 
+    'TRAINING_MODEL' : '/training-model',
 
 }
 

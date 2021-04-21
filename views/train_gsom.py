@@ -76,7 +76,7 @@ formulario_gsom =  dbc.ListGroupItem([
 
                     html.Hr(),
                     html.Div( 
-                        [dbc.Button("Entrenar", id="train_button_gsom",href='analyze-gsom-data' ,disabled= True, className="mr-2", color="primary")],
+                        [dbc.Button("Entrenar", id="train_button_gsom",href=URLS['TRAINING_MODEL'] ,disabled= True, className="mr-2", color="primary")],
                         style={'textAlign': 'center'}
                     ),
                     
@@ -239,17 +239,8 @@ def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,ta
                                 neuron_builder)
     
     
-    
-    '''
-    print('epochs_number:',str(epocas_gsom),
-                    'self.__gaussian_sigma',str(sigma_gausiana),
-                    'self.__learning_rate',str(tasa_aprendizaje_gsom),
-                    'self.__decay', str(decadencia_gsom),
-                    'seed',str(seed),
-                    'grow_maxiter', str(max_iter_gsom))
-    '''
     #Train
-    zero_unit.child_map.train(epocas_gsom,
+    zero_unit.child_map.single_train(epocas_gsom,
                             sigma_gausiana,
                             tasa_aprendizaje_gsom,
                             decadencia_gsom,

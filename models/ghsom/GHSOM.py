@@ -7,6 +7,8 @@ from queue import Queue
 import progressbar
 from multiprocessing import Pool
 import networkx as nx
+from  views.session_data import session_data
+
 
 class GHSOM:
     def __init__(self, input_dataset, t1, t2, learning_rate, decay, gaussian_sigma, growing_metric="qe"):
@@ -49,25 +51,18 @@ class GHSOM:
             ' (', progressbar.Counter(format='%(value)02d/%(max_value)d'), ') ',
         ])
         bar.update(0)
+
+        maxvalue = active_dataset
+        session_data.set_progressbar_maxvalue(maxvalue)
+        session_data.update_progressbar_value(0)
+
+
         while not neuron_queue.empty():
             size = min(neuron_queue.qsize(), pool._processes)
             gmaps = dict()
             for _ in range(size):
                 neuron = neuron_queue.get()
-                '''
-                print('epochs_number:',str(epochs_number),
-                    'self.__gaussian_sigma',str(self.__gaussian_sigma),
-                    'self.__learning_rate',str(self.__learning_rate),
-                    'self.__decay', str(self.__decay),
-                    'seed',(seed),
-                    'grow_maxiter', str(grow_maxiter),
-                    'dataset_percentage',str(dataset_percentage), 
-                    'min_dataset_size',str(min_dataset_size)
-                    
-                    
-                    )
-                '''
-
+                
                 gmaps[neuron] = (pool.apply_async(neuron.child_map.train, (
                     epochs_number,
                     self.__gaussian_sigma,
@@ -100,6 +95,7 @@ class GHSOM:
                     active_dataset += len(_neuron.input_dataset)
 
             bar.update(bar.max_value - active_dataset)
+            session_data.update_progressbar_value(maxvalue - active_dataset)
 
         zero_unit.graph = self.structure_graph
         return zero_unit

@@ -1,6 +1,8 @@
 from math import ceil
 import numpy as np
 import networkx as nx
+from  views.session_data import session_data
+
 
 
 class GSOM:
@@ -53,6 +55,51 @@ class GSOM:
             self.__map_data_to_neurons()
         return self
 
+
+    #Train used when training single gsom to save progress status
+    def single_train(self, epochs, initial_gaussian_sigma, initial_learning_rate, decay,
+                    dataset_percentage, min_dataset_size, seed, maxiter):
+
+        #PROGRESS BAR
+        session_data.reset_progressbar_value()
+        condicion_parada = self.__t1 * self.__parent_quantization_error
+        session_data.set_pbar_gsom_train_condition(condicion_parada)
+
+        #Calculo de MQE para la distancia maxima de la progress bar
+        _,MQE,mapped_neurons = self.__can_grow_single_train()
+        MQE = 0.0
+        mapped_neurons = 0
+        for neuron in self.neurons.values():
+            if neuron.has_dataset():
+                MQE += neuron.compute_quantization_error()
+                mapped_neurons += 1
+
+        #suponenmos distancia_maxima = MQEinicial*10
+        distancia_maxima= (MQE / mapped_neurons) 
+        distancia_maxima = distancia_maxima *10
+        session_data.set_pbar_gsom_distancia_maxima(distancia_maxima)
+
+      
+        #TRAINING
+        _iter = 0
+        can_grow = True
+        while can_grow and (_iter < maxiter):
+            self.__neurons_training(decay, epochs, initial_learning_rate, initial_gaussian_sigma,
+                                    dataset_percentage, min_dataset_size, seed)
+
+            _iter += 1
+            print('\t Iteraccion: ', _iter)
+            can_grow,_,_ = self.__can_grow_single_train()
+            if can_grow:
+                self.grow()
+
+        if can_grow:
+            self.__map_data_to_neurons()
+        
+        #Complte progress bar in case the maxiterations finish the training
+        session_data.update_gsom_progressbar_value(-1)
+        return self
+
     def __neurons_training(self, decay, epochs, learning_rate, sigma, dataset_percentage, min_dataset_size, seed):
         lr = learning_rate
         s = sigma
@@ -102,6 +149,29 @@ class GSOM:
         return ((MQE / mapped_neurons) >= (self.__t1 * self.__parent_quantization_error)) 
         #Quitada esta clausula
         # and \ (changed_neurons > int(np.round(mapped_neurons/5)))
+
+    #used in single_train
+    def __can_grow_single_train(self):
+        self.__map_data_to_neurons()
+
+        MQE = 0.0
+        mapped_neurons = 0
+        changed_neurons = 0
+
+        assert self.__parent_quantization_error is not None, "Parent Quantization Error must not be None"
+
+        for neuron in self.neurons.values():
+            changed_neurons += 1 if neuron.has_changed_from_previous_epoch() else 0
+            if neuron.has_dataset():
+                MQE += neuron.compute_quantization_error()
+                mapped_neurons += 1
+
+        #Progress bar
+        distancia= (MQE / mapped_neurons) - (self.__t1 * self.__parent_quantization_error)
+        session_data.update_gsom_progressbar_value(distancia)
+
+        return ((MQE / mapped_neurons) >= (self.__t1 * self.__parent_quantization_error)) , MQE , mapped_neurons
+     
 
     def __map_data_to_neurons(self):
         self.__clear_neurons_dataset()

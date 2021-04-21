@@ -70,14 +70,13 @@ formulario_ghsom =  dbc.ListGroupItem([
 
                     html.Hr(),
                     html.Div( 
-                        [dbc.Button("Entrenar", id="train_button_ghsom",href='analyze-ghsom-data',disabled= True, className="mr-2", color="primary")],
+                        [dbc.Button("Entrenar", id="train_button_ghsom",href=URLS['TRAINING_MODEL'],disabled= True, className="mr-2", color="primary")],
                         style={'textAlign': 'center'}
                     ),
+
                     #for training callback
                     html.Div(id='trained_ghsom_div',children=''),
                     
-
-
                 ])
 
 
@@ -262,7 +261,6 @@ def train_ghsom(n_clicks,tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,e
 
     print('Entrenamiento GHSOM finalizado.\n Tiempo transcurrido en el entrenamiento:',str(end - start),'segundos')
     return 'entrenamiento_completado'
-
 
 
 

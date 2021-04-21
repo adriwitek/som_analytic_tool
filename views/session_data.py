@@ -1,7 +1,8 @@
 '''
     Class session data file  
     
-    MEJORAR TODO ESTO!!!!!!!!!!
+    Modelo para controlar las variables de estado de la aplicación grafica,
+    con el patrón MVC.
 '''
 import numpy as np
 import pickle
@@ -32,6 +33,15 @@ class Sesion():
         self.ghsom_params=None
         self.ghsom_structure_graph = {}
         self.ghsom_nodes_by_coord_dict = {}
+
+        #Progress bar ghsom porcentaje
+        self.progressbar_maxvalue = 100
+        self.progressbar_value = 0
+
+        #Porgress bar gsom
+        self.gsom_train_condition = - np.inf
+        self.pbar_gsom_distancia_maxima = np.inf
+
         return
 
 
@@ -102,6 +112,32 @@ class Sesion():
         return self.discrete_data
     
 
+    #TODO BORRAR SI NO LA USO
+    def get_current_model_type(self):
+
+        if(self.som_params is not None):
+            return 'SOM'
+        elif(self.gsom_params is not None):
+            return 'GSOM'
+        elif(self.ghsom_params is not None):
+            return 'GHSOM'
+        else:
+            ''
+
+    #TODO BORRAR SI NO LA USO
+    def get_current_model_type_analyze_url(self):
+
+        if(self.som_params is not None):
+            return URLS['ANALYZE_SOM_URL']
+        elif(self.gsom_params is not None):
+            return URLS['ANALYZE_GSOM_URL']
+        elif(self.ghsom_params is not None):
+            return URLS['ANALYZE_GHSOM_URL']
+        else:
+            ''
+
+  
+        
 
 
     def set_som_model_info_dict(self,tam_eje_vertical,tam_eje_horizontal,learning_rate,neigh_fun,distance_fun,
@@ -219,33 +255,6 @@ class Sesion():
         self.ghsom_nodes_by_coord_dict = dict
 
 
-
-            
-
-    #TODO CAMBIAR ESTO:BORRARLO
-    @staticmethod
-    def get_model_info_dict(model_type):
-
-            model_info = {}
-
-            #TODO   COMPLETAR ESTO
-
-            if model_type == 'som':
-                model_info['model_type'] = 'som'
-                model_info['mapa_tam_eje_vertical'] = 0 
-                model_info['mapa_tam_eje_horizontal'] = 0 
-            elif model_type == 'gsom':
-                model_info['model_type'] = 'gsom'
-                model_info['mapa_tam_eje_vertical'] = 0 
-                model_info['mapa_tam_eje_horizontal'] = 0 
-            elif model_type == 'ghsom':
-                model_info['model_type'] = 'ghsom'
-            else: 
-                return {}
-
-            return model_info     
-
-
     @staticmethod
     def save_model(model,filename):
         with open('filename', 'wb') as outfile:
@@ -258,5 +267,66 @@ class Sesion():
             model = pickle.load(infile)
         return model
 
+
+
+    #GHSOM PROGRESS BAR FUNS
+    def set_progressbar_maxvalue(self,maxvalue):
+        self.progressbar_maxvalue = maxvalue
+
+    def get_progressbar_maxvalue(self):
+        return self.progressbar_maxvalue
+
+    def update_progressbar_value(self,valor):
+        porcentaje = (valor*100)/self.progressbar_maxvalue
+        self.progressbar_value = porcentaje
+
+    def get_progressbar_value(self):
+        return self.progressbar_value
+
+    def reset_progressbar_value(self):
+        self.progressbar_value = 0
+
+
+    #GSOM PROGRESS BAR FUNS
+    def set_pbar_gsom_train_condition(self,gsom_train_condition):
+        #gsom_train_condition = tau1*qe0
+        self.gsom_train_condition = gsom_train_condition
+
+    def get_pbar_gsom_train_condition(self):
+        #gsom_train_condition = tau1*qe0
+        return self.gsom_train_condition 
+
+    def set_pbar_gsom_distancia_maxima(self,distancia_maxima):
+        self.pbar_gsom_distancia_maxima = distancia_maxima
+
+    def update_gsom_progressbar_value(self,distancia):
+        '''Se calcula el progreso como distancia del MQE del gsom a la condicion de parada.
+
+            distanca = MQEmapa - (tau1 - qe0)
+
+        Progreso(%)    
+                    
+                100%    |
+                        |\
+                        | \ Pendiente
+                        |  \
+                0%      |___\__________     <--distancia_maxima       
+                                Distancia
+
+
+        '''
+
+        if(distancia<=0):
+            self.progressbar_value = 100
+        elif(distancia >= self.pbar_gsom_distancia_maxima):
+            self.progressbar_value = 0
+        else:
+            self.progressbar_value = (distancia * (-100/self.pbar_gsom_distancia_maxima) ) +100
+
+ 
+
+
+
+    
 
 session_data = Sesion()
