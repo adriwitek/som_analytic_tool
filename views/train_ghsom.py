@@ -20,62 +20,69 @@ import time
 formulario_ghsom =  dbc.ListGroupItem([
                     html.H4('Elección de parámetros',className="card-title"  ),
 
-                    html.H5(children='Tau 1:'),
-                    dcc.Slider(id='tau1_slider', min=0,max=1,step=0.0001,value=0.1),
-                    dcc.Input(id="tau1", type="number", value="0.1",step=0.0000001,min=0,max=1),
+                    html.Div(style={'textAlign': 'center'},children=[
+                        html.Div(
+                            style={'display': 'inline-block', 'text-align': 'left'},
+                            children=[
 
-                    html.H5(children='Tau 2:'),
-                    dcc.Input(id="tau2", type="number", value="0.0001",step=0.0000001,min=0,max=1),
-                    dcc.Slider(id='tau2_slider', min=0,max=1,step=0.0001,value=0.0001),
+                                html.H5(children='Tau 1:'),
+                                dcc.Slider(id='tau1_slider', min=0,max=1,step=0.0001,value=0.1),
+                                dcc.Input(id="tau1", type="number", value="0.1",step=0.0000001,min=0,max=1),
 
-                    html.H5(children='Tasa de aprendizaje:'),
-                    dcc.Input(id="tasa_aprendizaje", type="number", value="0.15",step=0.01,min=0,max=5),
+                                html.H5(children='Tau 2:'),
+                                dcc.Input(id="tau2", type="number", value="0.0001",step=0.0000001,min=0,max=1),
+                                dcc.Slider(id='tau2_slider', min=0,max=1,step=0.0001,value=0.0001),
 
-                    html.H5(children='Decadencia:'),
-                    dcc.Input(id="decadencia", type="number", value="0.95",step=0.01,min=0,max=1),   
+                                html.H5(children='Tasa de aprendizaje:'),
+                                dcc.Input(id="tasa_aprendizaje", type="number", value="0.15",step=0.01,min=0,max=5),
 
-                    html.H5(children='Sigma gaussiana:'),
-                    dcc.Input(id="sigma", type="number", value="1.5",step=0.01,min=0,max=10),
+                                html.H5(children='Decadencia:'),
+                                dcc.Input(id="decadencia", type="number", value="0.95",step=0.01,min=0,max=1),   
 
-                    html.H5(children='Número máximo de iteracciones:'),
-                    dcc.Input(id="max_iter_ghsom", type="number", value="10",step=1),
+                                html.H5(children='Sigma gaussiana:'),
+                                dcc.Input(id="sigma", type="number", value="1.5",step=0.01,min=0,max=10),
 
-                    html.H5(children='Épocas:'),
-                    dcc.Input(id="epocas_ghsom", type="number", value="15",step=1,min=1),
+                                html.H5(children='Número máximo de iteracciones:'),
+                                dcc.Input(id="max_iter_ghsom", type="number", value="10",step=1),
 
-                    html.H5(children='Función de Desigualdad:'),
-                    dcc.Dropdown(
-                                id='dropdown_fun_desigualdad_ghsom',
-                                options=[
-                                    {'label': 'Error de Cuantización', 'value': 'qe'},
-                                    {'label': 'Error de Cuantización Medio', 'value': 'mqe'}
-                                ],
-                                value='qe',
-                                searchable=False,
-                                style={'width': '35%'}
-                    ),
+                                html.H5(children='Épocas:'),
+                                dcc.Input(id="epocas_ghsom", type="number", value="15",step=1,min=1),
 
-                    html.H5(children='Semilla:'),
-                    html.Div( 
-                            [dbc.Checklist(
-                                options=[{"label": "Seleccionar semilla", "value": 1}],
-                                value=[],
-                                id="check_semilla_ghsom")]
-                    ),
-                    html.Div( id= 'div_semilla_ghsom',
-                                children = [dcc.Input(id="seed_ghsom", type="number", value="0",step=1,min=0, max=(2**32 - 1))],
-                                style={ "visibility": "hidden",'display':'none'}
-                    ),    
+                                html.H5(children='Función de Desigualdad:'),
+                                dcc.Dropdown(
+                                            id='dropdown_fun_desigualdad_ghsom',
+                                            options=[
+                                                {'label': 'Error de Cuantización', 'value': 'qe'},
+                                                {'label': 'Error de Cuantización Medio', 'value': 'mqe'}
+                                            ],
+                                            value='qe',
+                                            searchable=False
+                                ),
+
+                                html.H5(children='Semilla:'),
+                                html.Div( 
+                                        [dbc.Checklist(
+                                            options=[{"label": "Seleccionar semilla", "value": 1}],
+                                            value=[],
+                                            id="check_semilla_ghsom")]
+                                ),
+                                html.Div( id= 'div_semilla_ghsom',
+                                            children = [dcc.Input(id="seed_ghsom", type="number", value="0",step=1,min=0, max=(2**32 - 1))],
+                                            style={ "visibility": "hidden",'display':'none'}
+                                ),    
 
 
-                    html.Hr(),
-                    html.Div( 
-                        [dbc.Button("Entrenar", id="train_button_ghsom",href=URLS['TRAINING_MODEL'],disabled= True, className="mr-2", color="primary")],
-                        style={'textAlign': 'center'}
-                    ),
+                                html.Hr(),
+                                html.Div( 
+                                    [dbc.Button("Entrenar", id="train_button_ghsom",href=URLS['TRAINING_MODEL'],disabled= True, className="mr-2", color="primary")],
+                                    style={'textAlign': 'center'}
+                                ),
 
-                    #for training callback
-                    html.Div(id='trained_ghsom_div',children=''),
+                                #for training callback
+                                html.Div(id='trained_ghsom_div',children='')
+
+                        ])
+                    ])
                     
                 ])
 

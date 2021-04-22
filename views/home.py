@@ -30,6 +30,8 @@ from  config.config import *
 #############################################################
 
 def Home(): 
+
+    session_data.clean_session_data()
     layout = html.Div(children=[
 
         html.Div(id="hidden_div_for_redirect_callback"),

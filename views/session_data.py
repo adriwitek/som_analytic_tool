@@ -71,6 +71,12 @@ class Sesion():
     def get_dataset(self):
         return self.dataset
 
+    def get_dataset_n_samples(self):
+        return self.n_samples
+
+    def get_dataset_n_features(self):
+        return self.n_features
+
     def get_dataset_columns_names(self):
         return self.columns_names
 

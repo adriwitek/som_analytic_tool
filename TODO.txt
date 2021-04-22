@@ -1,4 +1,5 @@
 #INTERFAZ
+revisar que el dataset no tenga 0 datos
 revisar maximos y minimos de los parametros
 filtrar por tipo de archivo y leerlo en consecuencia bien, no solo csv
 dash_bootstrap_components en dependencias
