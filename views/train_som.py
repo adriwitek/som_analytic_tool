@@ -115,7 +115,7 @@ def train_som_view():
                             html.Hr(),
 
                             html.Div(children=[
-                                dbc.Button("Entrenar", id="train_button_som",href='analyze-som-data',disabled= True, className="mr-2", color="primary")]
+                                dbc.Button("Entrenar", id="train_button_som",href=URLS['TRAINING_MODEL'],disabled= True, className="mr-2", color="primary")]
                                 #,dbc.Spinner(id='spinner_training',color="primary",fullscreen=False)],
                                 #    style={'textAlign': 'center'}
                             ),
@@ -238,7 +238,7 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
         som.random_weights_init(data)
 
     print('Training som...')
-    som.train(data, iteracciones, random_order=False, verbose=False)  
+    som.train(data, iteracciones, random_order=False, verbose=True)  
     session_data.set_modelo(som)                                                   
 
     print('ENTRENAMIENTO SOM FINALIZADO')

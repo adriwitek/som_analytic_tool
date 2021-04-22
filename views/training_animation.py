@@ -42,6 +42,8 @@ def Training_animation():
 
                         dcc.Interval(id="progress_interval", n_intervals=0, interval=500, disabled = False),
                         dbc.Progress(id="progressbar" ,value = 0),
+
+                        
                         html.Div( 
                             [dbc.Button("Analizar Modelo", id="analyze_model_button",href='',disabled= True, className="mr-2", color="primary")],
                             style={'textAlign': 'center'}

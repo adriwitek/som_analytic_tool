@@ -13,11 +13,14 @@ from time import time
 from datetime import timedelta
 import pickle
 import os
+from  views.session_data import session_data
+
 
 # for unit tests
 from numpy.testing import assert_almost_equal, assert_array_almost_equal
 from numpy.testing import assert_array_equal
 import unittest
+
 
 """
     Minimalistic implementation of the Self Organizing Maps (SOM).
@@ -41,6 +44,7 @@ def _build_iteration_indexes(data_len, num_iterations,
         return iterations
 
 
+'''
 def _wrap_index__in_verbose(iterations):
     """Yields the values in iterations printing the status on the stdout."""
     m = len(iterations)
@@ -58,6 +62,23 @@ def _wrap_index__in_verbose(iterations):
         progress += ' {p:3.0f}%'.format(p=100*(i+1)/m)
         progress += ' - {time_left} left '.format(time_left=time_left)
         stdout.write(progress)
+'''
+
+#Edited to use the graphical progress bar
+def _wrap_index__in_verbose(iterations):
+    """Yields the values in iterations printing the status on the stdout."""
+    m = len(iterations)
+    digits = len(str(m))
+    session_data.reset_progressbar_value()
+    session_data.set_progressbar_maxvalue(m)
+
+
+    for i, it in enumerate(iterations):
+        yield it
+        session_data.update_progressbar_value(i)
+        #progress = '\r [ {i:{d}} / {m} ]'.format(i=i+1, d=digits, m=m)
+        #progress += ' {p:3.0f}%'.format(p=100*(i+1)/m)
+        #stdout.write(progress)
 
 
 def fast_norm(x):
@@ -397,8 +418,11 @@ class MiniSom(object):
         for t, iteration in enumerate(iterations):
             self.update(data[iteration], self.winner(data[iteration]),
                         t, num_iteration)
-        if verbose:
-            print('\n quantization error:', self.quantization_error(data))
+
+        session_data.update_progressbar_value(num_iteration)
+
+        #if verbose:
+        #    print('\n quantization error:', self.quantization_error(data))
 
     def train_random(self, data, num_iteration, verbose=False):
         """Trains the SOM picking samples at random from data.
