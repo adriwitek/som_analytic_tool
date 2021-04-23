@@ -8,9 +8,9 @@ from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 import  views.elements as elements
 from  views.session_data import session_data
+from math import trunc
 
-
-
+import time
 
 
 
@@ -37,7 +37,12 @@ def Training_animation():
 
                     # Modelos guardados en la app
                     dbc.ListGroupItem([
-                        html.H4('Entrenando...',className="card-title" , style={'textAlign': 'center'} ),
+                        html.H4('Entrenando...', id = 'status_string', className="card-title" , style={'textAlign': 'center'} ),
+                        html.Div(children =dbc.Badge("Tiempo transcurrido:", id ='badge_t_transcurrido', color="warning", className="mr-1"),
+                                style={'textAlign': 'center'}  
+                        ),
+                        html.P(id='timer_training',children="0", className="text-muted",  style= {'font-family': 'Courier New',  'font-size':'2vw', 'textAlign': 'center' }),
+
 
 
                         dcc.Interval(id="progress_interval", n_intervals=0, interval=500, disabled = False),
@@ -79,25 +84,22 @@ def Training_animation():
             Output("progress_interval", "disabled"),
             Output("analyze_model_button", "disabled"),
             Output("analyze_model_button", "href"),
+            Output("timer_training", "children"),
+            Output("status_string", "children"),
+            Output("badge_t_transcurrido", "color"),
             Input("progress_interval", "n_intervals"),
 )
 def update_progress(n):
  
 
     progress = session_data.get_progressbar_value()
-    '''
-    if(progress is None):
-       return 0, '', False ,True, ''
-    '''
-    # check progress of some background process, in this example we'll just
-    # use n_intervals constrained to be in 0-100
-    #progress = min(n % 110, 100)
-
+    t_transcurrido = session_data.get_training_elapsed_time()
+    t_formatedo = time.strftime("%H h %M m %S s", time.gmtime(t_transcurrido))
 
     # only add text after 5% progress to ensure text isn't squashed too much
     if(int(progress) == 100 ):
-        return progress, f"{int(progress)} %",True, False, session_data.get_current_model_type_analyze_url()
+        return progress, f"{int(progress)} %",True, False, session_data.get_current_model_type_analyze_url(),t_formatedo, 'Entrenamiento Finalizado', 'success'
     else:
-        return progress, f"{round(progress,2)} %" if progress >= 5 else "",False, True,''
+        return progress, f"{round(progress,2)} %" if progress >= 5 else "",False, True,'', t_formatedo, 'Entrenando...','warning'
 
 

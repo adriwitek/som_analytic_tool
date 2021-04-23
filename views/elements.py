@@ -19,7 +19,7 @@ from  config.config import *
 # Html elements
 cabecera = html.Div(className='jumbotron'  ,children=[
     html.Div(id="hidden_div_for_redirect_callback"),
-    html.H1(children=APP_NAME),
+    html.H1(children=APP_NAME,style = {'font-size':'4vw'}),
     html.P(children = 'Herramienta de análisis de datos con Mapas Auto-organizados'),
     html.Hr()
 ])

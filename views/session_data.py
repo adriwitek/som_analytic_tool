@@ -8,6 +8,7 @@ import numpy as np
 import pickle
 
 from  config.config import *
+import time
 
 
 
@@ -35,6 +36,7 @@ class Sesion():
         self.ghsom_nodes_by_coord_dict = {}
 
         #Progress bar ghsom porcentaje
+        self.start_time = 0.0
         self.progressbar_maxvalue = 100
         self.progressbar_value = 0
 
@@ -331,7 +333,12 @@ class Sesion():
 
  
 
+    def start_timer(self):
+        self.start_time= time.time()
 
+    def get_training_elapsed_time(self):
+        now = time.time()
+        return now - self.start_time
 
     
 

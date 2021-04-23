@@ -229,6 +229,7 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
 
     
     start = time.time()
+    session_data.start_timer()
     
     # TRAINING
     
