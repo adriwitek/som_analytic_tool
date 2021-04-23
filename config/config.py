@@ -8,14 +8,38 @@ PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
 
 
 #HEATMAPS CONF.
-DEFAULT_HEATMAP_PX_HEIGHT = 450
-DEFAULT_HEATMAP_PX_WIDTH = 450
+DEFAULT_HEATMAP_PX_HEIGHT = 500
+DEFAULT_HEATMAP_PX_WIDTH = 500
 DEFAULT_HEATMAP_COLORSCALE = 'Viridis'
 #DEFAULT_HEATMAP_COLORSCALE = 'Jet'
-
+UMATRIX_HEATMAP_COLORSCALE = 'Greys'
 
 
 ''' COLORSCALES
+
+
+   # Plotly colorscales ranging from a lighter shade to a darker shade
+      colorscales = [
+          "Greys",
+          "Greens",
+          "Blues",
+          "YIGnBu",
+          "YIOrRd",
+          "RdBu",
+          "Picnic",
+          "Jet",
+          "Hot",
+          "Blackbody",
+          "Earth",
+          "Electric",
+          "Viridis",
+          "Cividis",
+      ]
+
+
+#TODO: ESTAS PARECEN NO FUNCIONAR
+
+
 aggrnyl     agsunset    blackbody   bluered     blues       blugrn      bluyl       brwnyl
 bugn        bupu        burg        burgyl      cividis     darkmint    electric    emrld
 gnbu        greens      greys       hot         inferno     jet         magenta     magma
@@ -33,6 +57,8 @@ hsv         icefire     phase       twilight    mrybm       mygbm
 #Models
 GHSOM_MAX_SUBLEVELS_VIEW = 25
 GHSOM_MAX_SUBMAPS_SIZE_VIEW = 200
+#TAU PRECISION
+MIN_TAU_STEP = 1e-35
 
 #DIR
 DIR_SAVED_MODELS='Trained_Models/'
@@ -52,4 +78,5 @@ URLS= {
     'TRAINING_MODEL' : '/training-model',
 
 }
+
 

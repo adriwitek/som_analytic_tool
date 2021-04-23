@@ -13,6 +13,7 @@ from models.ghsom.GHSOM import GHSOM
 from models.ghsom.GSOM import GSOM 
 
 from  views.session_data import session_data
+from config.config import MIN_TAU_STEP
 from  config.config import *
 import time
 
@@ -28,10 +29,10 @@ formulario_ghsom =  dbc.ListGroupItem([
 
                                 html.H5(children='Tau 1:'),
                                 dcc.Slider(id='tau1_slider', min=0,max=1,step=0.0001,value=0.1),
-                                dcc.Input(id="tau1", type="number", value="0.1",step=0.0000001,min=0,max=1),
+                                dcc.Input(id="tau1", type="number", value="0.1",step=MIN_TAU_STEP,min=0,max=1),
 
                                 html.H5(children='Tau 2:'),
-                                dcc.Input(id="tau2", type="number", value="0.0001",step=0.0000001,min=0,max=1),
+                                dcc.Input(id="tau2", type="number", value="0.0001",step=MIN_TAU_STEP,min=0,max=1),
                                 dcc.Slider(id='tau2_slider', min=0,max=1,step=0.0001,value=0.0001),
 
                                 html.H5(children='Tasa de aprendizaje:'),
