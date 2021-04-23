@@ -68,17 +68,7 @@ def Home():
                         )
                     ]),
 
-                    #TODO
-                    #URL
-                
-                    dbc.ListGroupItem([
-                        html.H4('URL',style={'textAlign': 'center'} ),
-                        dbc.Input(type= 'url', placeholder="Link del dataset", bs_size="md", className="mb-3"),
-                        html.Div( 
-                            [dbc.Button("Analizar Datos", id="continue-button-url",disabled= True,href=URLS['TRAINING_SELECTION_URL'], className="mr-2", color="primary",)],
-                            style={'textAlign': 'center'}
-                        )
-                    ]),
+                 
                     
                 ],flush=True,),
 

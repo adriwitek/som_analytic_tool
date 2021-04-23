@@ -66,7 +66,7 @@ class GSOM:
         session_data.set_pbar_gsom_train_condition(condicion_parada)
 
         #Calculo de MQE para la distancia maxima de la progress bar
-        _,MQE,mapped_neurons = self.__can_grow_single_train()
+        self.__map_data_to_neurons()
         MQE = 0.0
         mapped_neurons = 0
         for neuron in self.neurons.values():

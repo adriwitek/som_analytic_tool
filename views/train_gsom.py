@@ -101,7 +101,6 @@ formulario_gsom =  dbc.ListGroupItem([
 layout = html.Div(children=[
 
     elements.navigation_bar,
-    elements.model_selector,
     formulario_gsom,
 ])
 
@@ -218,6 +217,8 @@ def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,ta
     data = session_data.get_data()
 
     start = time.time()
+    session_data.start_timer()
+
 
   
     initial_map_size = (tam_eje_vertical_gsom, tam_eje_horizontal_gsom)

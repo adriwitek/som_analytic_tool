@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 import dash
 import dash_core_components as dcc
@@ -142,7 +143,6 @@ def train_som_view():
     layout = html.Div(children=[
 
         elements.navigation_bar,
-        elements.model_selector,
         formulario_som,
     ])
 
