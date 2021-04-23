@@ -97,7 +97,12 @@ class GHSOM:
             bar.update(bar.max_value - active_dataset)
             session_data.update_progressbar_value(maxvalue - active_dataset)
 
+        #Complte progress bar in case callback glitches with long datasets
+        session_data.update_progressbar_value(maxvalue )
+
+        #TODO BORRAR ESTO si no construyo aqui el grafo
         zero_unit.graph = self.structure_graph
+
         return zero_unit
 
     def __init_zero_unit(self, seed):
