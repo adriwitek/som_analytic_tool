@@ -47,7 +47,7 @@ def Home():
                     # Archivo Local
                     dbc.ListGroupItem([
                         html.H4('Archivo Local',className="card-title" , style={'textAlign': 'center'} ),
-                        dcc.Upload( id='upload-data', children=html.Div(['Arrastrar y soltar o  ', html.A('Seleccionar archivo')]),
+                        dcc.Upload( id='upload-data', children=html.Div(['Arrastrar y soltar o  ', html.A('Seleccionar archivo  (.csv)')]),
                                             style={'width': '100%',
                                                     'height': '60px',
                                                     'lineHeight': '60px',
@@ -166,6 +166,7 @@ def update_output( contents, filename, last_modified):
     '''
     if contents is not None:
         
+        show_file_info_style =  {'textAlign': 'center',  'display': 'block'}
 
         #Esta carga tiene que ser asi
         try:
@@ -175,18 +176,26 @@ def update_output( contents, filename, last_modified):
                 decoded = base64.b64decode(content_string)
                 dataset = read_csv(io.StringIO(decoded.decode('utf-8')))
                 
-
             #elif 'xls' in filename:
                 # Assume that the user uploaded an excel file
             #    df = pd.read_excel(io.BytesIO(decoded))
 
+            else:
+                return html.Div([ 'ERROR: Formato de archivo no admitido.']),show_file_info_style,True
+
         except Exception as e:
-            print(e)
-            return html.Div([ 'There was an error processing this file.'])
+            #print(e)
+            return html.Div([ 'Ha ocurrido un error procesando el archivo.']), show_file_info_style,True
         
 
         data = dataset.to_numpy()
         n_samples, n_features=data.shape
+        if(n_samples == 0):
+            return html.Div([ 'ERROR: El fichero no contiene ningún ejemplo']),show_file_info_style,True
+        elif(n_features<=1):
+            return html.Div([ 'ERROR: El fichero no contiene ningún atributo']),show_file_info_style,True
+
+
         columns_names = list(dataset.head())
         session_data.set_dataset(data,columns_names)
 
@@ -196,11 +205,11 @@ def update_output( contents, filename, last_modified):
                                 datetime.utcfromtimestamp(last_modified).strftime('%d/%m/%Y %H:%M:%S'),
                                 str(n_samples),
                                 str(n_features - 1)), 
-                {'textAlign': 'center',  'display': 'block'},
+                show_file_info_style,
                 False 
                 )
 
-    else: #TODO PREVENT init call makes this its never called
+    else: 
         return  div_info_dataset('','', '', '') ,{'textAlign': 'center', "visibility": "hidden"},True
 
 

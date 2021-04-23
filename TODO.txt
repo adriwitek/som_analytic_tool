@@ -17,6 +17,7 @@ hacer un generador de los diseños de analyze_* paandole com parametros una list
 etiquetar neuronas si ulsar botn ver en som ya que es menos rapido
 pagina de cambiar configuracion
 en el ghsom el grafo construrlo en el entrenamiento y no despues?
+descargar logo mirar en cofig 
 
 #FUNCIONALIDAD NUEVA
 graficas del qe y topografic error

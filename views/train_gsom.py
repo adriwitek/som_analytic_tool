@@ -14,6 +14,7 @@ from models.ghsom.neuron.neuron_builder import NeuronBuilder
 import numpy as np
 
 from  views.session_data import session_data
+from config.config import MIN_TAU_STEP
 from  config.config import *
 
 import time
@@ -36,7 +37,7 @@ formulario_gsom =  dbc.ListGroupItem([
                                 dcc.Input(id="tam_eje_horizontal_gsom", type="number", value=5,step=1,min=1),
 
                                 html.H5(children='Tau 1:'),
-                                dcc.Input(id="tau1_gsom", type="number",step=0.0000001,min=0,max=1, value='0.0001'),
+                                dcc.Input(id="tau1_gsom", type="number",step=MIN_TAU_STEP ,min=0,max=1, value='0.0001'),
                                 dcc.Slider(id='tau1_slider_gsom', min=0,max=1,step=0.0001,value=0.0001),
 
                                 html.H5(children='Tasa de aprendizaje:'),

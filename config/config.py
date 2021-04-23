@@ -8,8 +8,8 @@ PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
 
 
 #HEATMAPS CONF.
-DEFAULT_HEATMAP_PX_HEIGHT = 450
-DEFAULT_HEATMAP_PX_WIDTH = 450
+DEFAULT_HEATMAP_PX_HEIGHT = 400
+DEFAULT_HEATMAP_PX_WIDTH = 400
 DEFAULT_HEATMAP_COLORSCALE = 'Viridis'
 #DEFAULT_HEATMAP_COLORSCALE = 'Jet'
 
@@ -33,6 +33,8 @@ hsv         icefire     phase       twilight    mrybm       mygbm
 #Models
 GHSOM_MAX_SUBLEVELS_VIEW = 25
 GHSOM_MAX_SUBMAPS_SIZE_VIEW = 200
+#TAU PRECISION
+MIN_TAU_STEP = 1e-35
 
 #DIR
 DIR_SAVED_MODELS='Trained_Models/'
@@ -52,4 +54,5 @@ URLS= {
     'TRAINING_MODEL' : '/training-model',
 
 }
+
 

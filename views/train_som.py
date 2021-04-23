@@ -42,7 +42,7 @@ def train_som_view():
                                 dcc.Input(id="tam_eje_horizontal", type="number", value=grid_recommended_size,step=1,min=1),
 
                                 html.H5(children='Tasa de aprendizaje:'),
-                                dcc.Input(id="tasa_aprendizaje_som", type="number", value="0.5",step=0.01,min=0,max=5),
+                                dcc.Input(id="tasa_aprendizaje_som", type="number", value="0.5",step=0.0001,min=0,max=5),
 
 
                                 html.H5(children='Función de vecindad'),
@@ -89,7 +89,7 @@ def train_som_view():
 
 
                                 html.H5(children='Sigma gaussiana:'),
-                                dcc.Input(id="sigma", type="number", value="1.5",step=0.01,min=0,max=10),
+                                dcc.Input(id="sigma", type="number", value="1.5",step=0.000001,min=0,max=10),
 
 
                                 html.H5(children='Iteracciones:'),
