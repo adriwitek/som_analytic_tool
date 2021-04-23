@@ -15,7 +15,7 @@ from datetime import datetime
 import plotly.graph_objects as go
 
 from  views.session_data import session_data
-from  config.config import DEFAULT_HEATMAP_PX_HEIGHT, DEFAULT_HEATMAP_PX_WIDTH,DEFAULT_HEATMAP_COLORSCALE, DIR_SAVED_MODELS
+from  config.config import DEFAULT_HEATMAP_PX_HEIGHT, DEFAULT_HEATMAP_PX_WIDTH,DEFAULT_HEATMAP_COLORSCALE, DIR_SAVED_MODELS,UMATRIX_HEATMAP_COLORSCALE
 import pickle
 
 from  os.path import normpath 
@@ -845,7 +845,8 @@ def ver_umatrix_ghsom_fig(clickdata,check_annotations,fig_grafo):
                 data_to_plot[i][j] = sum(neuron_neighbords)/len(neuron_neighbords)
 
  
-    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None)
+    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None,
+                                    colorscale = UMATRIX_HEATMAP_COLORSCALE,  reversescale=True)
     children = pu.get_fig_div_with_info(fig,'umatrix_fig_ghsom', 'Matriz de Distancias Unificadas',tam_eje_horizontal, tam_eje_vertical)
 
     print('\nVISUALIZACION:gsom renderfinalizado\n')

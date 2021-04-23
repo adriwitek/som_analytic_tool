@@ -15,7 +15,7 @@ from datetime import datetime
 
 
 from  views.session_data import session_data
-from  config.config import DIR_SAVED_MODELS
+from  config.config import  DIR_SAVED_MODELS, UMATRIX_HEATMAP_COLORSCALE
 
 
 import pickle
@@ -597,7 +597,8 @@ def ver_umatrix_gsom_fig(click, check_annotations):
     for item in saved_distances.items():
         print(item)
     '''
-    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None)
+    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None,
+                                    colorscale = UMATRIX_HEATMAP_COLORSCALE,  reversescale=True)
     children =  pu.get_fig_div_with_info(fig,'umatrix_fig_gsom', 'Matriz U',tam_eje_horizontal, tam_eje_vertical)
 
     return children

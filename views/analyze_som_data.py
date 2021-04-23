@@ -14,7 +14,7 @@ import numpy as np
 
 from  views.session_data import session_data
 from  config.config import *
-from  config.config import  DIR_SAVED_MODELS
+from  config.config import  DIR_SAVED_MODELS, UMATRIX_HEATMAP_COLORSCALE
 import pickle
 from  os.path import normpath 
 from re import search 
@@ -549,7 +549,8 @@ def update_umatrix(n_clicks,check_annotations):
     params = session_data.get_som_model_info_dict()
     tam_eje_horizontal = params['tam_eje_horizontal'] 
     tam_eje_vertical = params['tam_eje_vertical'] 
-    figure = pu.create_heatmap_figure(umatrix.tolist() ,tam_eje_horizontal,tam_eje_vertical, check_annotations, title ='Matriz U')
+    figure = pu.create_heatmap_figure(umatrix.tolist() ,tam_eje_horizontal,tam_eje_vertical, check_annotations, title ='Matriz U',
+                                         colorscale = UMATRIX_HEATMAP_COLORSCALE,  reversescale=True)
     return  html.Div(children= dcc.Graph(id='graph_u_matrix',figure=figure))
 
 

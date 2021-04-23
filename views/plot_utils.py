@@ -7,6 +7,7 @@ import numpy as np
 from  config.config import DEFAULT_HEATMAP_COLORSCALE, DEFAULT_HEATMAP_PX_HEIGHT, DEFAULT_HEATMAP_PX_WIDTH
 
 
+#TODO MIRAR SI UTILIZO FIANLMENTE ESTAS TRES FUNCIONES
 def to_rgb_color_list(color_str, default):
     if "rgb" in color_str:
         return [int(v) for v in color_str.strip("rgb()").split(",")]
@@ -84,7 +85,7 @@ def get_text_color(colorscale, reversescale):
 
 
 
-def make_annotations(data, colorscale, reversescale):
+def make_annotations(data, colorscale, reversescale= False):
     """
     Get annotations for each cell of the heatmap with graph_objs.Annotation
     :rtype (list[dict]) annotations: list of annotations for each cell of
@@ -95,8 +96,13 @@ def make_annotations(data, colorscale, reversescale):
     white = "#FFFFFF"
     black = "#000000"
     
-    min_text_color = white
-    max_text_color = black
+    if reversescale:
+        min_text_color =  black
+        max_text_color =  white   
+    else:
+        min_text_color = white
+        max_text_color = black
+
     zmin = np.nanmin(data)
     zmax = np.nanmax(data)
     zmid = (zmax + zmin) / 2
@@ -128,7 +134,7 @@ def fig_add_annotations(figure):
     data_to_plot = trace['z'] 
     #To replace None values with NaN values
     data_to_plot_1 = np.array(data_to_plot, dtype=np.float64)
-    annotations = make_annotations(data_to_plot_1, colorscale = 'Jet', reversescale= False)
+    annotations = make_annotations(data_to_plot_1, colorscale = DEFAULT_HEATMAP_COLORSCALE, reversescale= False)
     layout = figure['layout']
     layout['annotations'] = annotations
     fig_updated = dict(data=data, layout=layout)
@@ -203,7 +209,7 @@ def get_fig_div_with_info(fig,fig_id, title,tam_eje_horizontal, tam_eje_vertical
 
 
 
-def create_heatmap_figure(data,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None):
+def create_heatmap_figure(data,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None, colorscale =DEFAULT_HEATMAP_COLORSCALE, reversescale=False ):
 
     if(tam_eje_horizontal >tam_eje_vertical ):
         xaxis_dict ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
@@ -213,8 +219,9 @@ def create_heatmap_figure(data,tam_eje_horizontal,tam_eje_vertical,check_annotat
         xaxis_dict  ={'tickformat': ',d', 'scaleanchor': 'y','scaleratio': 1 }
 
     layout = { 'xaxis': xaxis_dict, 'yaxis' : yaxis_dict}
-    layout['width'] = 700
-    layout['height']= 700
+    layout['width'] = DEFAULT_HEATMAP_PX_WIDTH
+    layout['height']= DEFAULT_HEATMAP_PX_HEIGHT
+     
     #condition_Nones = not(val is None)
     #condition_nans= not(np.isnan(val))
 
@@ -222,11 +229,11 @@ def create_heatmap_figure(data,tam_eje_horizontal,tam_eje_vertical,check_annotat
         layout['title'] = title
 
     if(check_annotations):
-        annotations = make_annotations(data, colorscale = DEFAULT_HEATMAP_COLORSCALE, reversescale= False)
+        annotations = make_annotations(data, colorscale = colorscale, reversescale= reversescale)
         layout['annotations'] = annotations
     #TODO
     #heatmapgl
-    trace = dict(type='heatmap', z=data, colorscale = DEFAULT_HEATMAP_COLORSCALE)
+    trace = dict(type='heatmap', z=data, colorscale = colorscale,reversescale= reversescale)
     data=[trace]
     data.append({'type': 'scattergl',
                     'mode': 'text'
