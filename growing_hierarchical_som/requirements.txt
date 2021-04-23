@@ -1,0 +1,13 @@
+dash==1.19.0
+dash-bootstrap-components==0.11.3
+python-dateutil==2.8.1
+cycler==0.10.0
+kiwisolver==1.0.1
+progressbar2==3.37.1
+pandas==1.2.4
+networkx==2.5
+
+
+
+
+
