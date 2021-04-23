@@ -12,7 +12,6 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 from views.app import app
-from views import callbacks
 from views.home import Home
 from views.training_selection import Training_selection
 from views.train_som import train_som_view

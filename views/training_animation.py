@@ -41,11 +41,11 @@ def Training_animation():
                         html.Div(children =dbc.Badge("Tiempo transcurrido:", id ='badge_t_transcurrido', color="warning", className="mr-1"),
                                 style={'textAlign': 'center'}  
                         ),
-                        html.P(id='timer_training',children="0", className="text-muted",  style= {'font-family': 'Courier New',  'font-size':'2vw', 'textAlign': 'center' }),
+                        html.P(id='timer_training',children="00 h 00 m 00 s", className="text-muted",  style= {'font-family': 'Courier New',  'font-size':'2vw', 'textAlign': 'center' }),
 
 
 
-                        dcc.Interval(id="progress_interval", n_intervals=0, interval=500, disabled = False),
+                        dcc.Interval(id="progress_interval", n_intervals=0, interval=1000, disabled = False),
                         dbc.Progress(id="progressbar" ,value = 0),
 
                         
