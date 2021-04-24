@@ -92,7 +92,7 @@ def train_som_view():
                                 dcc.Input(id="sigma", type="number", value="1.5",step=0.000001,min=0,max=10),
 
 
-                                html.H5(children='Iteracciones:'),
+                                html.H5(children='Iteracciones Máximas:'),
                                 dcc.Input(id="iteracciones", type="number", value="1000",step=1,min=1),
 
                                 html.H5(children='Inicialización pesos del mapa'),
