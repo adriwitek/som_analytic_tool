@@ -126,6 +126,7 @@ def div_info_dataset(filename,fecha_modificacion, n_samples, n_features):
                                             value=[],
                                             id="check_onehot"),
 
+
                 html.Div(id='div_onehot_menu',children=''),
 
                 html.Hr(),
@@ -153,10 +154,9 @@ def get_onehot_childrendiv_menu():
         ),
         
 
+        dbc.Button("Aplicar One Hot", id="apply_onehot_button", className="mr-2", color="primary"),
 
-
-        html.P(id='onehot_aplicado',children = ''),
-        dbc.Button("Aplicar One Hot", id="apply_onehot_button", className="mr-2", color="primary")
+        html.P(id='onehot_aplicado',children = '')
 
 
     ]
@@ -175,14 +175,19 @@ def get_onehot_childrendiv_menu():
 #Apply One Hot
 @app.callback(Output('onehot_aplicado', 'children'),
               Output('apply_onehot_button', 'disabled'),
+              Output('check_onehot','options'),
+              Output('check_nanvalues_onehot','options'),
+              Output('dropdown_atrib_names_home','disabled'),
               Input('apply_onehot_button', 'n_clicks'),
               State('dropdown_atrib_names_home','value'),
+              State('check_onehot','options'),
+              State('check_nanvalues_onehot','options'),
               State('check_nanvalues_onehot','value'),
               prevent_initial_call=True )
-def apply_onehot(n_clicks, names,check_nan = False):
+def apply_onehot(n_clicks, names,options, options_nan,check_nan = False ):
 
     if(not names):
-        return 'Debes seleccionar al menos un atributo',False
+        return 'Debes seleccionar al menos un atributo',False, options,options_nan,False
 
     df = session_data.pd_dataframe
     #print('antes\n', df)
@@ -195,8 +200,11 @@ def apply_onehot(n_clicks, names,check_nan = False):
 
     session_data.pd_dataframe = df
     #print('despues\n',session_data.pd_dataframe)
+    options1=[{"label": "Considerar también valores nulos", "value": 0, "disabled": True}]
+    options2=[{"label": "Considerar también valores nulos", "value": 0,"disabled": True}]
+    options3=[{"disabled": True}]
 
-    return 'One Hot Enconding Aplicado satisfactoriamente.',True
+    return 'One Hot Enconding Aplicado satisfactoriamente.',True, options1,options2,True
 
 
 #Show One Hot Encoding Menu
