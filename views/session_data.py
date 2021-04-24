@@ -28,6 +28,8 @@ class Sesion():
         self.n_samples = 0
         self.n_features = 0 
         self.columns_names= []
+        #for onehote
+        self.pd_dataframe = None
 
         #tipo de modelo
         self.modelo = None
@@ -57,6 +59,9 @@ class Sesion():
         self.data = None     # numpy array
         self.n_samples = 0
         self.n_features = 0 
+        self.columns_names= []
+        self.pd_dataframe = None
+
 
         #tipo de modelo
         self.modelo = None
@@ -66,6 +71,9 @@ class Sesion():
         self.ghsom_structure_graph = {}
         self.ghsom_nodes_by_coord_dict = {}
 
+
+    def set_columns_names(self, columns_names):
+        self.columns_names = columns_names
 
     def set_dataset(self,dataset,columns_names):
         self.dataset = np.copy(dataset)

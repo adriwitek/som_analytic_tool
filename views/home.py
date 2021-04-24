@@ -13,7 +13,8 @@ import io
 from io import BytesIO
 from datetime import datetime
 import base64
-from pandas import read_csv
+
+from pandas import read_csv, get_dummies, concat
 import numpy as np
 
 from  views.session_data import session_data
@@ -62,8 +63,10 @@ def Home():
                         html.Div(id='info_dataset_div',style={'textAlign': 'center', "visibility": "hidden",'display':'none'} ,children = div_info_dataset('','', '', '') ), 
                         html.Div(id='hidden_div',children= '' ), 
 
+                        html.Div(id='hidden_div_forcontinue',children = ''),
                         html.Div( 
-                            [dbc.Button("Analizar Datos", id="continue-button",disabled= True,href=URLS['TRAINING_SELECTION_URL'], className="mr-2", color="primary",)],
+                            [dbc.Button("Analizar Datos", id="continue_button_home",disabled= True,
+                            href=URLS['TRAINING_SELECTION_URL'], className="mr-2", color="primary")],
                             style={'textAlign': 'center'}
                         )
                     ]),
@@ -101,7 +104,7 @@ def div_info_dataset(filename,fecha_modificacion, n_samples, n_features):
     return html.Div(id='output_uploaded_file',children=[
                 html.P(children= 'Archivo:  ' + filename, style={'textAlign': 'center'} ),
                 html.P(children= 'Última modificación: ' + fecha_modificacion, style={'textAlign': 'center'} ),
-                html.P(children= 'Número de datos:  ' + n_samples , style={'textAlign': 'center'} ),
+                html.P(children= 'Número de Datos:  ' + n_samples , style={'textAlign': 'center'} ),
                 html.P(children= 'Número de Atributos:  ' + n_features , style={'textAlign': 'center'} ),
 
 
@@ -117,12 +120,48 @@ def div_info_dataset(filename,fecha_modificacion, n_samples, n_features):
                     value=1,
                     id="radio_discrete_continuous",
                 ),
+
+                html.Hr(),
+                dbc.Checklist(  options=[{"label": "Aplicar One Hot Encoding", "value": 0}],
+                                            value=[],
+                                            id="check_onehot"),
+
+                html.Div(id='div_onehot_menu',children=''),
+
+                html.Hr(),
+
+
             ])
                       
 
 
+def get_onehot_childrendiv_menu():
+
+    children = [
 
 
+        html.H5("Seleccionar atributos a los que aplicar One Hot:"),
+        dcc.Dropdown(
+            id='dropdown_atrib_names_home',
+            options=session_data.get_dataset_atrib_names_dcc_dropdown_format(),
+            multi=True
+        ),
+
+        dbc.Checklist(  options=[{"label": "Considerar también valores nulos", "value": 0}],
+                                            value=[],
+                                            id="check_nanvalues_onehot"
+        ),
+        
+
+
+
+        html.P(id='onehot_aplicado',children = ''),
+        dbc.Button("Aplicar One Hot", id="apply_onehot_button", className="mr-2", color="primary")
+
+
+    ]
+
+    return children
 
 
 
@@ -131,6 +170,44 @@ def div_info_dataset(filename,fecha_modificacion, n_samples, n_features):
 #############################################################
 #	                     CALLBACKS	                        #
 #############################################################
+
+
+#Apply One Hot
+@app.callback(Output('onehot_aplicado', 'children'),
+              Output('apply_onehot_button', 'disabled'),
+              Input('apply_onehot_button', 'n_clicks'),
+              State('dropdown_atrib_names_home','value'),
+              State('check_nanvalues_onehot','value'),
+              prevent_initial_call=True )
+def apply_onehot(n_clicks, names,check_nan = False):
+
+    if(not names):
+        return 'Debes seleccionar al menos un atributo',False
+
+    df = session_data.pd_dataframe
+    #print('antes\n', df)
+
+    for n in names:
+        # use pd.concat to join the new columns with your original dataframe
+        df = concat( [df,get_dummies(df[n], prefix=str(n), dummy_na=check_nan) ],axis=1)
+        # now drop the original 'country' column (you don't need it anymore)
+        df.drop([n],axis=1, inplace=True)
+
+    session_data.pd_dataframe = df
+    #print('despues\n',session_data.pd_dataframe)
+
+    return 'One Hot Enconding Aplicado satisfactoriamente.',True
+
+
+#Show One Hot Encoding Menu
+@app.callback(Output('div_onehot_menu', 'children'),
+              Input('check_onehot', 'value'),
+              prevent_initial_call=True )
+def show_onehot_menu(check_onehot):
+    if(check_onehot):
+        return get_onehot_childrendiv_menu()
+    else:
+        return ''
 
 
 #Discrete/cont. data
@@ -152,10 +229,10 @@ def update_target_type(radio_option):
 
 
 
- #Carga la info del dataset en el home
+#Carga la info del dataset en el home
 @app.callback(Output('info_dataset_div', 'children'),
               Output('info_dataset_div', 'style'),
-              Output('continue-button','disabled'),
+              Output('continue_button_home','disabled'),
               Input('upload-data', 'contents'),
               State('upload-data', 'filename'),
               State('upload-data', 'last_modified'), 
@@ -175,7 +252,9 @@ def update_output( contents, filename, last_modified):
                 content_type, content_string = contents.split(',')
                 decoded = base64.b64decode(content_string)
                 dataset = read_csv(io.StringIO(decoded.decode('utf-8')))
-                
+                session_data.pd_dataframe = dataset
+
+            #TODO EXCEL FILES
             #elif 'xls' in filename:
                 # Assume that the user uploaded an excel file
             #    df = pd.read_excel(io.BytesIO(decoded))
@@ -187,9 +266,10 @@ def update_output( contents, filename, last_modified):
             #print(e)
             return html.Div([ 'Ha ocurrido un error procesando el archivo.']), show_file_info_style,True
         
+        #TODO BORRAR
+        #data = dataset.to_numpy()
 
-        data = dataset.to_numpy()
-        n_samples, n_features=data.shape
+        n_samples, n_features=dataset.shape
         if(n_samples == 0):
             return html.Div([ 'ERROR: El fichero no contiene ningún ejemplo']),show_file_info_style,True
         elif(n_features<=1):
@@ -197,7 +277,9 @@ def update_output( contents, filename, last_modified):
 
 
         columns_names = list(dataset.head())
-        session_data.set_dataset(data,columns_names)
+        session_data.set_columns_names(columns_names)
+        #TODO BORRAR
+        #session_data.set_dataset(data,columns_names)
 
 
         #N_FEATURES = N-1 because of the target column
@@ -215,3 +297,17 @@ def update_output( contents, filename, last_modified):
 
 
 
+#Boton de continuar
+@app.callback(Output('hidden_div_forcontinue', 'children'),
+              Input('continue_button_home', 'n_clicks'),
+              prevent_initial_call=True)
+def analizar_datos_home( n_clicks ):
+
+    pddataset = session_data.pd_dataframe
+    data = pddataset.to_numpy()
+    columns_names = list(pddataset.head())
+    del session_data.pd_dataframe
+    session_data.pd_dataframe = None
+    session_data.set_dataset(data,columns_names)
+
+    return ' '

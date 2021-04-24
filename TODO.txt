@@ -1,3 +1,8 @@
+revisar que el numero de datos y features es ahora el correcto
+spinners a los botones
+vista previa tabla en home
+
+
 
 #TESTEAR
 si la barra de progreso del gsom baja y sube antes de llegar al 100 por el qe 
@@ -35,6 +40,7 @@ MATRIZ  de correlacion de atributos y target, como en el notebook de feature sel
 
 #PREGUNTAS
 rango de la tasa de aprendizaje?
+one hot categorias que solo aparencen en el test dataset
 wiiners map en discrete data, si hay empate escoger clase aletoria?
 La u matrix en gsom, no es exactamente igual que la umatrix en gsom
 
