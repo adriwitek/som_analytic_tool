@@ -3,6 +3,8 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
+import dash_table
+
 from views.app import app
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
@@ -14,12 +16,13 @@ from io import BytesIO
 from datetime import datetime
 import base64
 
-from pandas import read_csv, get_dummies, concat
+from pandas import read_csv, get_dummies, concat, DataFrame
 import numpy as np
 
 from  views.session_data import session_data
 from  config.config import *
 
+import plotly.graph_objects as go
 
 
 
@@ -60,7 +63,7 @@ def Home():
                                             # Allow multiple files to be uploaded
                                             multiple=False),
                         #info showed when the dataset its loaded
-                        html.Div(id='info_dataset_div',style={'textAlign': 'center', "visibility": "hidden",'display':'none'} ,children = div_info_dataset('','', '', '') ), 
+                        html.Div(id='info_dataset_div',style={'textAlign': 'center', "visibility": "hidden",'display':'none'} ,children = div_info_dataset('','', '', '',  DataFrame(columns=['']) ) ), 
                         html.Div(id='hidden_div',children= '' ), 
 
                         html.Div(id='hidden_div_forcontinue',children = ''),
@@ -100,7 +103,7 @@ def Home():
 #############################################################
 
  
-def div_info_dataset(filename,fecha_modificacion, n_samples, n_features):
+def div_info_dataset(filename,fecha_modificacion, n_samples, n_features, df):
     return html.Div(id='output_uploaded_file',children=[
                 html.P(children= 'Archivo:  ' + filename, style={'textAlign': 'center'} ),
                 html.P(children= 'Última modificación: ' + fecha_modificacion, style={'textAlign': 'center'} ),
@@ -131,9 +134,51 @@ def div_info_dataset(filename,fecha_modificacion, n_samples, n_features):
 
                 html.Hr(),
 
+                html.H4('Vista Previa',className="card-title" , style={'textAlign': 'center'} ),
+
+                html.Div(style = {"overflow": "scroll"},
+
+                    children= 
+                    
+                    dash_table.DataTable(
+                        id='dataset_table_preview',
+                        columns=[{"name": i, "id": i} for i in df.columns],
+                        data=df.to_dict('records'),
+                        style_cell={'textAlign': 'center',
+                                    'textOverflow': 'ellipsis',
+                                    'overflowX': 'auto'
+                        },
+
+                        style_cell_conditional=[
+                            {
+                                'if': {'column_id': c},
+                                'textAlign': 'left'
+                            } for c in ['Date', 'Region']
+                        ],
+
+                        style_data_conditional=[
+                            {
+                                'if': {'row_index': 'odd'},
+                                'backgroundColor': 'rgb(248, 248, 248)'
+                            }
+                        ],
+
+                        style_header={
+                            'backgroundColor': 'rgb(230, 230, 230)',
+                            'fontWeight': 'bold'
+                        }
+                    )
+
+
+                ),
+               
+                
+               
+
 
             ])
                       
+
 
 
 def get_onehot_childrendiv_menu():
@@ -178,23 +223,28 @@ def get_onehot_childrendiv_menu():
               Output('check_onehot','options'),
               Output('check_nanvalues_onehot','options'),
               Output('dropdown_atrib_names_home','disabled'),
+              Output('dataset_table_preview','columns'),
+              Output('dataset_table_preview','data'),
               Input('apply_onehot_button', 'n_clicks'),
               State('dropdown_atrib_names_home','value'),
               State('check_onehot','options'),
               State('check_nanvalues_onehot','options'),
               State('check_nanvalues_onehot','value'),
+              State('dataset_table_preview','columns'),
+              State('dataset_table_preview','data'),
+
               prevent_initial_call=True )
-def apply_onehot(n_clicks, names,options, options_nan,check_nan = False ):
+def apply_onehot(n_clicks, names,options, options_nan,check_nan, table_col, table_data ):
 
     if(not names):
-        return 'Debes seleccionar al menos un atributo',False, options,options_nan,False
+        return 'Debes seleccionar al menos un atributo',False, options,options_nan,False, table_col, table_data
 
     df = session_data.pd_dataframe
     #print('antes\n', df)
 
     for n in names:
         # use pd.concat to join the new columns with your original dataframe
-        df = concat( [df,get_dummies(df[n], prefix=str(n), dummy_na=check_nan) ],axis=1)
+        df = concat( [get_dummies(df[n], prefix=str(n), dummy_na=check_nan), df ],axis=1)
         # now drop the original 'country' column (you don't need it anymore)
         df.drop([n],axis=1, inplace=True)
 
@@ -204,7 +254,12 @@ def apply_onehot(n_clicks, names,options, options_nan,check_nan = False ):
     options2=[{"label": "Considerar también valores nulos", "value": 0,"disabled": True}]
     options3=[{"disabled": True}]
 
-    return 'One Hot Enconding Aplicado satisfactoriamente.',True, options1,options2,True
+
+
+    table_col=[{"name": i, "id": i} for i in df.columns]
+    table_data=df.head().to_dict('records')
+
+    return 'One Hot Enconding Aplicado satisfactoriamente.',True, options1,options2,True, table_col, table_data
 
 
 #Show One Hot Encoding Menu
@@ -294,13 +349,15 @@ def update_output( contents, filename, last_modified):
         return (div_info_dataset(filename,
                                 datetime.utcfromtimestamp(last_modified).strftime('%d/%m/%Y %H:%M:%S'),
                                 str(n_samples),
-                                str(n_features - 1)), 
+                                str(n_features - 1),
+                                dataset.head()
+                                ), 
                 show_file_info_style,
-                False 
+                False
                 )
 
     else: 
-        return  div_info_dataset('','', '', '') ,{'textAlign': 'center', "visibility": "hidden"},True
+        return  div_info_dataset('','', '', '', DataFrame(columns=[''] ) ) ,{'textAlign': 'center', "visibility": "hidden"},True
 
 
 
