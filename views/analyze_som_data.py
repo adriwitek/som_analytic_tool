@@ -109,7 +109,7 @@ def analyze_som_data():
                         html.H5("Seleccionar atributos para mostar:"),
                         dcc.Dropdown(
                             id='dropdown_atrib_names',
-                            options=session_data.get_dataset_atrib_names_dcc_dropdown_format(),
+                            options=session_data.get_dataset_col_names_dcc_dropdown_format(),
                             multi=True
                         ),
                         html.Div( 
@@ -374,12 +374,14 @@ def update_som_fig(n_clicks, check_annotations):
     
  
     som = session_data.get_modelo()
-    dataset = session_data.get_dataset()
+    #dataset = session_data.get_dataset()
     data = session_data.get_data()
-    targets = dataset[:,-1:]
-    
+    #targets = dataset[:,-1:]
+    targets = session_data.get_targets_col()
+    #targets_list = [t[0] for t in targets.tolist()]
+    targets_list = [t for t in targets.tolist()]
 
-    targets_list = [t[0] for t in targets.tolist()]
+    
 
     #'data and labels must have the same length.
     labels_map = som.labels_map(data, targets_list)
@@ -496,7 +498,7 @@ def update_mapa_componentes_fig(click,names,check_annotations):
     tam_eje_horizontal = params['tam_eje_horizontal'] 
     tam_eje_vertical = params['tam_eje_vertical'] 
 
-    nombres_atributos = session_data.get_dataset_atrib_names()
+    nombres_atributos = session_data.get_only_features_names()
     lista_de_indices = []
 
     for n in names:
@@ -526,7 +528,7 @@ def update_mapa_componentes_fig(click,names,check_annotations):
 def on_form_change(check):
 
     if(check):
-        atribs = session_data.get_dataset_atrib_names()
+        atribs = session_data.get_only_features_names()
         return atribs
     else:
         return []

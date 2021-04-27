@@ -336,15 +336,16 @@ class GSOM:
         return self.neurons
 
 
-    def get_structure_graph(self,grafo,dataset, level=0):
-       
+    #def get_structure_graph(self,grafo,dataset, level=0):
+    def get_structure_graph(self,grafo,data, target_col, level=0):
+
 
 
         #Indexes of dataset mapped on each neuron
         mapping = [[list() for _ in range(self.map_shape()[1])] for _ in range(self.map_shape()[0])]
         # contains targets list per neuron, later used to analyze the graph
         neurons_mapped_targets = {} 
-        data = dataset[:,:-1]
+        #data = dataset[:,:-1]
 
         # Getting winnig neurons for each data element
         for i,d in enumerate(data):
@@ -353,10 +354,14 @@ class GSOM:
             mapping[r][c].append(i)
 
             if((r,c) in neurons_mapped_targets):
-                neurons_mapped_targets[(r,c)].append(dataset[i][-1]) 
+                #neurons_mapped_targets[(r,c)].append(dataset[i][-1]) 
+                neurons_mapped_targets[(r,c)].append(target_col[i]) 
+
             else:
                 neurons_mapped_targets[(r,c)] = []
-                neurons_mapped_targets[(r,c)].append(dataset[i][-1]) 
+                #neurons_mapped_targets[(r,c)].append(dataset[i][-1]) 
+                neurons_mapped_targets[(r,c)].append(target_col[i]) 
+
 
         grafo.add_node(self,nivel =level, neurons_mapped_targets = neurons_mapped_targets )
  
@@ -373,7 +378,9 @@ class GSOM:
             
                 r, c = neuron.position
                 index_list= mapping[r][c]
-                grafo = neuron.child_map.get_structure_graph(grafo,dataset[index_list], level=level+1)
+                #grafo = neuron.child_map.get_structure_graph(grafo,dataset[index_list], level=level+1)
+                grafo = neuron.child_map.get_structure_graph(grafo,data[index_list],target_col[index_list], level=level+1)
+
 
 
         return grafo

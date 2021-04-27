@@ -23,7 +23,7 @@ def train_som_view():
         A rule of thumb to set the size of the grid for a dimensionalityreduction task is that it should contain 5*sqrt(N) neurons
         where N is the number of samples in the dataset to analyze.
     '''
-    n_samples = session_data.get_dataset_n_samples()
+    n_samples = session_data.get_data_n_samples()
     grid_recommended_size = ceil(  sqrt(5*sqrt(n_samples))  )
 
     # Formulario SOM    

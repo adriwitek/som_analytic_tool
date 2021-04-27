@@ -106,7 +106,7 @@ def analyze_gsom_data():
                             html.H5("Seleccionar atributos para mostar:"),
                             dcc.Dropdown(
                                 id='dropdown_atrib_names_gsom',
-                                options=session_data.get_dataset_atrib_names_dcc_dropdown_format(),
+                                options=session_data.get_dataset_col_names_dcc_dropdown_format(),
                                 multi=True
                             ),
                             html.Div( 
@@ -359,7 +359,9 @@ def update_winner_map_gsom(click,check_annotations):
     params = session_data.get_gsom_model_info_dict()
     #tam_eje_vertical = params['tam_eje_vertical']
     #tam_eje_horizontal = params['tam_eje_horizontal']
-    dataset = session_data.get_dataset()
+
+    #dataset = session_data.get_dataset()
+    targets_col =  session_data.get_targets_col()
     data = session_data.get_data()
     zero_unit = session_data.get_modelo()
     gsom = zero_unit.child_map
@@ -376,10 +378,14 @@ def update_winner_map_gsom(click,check_annotations):
         winner_neuron = gsom.winner_neuron(d)[0][0]
         r, c = winner_neuron.position
         if((r,c) in positions):
-            positions[(r,c)].append(dataset[i][-1]) 
+            #positions[(r,c)].append(dataset[i][-1]) 
+            positions[(r,c)].append(targets_col[i]) 
+
         else:
             positions[(r,c)] = []
-            positions[(r,c)].append(dataset[i][-1]) 
+            #positions[(r,c)].append(dataset[i][-1]) 
+            positions[(r,c)].append(targets_col[i]) 
+
 
 
    #Discrete data: most common class
@@ -482,7 +488,7 @@ def update_mapa_componentes_gsom_fig(click,names, check_annotations):
     weights_map= gsom.get_weights_map()
     # weights_map[(row,col)] = np vector whith shape=n_feauters, dtype=np.float32
 
-    nombres_atributos = session_data.get_dataset_atrib_names()
+    nombres_atributos = session_data.get_only_features_names()
     lista_de_indices = []
 
     for n in names:
@@ -523,7 +529,7 @@ def update_mapa_componentes_gsom_fig(click,names, check_annotations):
 def on_form_change(check):
 
     if(check):
-        atribs = session_data.get_dataset_atrib_names()
+        atribs = session_data.get_only_features_names()
         return atribs
     else:
         return []

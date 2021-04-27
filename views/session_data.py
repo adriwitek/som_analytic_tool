@@ -12,7 +12,7 @@ import pickle
 from  config.config import *
 import time
 
-
+from pandas import  DataFrame
 
 
 class Sesion():
@@ -25,10 +25,11 @@ class Sesion():
         self.discrete_data = True
         self.file_data = None
         self.dataset = None     # numpy array
-        self.n_samples = 0
-        self.n_features = 0 
-        self.columns_names= []
-        #for onehote
+        self.target_name = ''
+        self.targets_col =None
+
+     
+        self.features_names = []
         self.pd_dataframe = None
 
         #tipo de modelo
@@ -57,10 +58,10 @@ class Sesion():
         self.discrete_data = True
         self.file_data = None
         self.data = None     # numpy array
-        self.n_samples = 0
-        self.n_features = 0 
-        self.columns_names= []
+        self.features_names = []
         self.pd_dataframe = None
+        self.target_name = ''
+        self.targets_col =None
 
 
         #tipo de modelo
@@ -72,33 +73,82 @@ class Sesion():
         self.ghsom_nodes_by_coord_dict = {}
 
 
+    def set_target(self,target_name):    
+        self.target_name = target_name
+
+    def get_target_name(self):
+        return self.target_name
+
+    def get_target_np_column(self):
+        return self.pd_dataframe[self.target_name].to_numpy()
+
+
+    def set_pd_dataframe(self,df):
+        self.pd_dataframe = df
+        df_without_target = df[df.columns.difference([self.target_name])]
+        self.features_names= df_without_target.columns.to_list()
+
+        self.data = df_without_target.to_numpy()
+        self.targets_col = df[self.target_name].to_numpy()
+
+
+    def get_pd_dataframe(self):
+        if(self.pd_dataframe is not None):
+            return self.pd_dataframe
+        else:
+            return DataFrame( columns=[])
+
+    #TODO
+    #def get_only_features_names(self):
+    def get_only_features_names(self):
+        return self.features_names
+
+
+    #TODO BORRAR
+    '''
     def set_columns_names(self, columns_names):
         self.columns_names = columns_names
+    '''
 
+    '''
     def set_dataset(self,dataset,columns_names):
         self.dataset = np.copy(dataset)
         self.n_samples, self.n_features=dataset.shape
         self.columns_names = columns_names
+    '''
 
-    def get_dataset(self):
-        return self.dataset
+    #def get_dataset(self):
+    def get_targets_col(self):
+        return  self.targets_col 
 
-    def get_dataset_n_samples(self):
-        return self.n_samples
+    def get_data(self):
+        return self.data
 
-    def get_dataset_n_features(self):
-        return self.n_features
 
-    def get_dataset_columns_names(self):
-        return self.columns_names
+    #def get_data_n_samples(self):
+    def get_data_n_samples(self):
+        n_samples,_=self.data.shape
+        return n_samples
 
-    def get_dataset_atrib_names(self):
-        return self.columns_names[0:len(self.columns_names)-1]
+    #def get_data_n_features(self):
+    def get_data_n_features(self):
 
+        _, n_features=self.data.shape
+        #-1 because of the target
+        return n_features
+
+   
     
-    def get_dataset_atrib_names_dcc_dropdown_format(self):
+    #def get_dataset_col_names_dcc_dropdown_format(self):
+    def get_dataset_col_names_dcc_dropdown_format(self,colums= None):
 
-        atribs=  self.get_dataset_atrib_names()
+
+        if(colums is None):
+            atribs=  self.get_only_features_names()
+
+        else:
+            atribs= columns  
+
         options = []  # must be a list of dicts per option
 
         for n in atribs:
@@ -107,9 +157,7 @@ class Sesion():
         return options
 
         
-    def get_data(self):
-        return self.dataset[:,:-1]
-
+ 
     
     def set_filedata(self,filedata):
         self.file_data = filedata

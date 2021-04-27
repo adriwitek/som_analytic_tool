@@ -1,7 +1,7 @@
 revisar que el numero de datos y features es ahora el correcto
 spinners a los botones
 vista previa tabla en home
-
+pointcloud para los grafos del ghsom
 
 
 #TESTEAR
@@ -12,9 +12,12 @@ el gsom el mqe lo divide entre el numero de nueornas
 
 
 #ERRORES O MEJORAS
+actualizar en home el numero de atribs tras hacer onehot
+ghsom mantener la el mismo rango de colores de la colorscale para todo el grafo y no solo para cada mapal.
 en etiquetar neuronas redondear a dos decimales los floats
 borrar estas 2 macros no usadas? GHSOM_MAX_SUBLEVELS_VIEW = 25 y GHSOM_MAX_SUBMAPS_SIZE_VIEW = 200
 organizar los imports no usados
+warning en train minisom--- > minisom.py:391: ComplexWarning: Casting complex values to real discards the imaginary part self._weights[i, j] = c1*pc[pc_order[0]] + c2*pc[pc_order[1]]
 etiquetar sin pulsar boton en mapas de componentes som
 en el ghsom el grafo construrlo en el entrenamiento y no despues? revisar si es mucho engorro
 revisar maximos y minimos de los parametros
@@ -26,8 +29,10 @@ annotations acelararlas con codigo paralelizado
 
 
 #NUEVA FUNCIONALIDAD
-onehot y normalizacion de datos
+ normalizacion de datos
+ dataset percetange to train
 archivos excel
+tratar a los vectores como pixeles si el dataset es una imagen?
 forma hexagonal del som
 Most relevant feature plane en el notebook Democracy Index
 PAGINA DE CONFIG PARA CONFIG.PY
@@ -39,6 +44,7 @@ MATRIZ  de correlacion de atributos y target, como en el notebook de feature sel
 
 
 #PREGUNTAS
+onehot tambien a la clase? ahora mismo solo a los atribs se puede aplicar
 rango de la tasa de aprendizaje?
 one hot categorias que solo aparencen en el test dataset
 wiiners map en discrete data, si hay empate escoger clase aletoria?

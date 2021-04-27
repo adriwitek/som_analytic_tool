@@ -118,7 +118,7 @@ def analyze_ghsom_data():
                             html.H5("Seleccionar atributos para mostar:"),
                             dcc.Dropdown(
                                 id='dropdown_atrib_names_ghsom',
-                                options=session_data.get_dataset_atrib_names_dcc_dropdown_format(),
+                                options=session_data.get_dataset_col_names_dcc_dropdown_format(),
                                 multi=True
                             ),
                             html.Div( 
@@ -291,8 +291,13 @@ def get_ghsom_graph_div(fig,dcc_graph_id):
 def get_ghsom_fig():
     zero_unit = session_data.get_modelo()
     grafo = nx.Graph()
-    dataset = session_data.get_dataset()
-    g = zero_unit.child_map.get_structure_graph(grafo,dataset ,level=0)
+    #dataset = session_data.get_dataset()
+    #g = zero_unit.child_map.get_structure_graph(grafo,dataset ,level=0)
+    data= session_data.get_data()
+    target_col = session_data.get_targets_col()
+    g = zero_unit.child_map.get_structure_graph(grafo,data, target_col,level=0)
+
+
     session_data.set_ghsom_structure_graph(g)
   
     edge_x = []
@@ -690,7 +695,7 @@ def update_freq_map_ghsom(clickdata, figure):
 def on_form_change(check):
 
     if(check):
-        atribs = session_data.get_dataset_atrib_names()
+        atribs = session_data.get_only_features_names()
         return atribs
     else:
         return []
@@ -743,7 +748,7 @@ def update_mapa_componentes_ghsom_fig(clickdata,check_annotations,fig_grafo,name
     weights_map= gsom.get_weights_map()
     # weights_map[(row,col)] = np vector whith shape=n_feauters, dtype=np.float32
 
-    nombres_atributos = session_data.get_dataset_atrib_names()
+    nombres_atributos = session_data.get_only_features_names()
 
     lista_de_indices = []
     for n in names:
