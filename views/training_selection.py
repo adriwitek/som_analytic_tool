@@ -98,7 +98,7 @@ def Training_selection():
                         
                                     ),
 
-                                    dbc.Button("Cargar modelo", id="load_saved_model_button",disabled= True,href='/', className="mr-2", color="primary"),
+                                    dbc.Button("Cargar modelo", id="load_saved_model_button",disabled= True, className="mr-2", color="primary"),
                                     html.Div(id='hidden_div_for_load_model',style={'textAlign': 'center'} ),
 
 
@@ -139,7 +139,6 @@ def Training_selection():
 #############################################################
 
 
- 
 def get_app_saved_models():
 
     makedirs(DIR_SAVED_MODELS, exist_ok=True)
@@ -155,13 +154,9 @@ def get_app_saved_models():
 
 
 
-
-
-
 #############################################################
 #	                     CALLBACKS	                        #
 #############################################################
-
 
 
 
@@ -193,7 +188,10 @@ def load_selected_model(n_clicks,filename):
         model_info = unserialized_data[1]
         session_data.set_modelo(unserialized_data[2])
 
-    
+        
+    session_data.preparar_data_to_analyze()
+
+
     if  model_type ==  'som':
         session_data.set_som_model_info_dict_direct(model_info)
         return dcc.Location(pathname=URLS['ANALYZE_SOM_URL'], id="redirect")
@@ -207,28 +205,3 @@ def load_selected_model(n_clicks,filename):
         return dcc.Location(pathname="/", id="redirect")
 
 
-
-
-
-'''
-ESTO HACERLO PARA CUANDO EL DATASET ES NONE REDIRIGIR A HOME!!!!!!!!!!!!!!!!!!
-
-@app.callback(Output('hidden_div_for_redirect_callback', 'children'),
-              Input('continue-button', 'n_clicks'),
-              prevent_initial_call=True )
-def update_app_content_view(n1,n2,n3,n4):
-
-    ctx = dash.callback_context
-    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
-
-    if (trigger_id == "continue-button"):
-        return dcc.Location(pathname="/train-som", id="redirect")
-    elif (trigger_id == "seleccion_modelo_som"):
-            return dcc.Location(pathname="/train-som", id="redirect")
-    elif(trigger_id == "seleccion_modelo_gsom"):
-        return dcc.Location(pathname="/train-gsom", id="redirect")
-    elif(trigger_id == "seleccion_modelo_gsom"):
-        return dcc.Location(pathname="/train-ghsom", id="redirect")
-    else:
-        return dcc.Location(pathname="/", id="redirect")
-'''

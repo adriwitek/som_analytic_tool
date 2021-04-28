@@ -215,11 +215,13 @@ def train_ghsom(n_clicks,tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,e
                                             epocas_ghsom,max_iter_ghsom,fun_desigualdad,check,seed)
 
 
+    session_data.estandarizar_data()
+    data = session_data.get_data_std() 
+
     start = time.time()
     session_data.start_timer()
 
 
-    data = session_data.get_data() 
 
     ghsom = GHSOM(input_dataset = data, t1= tau1, t2= tau2, learning_rate= tasa_aprendizaje, decay= decadencia,
                      gaussian_sigma=sigma_gaussiana, growing_metric=fun_desigualdad)
@@ -227,6 +229,7 @@ def train_ghsom(n_clicks,tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,e
                              grow_maxiter=max_iter_ghsom)
     session_data.set_modelo(zero_unit)
     end = time.time()
+    session_data.preparar_data_to_analyze()
     #print('zerounit:',zero_unit)
 
     print('Entrenamiento GHSOM finalizado.\n Tiempo transcurrido en el entrenamiento:',str(end - start),'segundos')

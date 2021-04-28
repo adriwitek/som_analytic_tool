@@ -12,6 +12,8 @@ el gsom el mqe lo divide entre el numero de nueornas
 
 
 #ERRORES O MEJORAS
+en comp plans del ghsom no permitir seleccionar nodo si no hay ningun atrib seleccionado
+cambiar la manera en ela que recojo el nombre de las olumnas en session data?
 actualizar en home el numero de atribs tras hacer onehot
 ghsom mantener la el mismo rango de colores de la colorscale para todo el grafo y no solo para cada mapal.
 en etiquetar neuronas redondear a dos decimales los floats
@@ -44,7 +46,8 @@ MATRIZ  de correlacion de atributos y target, como en el notebook de feature sel
 
 
 #PREGUNTAS
-onehot tambien a la clase? ahora mismo solo a los atribs se puede aplicar
+
+mappear datos tambien standarizados??
 rango de la tasa de aprendizaje?
 one hot categorias que solo aparencen en el test dataset
 wiiners map en discrete data, si hay empate escoger clase aletoria?

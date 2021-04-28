@@ -106,7 +106,7 @@ def analyze_gsom_data():
                             html.H5("Seleccionar atributos para mostar:"),
                             dcc.Dropdown(
                                 id='dropdown_atrib_names_gsom',
-                                options=session_data.get_dataset_col_names_dcc_dropdown_format(),
+                                options=session_data.get_data_features_names_dcc_dropdown_format(),
                                 multi=True
                             ),
                             html.Div( 

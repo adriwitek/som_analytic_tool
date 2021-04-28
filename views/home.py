@@ -510,28 +510,6 @@ def update_output( contents, filename, last_modified):
 
 
 
-#Boton de continuar
-@app.callback(Output('hidden_div_forcontinue', 'children'),
-              Input('continue_button_home', 'n_clicks'),
-              State('trainready_dataframe_storage','data'),
-              State('dataset_table_preview', 'selected_columns'),
-              prevent_initial_call=True)
-def analizar_datos_home( n_clicks,data, selected_col ):
-
-    selected_col_name = selected_col[0]
-    session_data.set_target(selected_col_name)
-
-    df = pd.read_json(data,orient='split')
-    session_data.set_pd_dataframe(df)
-
-    return ' '
-
-
-
-
-
-
-
 
 # Select columns and store in filtered-data-storage
 @app.callback(  Output('preview_table','children'),
@@ -583,3 +561,20 @@ def numerical_features_to_dropdown(input_data):
 
         return options, columns
        
+
+
+
+#Boton de continuar
+@app.callback(Output('hidden_div_forcontinue', 'children'),
+              Input('continue_button_home', 'n_clicks'),
+              State('trainready_dataframe_storage','data'),
+              State('dataset_table_preview', 'selected_columns'),
+              prevent_initial_call=True)
+def analizar_datos_home( n_clicks,data, selected_col ):
+
+    selected_col_name = selected_col[0]
+    session_data.set_target(selected_col_name)
+    df = pd.read_json(data,orient='split')
+    session_data.set_pd_dataframe(df)
+
+    return ' '

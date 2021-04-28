@@ -109,7 +109,7 @@ def analyze_som_data():
                         html.H5("Seleccionar atributos para mostar:"),
                         dcc.Dropdown(
                             id='dropdown_atrib_names',
-                            options=session_data.get_dataset_col_names_dcc_dropdown_format(),
+                            options=session_data.get_data_features_names_dcc_dropdown_format(),
                             multi=True
                         ),
                         html.Div( 
@@ -282,7 +282,7 @@ def toggle_accordion(n1, n2,n3,n4,n5,n6, is_open1, is_open2,is_open3,is_open4,is
         return is_open1, is_open2, is_open3, not is_open4, is_open5, is_open6
     elif button_id == "button_collapse_5" and n5:
         return is_open1, is_open2, is_open3, is_open4, not is_open5, is_open6
-    elif button_id == "button_collapse_6" and n5:
+    elif button_id == "button_collapse_6" and n6:
         return is_open1, is_open2, is_open3, is_open4, is_open5, not is_open6
     return False, False, False,False,False,False
 
@@ -379,8 +379,7 @@ def update_som_fig(n_clicks, check_annotations):
     #targets = dataset[:,-1:]
     targets = session_data.get_targets_col()
     #targets_list = [t[0] for t in targets.tolist()]
-    targets_list = [t for t in targets.tolist()]
-
+    targets_list =  targets.tolist()
     
 
     #'data and labels must have the same length.
@@ -575,7 +574,7 @@ def check_savesommodel_name(value):
 
 
 
-#Save GSOM model
+#Save SOM model
 @app.callback(Output('check_correctly_saved_som', 'children'),
               Input('save_model_som', 'n_clicks'),
               State('nombre_de_fichero_a_guardar_som', 'value'),

@@ -12,7 +12,8 @@ import pickle
 from  config.config import *
 import time
 
-from pandas import  DataFrame
+import pandas as pd
+from sklearn import preprocessing
 
 
 class Sesion():
@@ -24,13 +25,19 @@ class Sesion():
         #Dataset
         self.discrete_data = True
         self.file_data = None
-        self.dataset = None     # numpy array
         self.target_name = ''
-        self.targets_col =None
-
+        self.n_samples = -1
+        self.n_features = -1
      
         self.features_names = []
+
+        #Used to analyze
         self.pd_dataframe = None
+        self.data= None     # numpy array
+        self.data_std= None # numpy array
+        self.targets_col =None# numpy array
+
+    
 
         #tipo de modelo
         self.modelo = None
@@ -52,17 +59,23 @@ class Sesion():
         return
 
 
-    #Call when closing app
+    #Call when closing app or loading home
     def clean_session_data(self):
         #Dataset
         self.discrete_data = True
         self.file_data = None
-        self.data = None     # numpy array
-        self.features_names = []
-        self.pd_dataframe = None
-        self.target_name = ''
-        self.targets_col =None
+        self.n_samples = -1
+        self.n_features = -1
 
+        self.features_names = []
+        self.target_name = ''
+
+
+        self.pd_dataframe = None
+        self.data= None     # numpy array
+        self.data_std= None # numpy array
+        self.targets_col =None# numpy array
+        
 
         #tipo de modelo
         self.modelo = None
@@ -80,68 +93,81 @@ class Sesion():
         return self.target_name
 
     def get_target_np_column(self):
-        return self.pd_dataframe[self.target_name].to_numpy()
+        df = self.get_pd_dataframe()
+        return df[self.target_name].to_numpy()
 
+
+    
 
     def set_pd_dataframe(self,df):
-        self.pd_dataframe = df
+      
+        self.pd_dataframe = df.copy()
         df_without_target = df[df.columns.difference([self.target_name])]
         self.features_names= df_without_target.columns.to_list()
 
-        self.data = df_without_target.to_numpy()
-        self.targets_col = df[self.target_name].to_numpy()
+        self.n_samples, self.n_features = df_without_target.shape 
+        #self.data = df_without_target.to_numpy()
+        #self.targets_col = np.array(df[self.target_name].to_numpy(), copy=True)  
+
+
 
 
     def get_pd_dataframe(self):
-        if(self.pd_dataframe is not None):
-            return self.pd_dataframe
-        else:
-            return DataFrame( columns=[])
+      
+        return self.pd_dataframe
 
-    #TODO
-    #def get_only_features_names(self):
+    #data ready to map
+    def preparar_data_to_analyze(self):
+
+        print('\t -->Converting Data to Analyze it...')
+        df = self.get_pd_dataframe()
+        self.targets_col = df[self.target_name].to_numpy()
+
+        df_without_target = df[df.columns.difference([self.target_name])]
+        self.data = df_without_target.to_numpy()
+        print('\t -->Converting Complete.')
+
+
+    #data ready to train
+    def estandarizar_data(self):
+        
+        print('\t -->Standardizing Data...')
+        df = self.get_pd_dataframe()
+        scaler = preprocessing.StandardScaler()
+        self.data_std  = scaler.fit_transform(df[self.features_names])
+        print('\t -->Standardizing Complete.')
+        
+        return  self.data_std
+
+ 
+
     def get_only_features_names(self):
         return self.features_names
 
 
-    #TODO BORRAR
-    '''
-    def set_columns_names(self, columns_names):
-        self.columns_names = columns_names
-    '''
-
-    '''
-    def set_dataset(self,dataset,columns_names):
-        self.dataset = np.copy(dataset)
-        self.n_samples, self.n_features=dataset.shape
-        self.columns_names = columns_names
-    '''
 
     #def get_dataset(self):
     def get_targets_col(self):
-        return  self.targets_col 
+        return self.targets_col.T
+        
 
     def get_data(self):
+        #TODO ######################## if the data mapped is not standarized nad trained data is, mapping will not work well
+        #return self.data
         return self.data
 
 
-    #def get_data_n_samples(self):
+    def get_data_std(self):
+        return self.data_std 
+
     def get_data_n_samples(self):
-        n_samples,_=self.data.shape
-        return n_samples
+        return self.n_samples
 
-    #def get_data_n_features(self):
     def get_data_n_features(self):
+        return self.n_features
 
-        _, n_features=self.data.shape
-        #-1 because of the target
-        return n_features
-
-   
     
-    #def get_dataset_col_names_dcc_dropdown_format(self):
-    def get_dataset_col_names_dcc_dropdown_format(self,colums= None):
-
+    def get_data_features_names_dcc_dropdown_format(self,colums= None):
 
         if(colums is None):
             atribs=  self.get_only_features_names()

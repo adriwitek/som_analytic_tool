@@ -217,6 +217,8 @@ def enable_train_som_button(tam_eje_vertical,tam_eje_horizontal,tasa_aprendizaje
               prevent_initial_call=True )
 def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, topology, distance,sigma,iteracciones,pesos_init, semilla, check_semilla):
 
+    session_data.estandarizar_data()
+
     tasa_aprendizaje=float(tasa_aprendizaje)
     sigma = float(sigma)
     iteracciones = int(iteracciones)
@@ -227,7 +229,8 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
         seed = None
         check = 0
 
-    
+    data = session_data.get_data_std()
+
     start = time.time()
     session_data.start_timer()
     
@@ -236,7 +239,6 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
 
     #ojo en numpy: array[ejevertical][ejehorizontal] ,al contratio que en plotly
     session_data.set_som_model_info_dict(eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad,distance,sigma,iteracciones, pesos_init,check,seed)
-    data = session_data.get_data()
 
     som = minisom.MiniSom(x=eje_vertical, y=eje_horizontal, input_len=data.shape[1], sigma=sigma, learning_rate=tasa_aprendizaje,
                 neighborhood_function=vecindad, topology=topology,
@@ -256,6 +258,7 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
     end = time.time()
     print('Tiempo transcurrido en el entrenamiento:',str(end - start),'segundos')
 
+    session_data.preparar_data_to_analyze()
 
     return 'Entrenamiento completado'
 
