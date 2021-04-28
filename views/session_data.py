@@ -154,7 +154,11 @@ class Sesion():
     def get_data(self):
         #TODO ######################## if the data mapped is not standarized nad trained data is, mapping will not work well
         #return self.data
-        return self.data
+        #CORREGIR ESTOOOO:
+        if(self.data_std is None):
+            return self.data
+        else:
+            return self.data_std
 
 
     def get_data_std(self):

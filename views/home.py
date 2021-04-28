@@ -77,7 +77,6 @@ def Home():
                                 children = div_info_dataset('','', '', '', None ) 
                         ), 
 
-                        html.Div(id='hidden_div',children= '' ), 
 
                         html.Div(id='hidden_div_forcontinue',children = ''),
                         html.Div( 
@@ -130,14 +129,7 @@ def div_info_dataset(filename,fecha_modificacion, n_samples, n_features, df):
                 html.Div(id='output-data-upload_2',style={'textAlign': 'center'} ),
                 html.Div(id='n_samples',style={'textAlign': 'center'} ),
                 html.Div(id='n_features',style={'textAlign': 'center'} ),
-                dbc.RadioItems(
-                    options=[
-                        {"label": "Discret Target", "value": 1},
-                        {"label": "Continuous Target", "value": 2},
-                    ],
-                    value=1,
-                    id="radio_discrete_continuous",
-                ),
+            
 
 
                 html.Hr(),
@@ -426,22 +418,6 @@ def show_onehot_menu(check_onehot):
         return False
 
 
-#Discrete/cont. data
-@app.callback(Output('hidden_div', 'children'),
-              Input('radio_discrete_continuous', 'value'),
-              prevent_initial_call=True)
-def update_target_type(radio_option):
-    ctx = dash.callback_context
-    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
-
-    if (trigger_id == "radio_discrete_continuous"):
-        
-        if(radio_option == 1):
-            session_data.set_discrete_data(True)
-        else:
-            session_data.set_discrete_data(False)
-
-        return  ''
 
 
 
@@ -491,8 +467,9 @@ def update_output( contents, filename, last_modified):
         n_samples, n_features=dataframe.shape
         if(n_samples == 0):
             return None, html.Div([ 'ERROR: The file does not contain any  sample']),show_file_info_style
-        elif(n_features<=1):
-            return None,html.Div([ 'ERROR: The file does not contain any feature']),show_file_info_style
+        elif(n_features<=2):
+            return None,html.Div([ 'ERROR: The file must contain at least 2 features']),show_file_info_style
+            
 
       
         divv = div_info_dataset(filename,
@@ -574,7 +551,16 @@ def analizar_datos_home( n_clicks,data, selected_col ):
 
     selected_col_name = selected_col[0]
     session_data.set_target(selected_col_name)
+
     df = pd.read_json(data,orient='split')
     session_data.set_pd_dataframe(df)
+
+    if(df[selected_col_name].dtype ==  np.float64):
+        print('TARGET CONTINUOS')
+        session_data.set_discrete_data(False)
+    else:
+        print('TARGET DISCRETOS')
+        session_data.set_discrete_data(True)
+
 
     return ' '
