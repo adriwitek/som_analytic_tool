@@ -250,7 +250,7 @@ def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,ta
                                 data,
                                 neuron_builder)
     
-    
+    print('test gsom train point',flush= True)
     #Train
     zero_unit.child_map.single_train(epocas_gsom,
                             sigma_gausiana,

@@ -21,11 +21,13 @@ borrar estas 2 macros no usadas? GHSOM_MAX_SUBLEVELS_VIEW = 25 y GHSOM_MAX_SUBMA
 organizar los imports no usados
 warning en train minisom--- > minisom.py:391: ComplexWarning: Casting complex values to real discards the imaginary part self._weights[i, j] = c1*pc[pc_order[0]] + c2*pc[pc_order[1]]
 etiquetar sin pulsar boton en mapas de componentes som
+al menos dos features
 en el ghsom el grafo construrlo en el entrenamiento y no despues? revisar si es mucho engorro
 revisar maximos y minimos de los parametros
 #REVISAR Y BORRAR TODO's en el codigo, codigo de debug
 lineas de fondo del hatmap fijas?
 annotations acelararlas con codigo paralelizado
+
 
 
 

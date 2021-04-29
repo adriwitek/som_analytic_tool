@@ -188,7 +188,9 @@ def load_selected_model(n_clicks,filename):
         model_info = unserialized_data[1]
         session_data.set_modelo(unserialized_data[2])
 
-        
+    #TODO BORRAR ESTO SI NO ESTANDARIZO AL MAPEAR
+    session_data.estandarizar_data()
+    
     session_data.preparar_data_to_analyze()
 
 
