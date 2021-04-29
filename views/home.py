@@ -35,9 +35,11 @@ import plotly.graph_objects as go
 #	                       LAYOUT	                        #
 #############################################################
 
+
 def Home(): 
 
     session_data.clean_session_data()
+    
     layout = html.Div(children=[
 
         html.Div(id="hidden_div_for_redirect_callback"),
@@ -171,7 +173,22 @@ def div_info_dataset(filename,fecha_modificacion, n_samples, n_features, df):
             
                 
                 #html.Div(id = 'preview_table' ,children =create_preview_table(df))
-                html.Div(id = 'preview_table' ,children ='')
+                html.Div(id = 'preview_table' ,children =''),
+
+                html.Div(
+                    [
+                        dbc.Modal(
+                            [
+                                dbc.ModalHeader("Data Loaded"),
+                                dbc.ModalBody("Data set has been loaded succesfully."),
+                                dbc.ModalFooter(
+                                    dbc.Button("Close", id="close", className="ml-auto")
+                                ),
+                            ],
+                            id="modal",
+                        ),
+                    ]
+                )
 
                 
 
@@ -192,7 +209,6 @@ def create_preview_table(df):
                                 type='circle',
                                 children=[
                                  
-
                                     html.Div(style = {"overflow": "scroll"},
                                         children=
                                         dash_table.DataTable(
@@ -538,6 +554,33 @@ def numerical_features_to_dropdown(input_data):
 
         return options, columns
        
+
+
+
+
+@app.callback(  Output("modal", "is_open"),
+                Input("trainready_dataframe_storage", "data"), 
+                Input("close", "n_clicks"),
+                State("modal", "is_open"),
+                prevent_initial_call=True
+
+)
+def toggle_modal(input_data, n_clicks, is_open):
+    
+    ctx = dash.callback_context
+    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    
+    if input_data is None:
+        return False
+    elif(n_clicks is None):
+        return True
+    elif(button_id =='close' ):
+        return not is_open
+    else:
+        True
+
+
+
 
 
 
