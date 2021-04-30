@@ -28,31 +28,31 @@ def train_som_view():
 
     # Formulario SOM    
     formulario_som = dbc.ListGroupItem([
-                html.H4('Elección de parámetros',className="card-title"  ),
+                html.H4('Parameter Selection',className="card-title"  ),
 
                 html.Div(style={'textAlign': 'center'},children=[
                         html.Div(
                             style={'display': 'inline-block', 'text-align': 'left'},
                             children=[
 
-                                html.H5(children='Tamaño del mapa(Eje vertical):'),
+                                html.H5(children='Vertical Grid Size:'),
                                 dcc.Input(id="tam_eje_vertical", type="number", value=grid_recommended_size,step=1,min=1),
 
-                                html.H5(children='Tamaño del mapa(Eje horizontal):'),
+                                html.H5(children='Horizontal Grid Size'),
                                 dcc.Input(id="tam_eje_horizontal", type="number", value=grid_recommended_size,step=1,min=1),
 
-                                html.H5(children='Tasa de aprendizaje:'),
+                                html.H5(children='Learning Rate'),
                                 dcc.Input(id="tasa_aprendizaje_som", type="number", value="0.5",step=0.0001,min=0,max=5),
 
 
-                                html.H5(children='Función de vecindad'),
+                                html.H5(children='Neighborhood Function'),
                                 dcc.Dropdown(
                                     id='dropdown_vecindad',
                                     options=[
-                                        {'label': 'Gaussiana', 'value': 'gaussian'},
-                                        {'label': 'Sombrero Mejicano', 'value': 'mexican_hat'},
-                                        {'label': 'Burbuja', 'value': 'bubble'},
-                                        {'label': 'Triángulo', 'value': 'triangle'}
+                                        {'label': 'Gaussian', 'value': 'gaussian'},
+                                        {'label': 'Mexican Hat', 'value': 'mexican_hat'},
+                                        {'label': 'Bubble', 'value': 'bubble'},
+                                        {'label': 'Triangle', 'value': 'triangle'}
                                     ],
                                     value='gaussian',
                                     searchable=False
@@ -60,7 +60,7 @@ def train_som_view():
                                 ),
 
 
-                                html.H5(children='Topologia del mapa'),
+                                html.H5(children='Map Topology'),
                                 dcc.Dropdown(
                                     id='dropdown_topology',
                                     options=[
@@ -73,12 +73,12 @@ def train_som_view():
                                 ),
 
 
-                                html.H5(children='Función de distancia'),
+                                html.H5(children='Distance Function'),
                                 dcc.Dropdown(
                                     id='dropdown_distance',
                                     options=[
-                                        {'label': 'Euclidea', 'value': 'euclidean'},
-                                        {'label': 'Coseno', 'value': 'cosine'},
+                                        {'label': 'Euclidean', 'value': 'euclidean'},
+                                        {'label': 'Cosine', 'value': 'cosine'},
                                         {'label': 'Manhattan', 'value': 'manhattan'},
                                         {'label': 'Chebyshev', 'value': 'chebyshev'}
                                     ],
@@ -88,20 +88,20 @@ def train_som_view():
                                 ),
 
 
-                                html.H5(children='Sigma gaussiana:'),
+                                html.H5(children='Gaussian Sigma'),
                                 dcc.Input(id="sigma", type="number", value="1.5",step=0.000001,min=0,max=10),
 
 
-                                html.H5(children='Iteracciones Máximas:'),
+                                html.H5(children='Max Iterations'),
                                 dcc.Input(id="iteracciones", type="number", value="1000",step=1,min=1),
 
-                                html.H5(children='Inicialización pesos del mapa'),
+                                html.H5(children='Weights Initialization'),
                                 dcc.Dropdown(
                                     id='dropdown_inicializacion_pesos',
                                     options=[
                                         {'label': 'PCA: Análisis de Componentes Principales ', 'value': 'pca'},
-                                        {'label': 'Aleatoria', 'value': 'random'},
-                                        {'label': 'Sin inicialización de pesos', 'value': 'no_init'}
+                                        {'label': 'Random', 'value': 'random'},
+                                        {'label': 'No Weight Initialization ', 'value': 'no_init'}
                                     ],
                                     value='pca',
                                     searchable=False
@@ -109,10 +109,10 @@ def train_som_view():
                                 ),
 
 
-                                    html.H5(children='Semilla:'),
+                                    html.H5(children='Seed'),
                                     html.Div( 
                                             [dbc.Checklist(
-                                                options=[{"label": "Seleccionar semilla", "value": 1}],
+                                                options=[{"label": "Select Seed", "value": 1}],
                                                 value=[],
                                                 id="check_semilla_som")]
                                     ),
@@ -125,7 +125,7 @@ def train_som_view():
                                 html.Hr(),
 
                                 html.Div(children=[
-                                    dbc.Button("Entrenar", id="train_button_som",href=URLS['TRAINING_MODEL'],disabled= True, className="mr-2", color="primary")]
+                                    dbc.Button("Train", id="train_button_som",href=URLS['TRAINING_MODEL'],disabled= True, className="mr-2", color="primary")]
                                     #,dbc.Spinner(id='spinner_training',color="primary",fullscreen=False)],
                                     #    style={'textAlign': 'center'}
                                 ),

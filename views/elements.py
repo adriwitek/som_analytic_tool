@@ -17,13 +17,19 @@ from  config.config import *
 
 
 # Html elements
-cabecera = html.Div(className='jumbotron'  ,children=[
-    html.Div(id="hidden_div_for_redirect_callback"),
-    html.H1(children=APP_NAME,style = {'font-size':'4vw'}),
-    html.P(children = 'Herramienta de análisis de datos con Mapas Auto-organizados'),
-    html.Hr()
-])
+cabecera =  dbc.Collapse(   id = 'cabecera',
+                            is_open = True,
+                            children = 
 
+                                html.Div(className='jumbotron'  ,
+                                                    children=[
+                                                    
+                                                        html.Div(id="hidden_div_for_redirect_callback"),
+                                                        html.H1(children=APP_NAME,style = {'font-size':'4vw'}),
+                                                        html.P(children = 'Graphic Interactive Tool for Data Analysis and Visualization with Self Organized Maps'),
+                                                        html.Hr()
+                                ])
+            )
 
 
 

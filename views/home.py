@@ -26,16 +26,151 @@ from  config.config import DEFAULT_DATASET_ROWS_PREVIEW
 
 import plotly.graph_objects as go
 
+from os import listdir,makedirs
+from os.path import isfile, join
+import pickle
 
 
 
-
+show_file_info_style =  {'textAlign': 'center',  'display': 'block'}
+hidden_div_style ={'textAlign': 'center', "visibility": "hidden",'display':'none'} 
 
 #############################################################
 #	                       LAYOUT	                        #
 #############################################################
 
 
+
+#### TRAINING SELECTION
+def Training_selection(): 
+
+    layout = html.Div(id = 'training_selection_div',
+        children=[
+
+            #html.Div(id="hidden_div_for_redirect_callback"),
+
+            #elements.navigation_bar,
+            html.Div(   id='select_button', 
+                        style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
+                        children=[
+                            dbc.Button("Train New Model", id="train_new_model_button", className="mr-2", color="primary", outline=True ),
+                            dbc.Button("Load Pre-Trained Model", id="load_saved_model_button", className="mr-2", color="primary", outline=True  )
+                        ]
+            ),
+
+            dbc.Collapse(id = 'train_newmodel_collapse',
+                        is_open = False,
+                        children = [
+            #html.Div(id = 'train_newmodel_div',
+            #            style=hidden_div_style,
+            #            children = [
+                        
+                                dbc.Card(color = 'light',
+                                    children=[
+                                        dbc.CardHeader(html.H2('Train New Model')),
+
+                                        dbc.CardBody(
+                                            dbc.ListGroup([
+                                            
+                                                #SOM
+                                                dbc.ListGroupItem([
+                                                    html.H4('SOM',style={'textAlign': 'center'} ),
+                                                    html.Div( 
+                                                        [dbc.Button("SOM", id="train_mode_som_button", className="mr-2", color="primary",)],
+                                                        style={'textAlign': 'center'}
+                                                    )
+                                                ]),
+
+
+                                                #GSOM
+                                                dbc.ListGroupItem([
+                                                    html.H4('GSOM',style={'textAlign': 'center'} ),
+                                                    html.Div( 
+                                                        [dbc.Button("GSOM", id="train_mode_gsom_button", className="mr-2", color="primary",)],
+                                                        style={'textAlign': 'center'}
+                                                    )
+                                                ]),
+
+
+                                                #GHSOM
+                                                dbc.ListGroupItem([
+                                                    html.H4('GHSOM',style={'textAlign': 'center'} ),
+                                                    html.Div( 
+                                                        [dbc.Button("GHSOM", id="train_mode_ghsom_button", className="mr-2", color="primary",)],
+                                                        style={'textAlign': 'center'}
+                                                    )
+                                                ]),
+
+                                            ],flush=True,),
+
+                                        )
+                                ])
+
+                        ]
+                ), 
+
+
+            dbc.Collapse(id = 'loadmodel_collapse',
+                        is_open = False,
+                        children = [
+            #html.Div(id = 'loadmodel_div',
+            #        style=hidden_div_style ,
+            #        children = [
+                        dbc.Card(color = 'light',
+                            children=[
+                                dbc.CardHeader(html.H2('Load Pre-Trained Model')),
+    
+                                dbc.CardBody(
+                                    dbc.ListGroup([
+                                    
+                                        # Modelos guardados en la app
+                                        dbc.ListGroupItem([
+                                            html.H4('Saved Models',className="card-title" , style={'textAlign': 'center'} ),
+                                            html.Div(style={'textAlign': 'center'},
+                                                    children=[
+                                                        dcc.Dropdown(
+                                                            id='modelos_guardados_en_la_app_dropdown',
+                                                            options=get_app_saved_models(),
+                                                            value='',
+                                                            searchable=False
+                                                            #,style={'width': '35%'}
+    
+                                                        ),
+    
+                                                        dbc.Button("Load Selected Model", id="load_model_buton",disabled= True, className="mr-2", color="primary"),
+                                                        html.Div(id='hidden_div_for_load_model',style={'textAlign': 'center'} ),
+    
+    
+                                                    ]
+    
+    
+                                            )
+    
+    
+    
+    
+    
+    
+                                        ]),
+                                    ],flush=True,),
+    
+                                )
+                            ]
+                        )     
+    
+                    ]
+            ) 
+
+
+
+    ])
+
+
+    return layout
+
+
+
+######### HOME #########
 def Home(): 
 
     session_data.clean_session_data()
@@ -73,19 +208,29 @@ def Home():
                                                     'margin': '10px'},
                                             # Allow multiple files to be uploaded
                                             multiple=False),
+
+
+                        # Preview Table
+                        html.Div(id = 'preview_table' ,children =''),
+
                         #info showed when the dataset its loaded
-                        html.Div(id='info_dataset_div',
-                                style={'textAlign': 'center', "visibility": "hidden",'display':'none'} ,
-                                children = div_info_dataset('','', '', '', None ) 
-                        ), 
+                        dbc.Collapse(id='collapse_modify_data_button', is_open = False, children = 
+                            dbc.Button("Modify Data",id="modify_data_button",className="mb-6",color="primary",block=True)
+                        ),
+                        
+                        dbc.Collapse(id ='info_dataset_collapse',
 
-
-                        html.Div(id='hidden_div_forcontinue',children = ''),
-                        html.Div( 
-                            [dbc.Button("Analyze Data", id="continue_button_home",disabled= True,
-                            href=URLS['TRAINING_SELECTION_URL'], className="mr-2", color="primary")],
-                            style={'textAlign': 'center'}
+                            
+                            children = [   
+                                html.Div(id='info_dataset_div',
+                                        style=hidden_div_style,
+                                        children = div_info_dataset('','', '', '', None ) 
+                                )
+                            ]
                         )
+
+                       
+
                     ]),
 
                  
@@ -96,14 +241,28 @@ def Home():
             )
         ]),
 
-    
+
+
+        #Training Selection Card
+        dbc.Collapse(id = 'collapse_traing_sel_home',
+            is_open= False,
+            children = [
+                dbc.Card( color = 'light',
+                         children=[
+
+                        dbc.CardBody(
+                                html.Div(Training_selection())
+                        )
+                ])
+            ]
+        )
 
 
 
     ])
 
-
     return layout
+
 
 
 
@@ -115,6 +274,21 @@ def Home():
 #############################################################
 #	                  AUX LAYOUT FUNS	                    #
 #############################################################
+
+
+def get_app_saved_models():
+
+    makedirs(DIR_SAVED_MODELS, exist_ok=True)
+
+    onlyfiles = [f for f in listdir(DIR_SAVED_MODELS) if isfile(join(DIR_SAVED_MODELS, f))]
+
+    options = []  # must be a list of dicts per option
+    for f in onlyfiles:
+        if f.endswith('.pickle'):
+            options.append({'label' : f, 'value': f})
+    return options
+
+
 
  
 def div_info_dataset(filename,fecha_modificacion, n_samples, n_features, df):
@@ -134,7 +308,6 @@ def div_info_dataset(filename,fecha_modificacion, n_samples, n_features, df):
             
 
 
-                html.Hr(),
 
 
                 #Atrib names
@@ -158,7 +331,7 @@ def div_info_dataset(filename,fecha_modificacion, n_samples, n_features, df):
                     switch=True,
                 ),
 
-                html.Hr(),
+
                 dbc.Checklist(  options=[{"label": "Apply One Hot Encoding", "value": 0}],
                                             value=[],
                                             id="check_onehot"),
@@ -166,14 +339,12 @@ def div_info_dataset(filename,fecha_modificacion, n_samples, n_features, df):
 
                 html.Div(id='div_onehot_menu',children=get_onehot_childrendiv_menu()),
 
-                html.Hr(),
 
-                html.H4('Table Preview',className="card-title" , style={'textAlign': 'center'} ),
 
             
                 
                 #html.Div(id = 'preview_table' ,children =create_preview_table(df))
-                html.Div(id = 'preview_table' ,children =''),
+                #html.Div(id = 'preview_table' ,children =''),
 
                 html.Div(
                     [
@@ -186,6 +357,8 @@ def div_info_dataset(filename,fecha_modificacion, n_samples, n_features, df):
                                 ),
                             ],
                             id="modal",
+                            centered=True,
+                            is_open= False,
                         ),
                     ]
                 )
@@ -197,18 +370,25 @@ def div_info_dataset(filename,fecha_modificacion, n_samples, n_features, df):
 
 
 
+    
+
+
 def create_preview_table(df):
 
+    #TODO BORRAR ESTO SI NO QUIERO QUE SEA OBLIGATORI EL TARGET
     selected_columns = []
+    
     if (len(df.columns) > 0):
         selected_columns.append(df.columns[len(df.columns)-1])
+    
    
     return html.Div([
+                    html.H4('Table Preview',className="card-title" , style={'textAlign': 'center'} ),
 
                     dcc.Loading(id='loading',
                                 type='circle',
                                 children=[
-                                 
+                                    
                                     html.Div(style = {"overflow": "scroll"},
                                         children=
                                         dash_table.DataTable(
@@ -314,6 +494,14 @@ def getNumericVars(df, clean_categorical_data):
 
 
 
+
+
+
+
+
+
+
+
 #############################################################
 #	                     CALLBACKS	                        #
 #############################################################
@@ -326,10 +514,19 @@ def getNumericVars(df, clean_categorical_data):
 )
 def update_styles(selected_columns):
     #print('selected coluss', selected_columns)
-    return [{
+    dataset_table_preview =  [{
         'if': { 'column_id': i },
         'background_color': '#D2F3FF'
     } for i in selected_columns]
+
+    return dataset_table_preview
+    #TODO AQUI VA LA CONDICION DE DESHABILITAR BOTON DE CARGAR MODELO SI NO HAY TARGET....
+    '''
+    if(not selected_columns):
+        return dataset_table_preview,
+    else:
+        return dataset_table_preview
+    '''
 
 
 
@@ -413,10 +610,6 @@ def process_data(input_data , clean_categorical_data, n_clicks, processed_data, 
     else:
         dff = pd.DataFrame(columns=[])
         return dff,dff
-
-
-
-
 
 
 
@@ -507,7 +700,9 @@ def update_output( contents, filename, last_modified):
 # Select columns and store in filtered-data-storage
 @app.callback(  Output('preview_table','children'),
                 Output('trainready_dataframe_storage','data'),
-                Output('continue_button_home','disabled'),
+                #Output('continue_button_home','disabled'),
+                Output('train_new_model_button','disabled'),
+                Output('load_saved_model_button','disabled'),
                 Input('processed_dataframe_storage','data'),
                 Input('dropdown_col_df_names','value'),
                 prevent_initial_call=True
@@ -528,7 +723,7 @@ def update_table_preview(input_data,columns):
     table =  create_preview_table(dff)
 
 
-    return table,data,disabled_button
+    return table,data,disabled_button,disabled_button
 
 
 # numerical_features_to_dropdown
@@ -559,38 +754,141 @@ def numerical_features_to_dropdown(input_data):
 
 
 @app.callback(  Output("modal", "is_open"),
+                Output('cabecera', 'is_open'),
+                Output('collapse_modify_data_button', 'is_open'),
+                Output('collapse_traing_sel_home','is_open' ),
                 Input("trainready_dataframe_storage", "data"), 
                 Input("close", "n_clicks"),
                 State("modal", "is_open"),
+                State("cabecera", "is_open"),
+                State("collapse_modify_data_button", "is_open"),
+                State('collapse_traing_sel_home','is_open' ),
+                prevent_initial_call=True
+)
+def toggle_modal(input_data, n_clicks, modal_is_open, cabecera_is_open, button_is_open, traing_sel_home_isopen):
+  
+    
+    ctx = dash.callback_context
+    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    
+    if input_data is None:
+        return False, True, False,False
+    elif(n_clicks is None):
+        return True, False, True, True
+    elif(trigger_id =='close' ):
+        return False, False, True, True
+    elif(trigger_id == 'trainready_dataframe_storage' ):
+        return modal_is_open, cabecera_is_open, button_is_open, traing_sel_home_isopen
+    else:
+        True, False, True ,True
+
+
+                       
+
+
+@app.callback(  Output("info_dataset_collapse", "is_open"),
+                Input("modify_data_button", "n_clicks"),
+                State("info_dataset_collapse", "is_open"),
+                prevent_initial_call=True
+)
+#TODO
+#@cache.memoize(timeout=60)  # in seconds
+def toggle_collapse_info_dataset(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+
+
+
+
+#Select train or load model
+@app.callback(  Output('train_newmodel_collapse', 'is_open'),
+                Output('loadmodel_collapse', 'is_open'),
+                Output('train_new_model_button','outline'),
+                Output('load_saved_model_button','outline'),
+                Input('train_new_model_button','n_clicks'),
+                Input('load_saved_model_button','n_clicks'),
+                State('train_new_model_button','outline'),
+                State('load_saved_model_button','outline'),
+                State('train_newmodel_collapse','is_open'),
+                State('loadmodel_collapse','is_open'),
                 prevent_initial_call=True
 
 )
-def toggle_modal(input_data, n_clicks, is_open):
+def select_card_train_or_loadmodel_div(train_b, load_b,outline1,outline2, is_open1, is_open2):
     
+
     ctx = dash.callback_context
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    
-    if input_data is None:
-        return False
-    elif(n_clicks is None):
-        return True
-    elif(button_id =='close' ):
-        return not is_open
+
+    if(button_id == 'train_new_model_button'):
+        return not is_open1 ,False, not outline1, True
     else:
-        True
+        return  False, not is_open2,True, not outline2
 
 
+#Habilitar boton load_saved_model
+@app.callback(Output('load_model_buton','disabled'),
+              Input('modelos_guardados_en_la_app_dropdown','value'),
+              prevent_initial_call=True
+              )
+
+def enable_load_saved_model_button(values):
+    if ( values ):
+        return False
+    else:
+        return True
+
+'''
+#load selected model
+@app.callback(Output('hidden_div_for_redirect_callback', 'children'),
+              Input('load_model_buton', 'n_clicks'),
+              State('modelos_guardados_en_la_app_dropdown','value'),
+              prevent_initial_call=True )
+def load_selected_model(n_clicks,filename):
 
 
+    # Load data (deserialize)
+    with open(DIR_SAVED_MODELS + filename, 'rb') as handle:
+        unserialized_data = pickle.load(handle)
+        model_type= unserialized_data[0]
+        model_info = unserialized_data[1]
+        session_data.set_modelo(unserialized_data[2])
+
+    #TODO BORRAR ESTO SI NO ESTANDARIZO AL MAPEAR
+    session_data.estandarizar_data()
+    
+    session_data.preparar_data_to_analyze()
+
+
+    if  model_type ==  'som':
+        session_data.set_som_model_info_dict_direct(model_info)
+        return dcc.Location(pathname=URLS['ANALYZE_SOM_URL'], id="redirect")
+    elif model_type ==   'gsom':
+        session_data.set_gsom_model_info_dict_direct(model_info)
+        return dcc.Location(pathname=URLS['ANALYZE_GSOM_URL'], id="redirect")
+    elif model_type ==   'ghsom':
+        session_data.set_ghsom_model_info_dict_direct(model_info)
+        return dcc.Location(pathname=URLS['ANALYZE_GHSOM_URL'], id="redirect")
+    else:   #it something goes worng 
+        return dcc.Location(pathname="/", id="redirect")
+
+'''
 
 
 #Boton de continuar
-@app.callback(Output('hidden_div_forcontinue', 'children'),
-              Input('continue_button_home', 'n_clicks'),
+@app.callback(Output('hidden_div_for_redirect_callback', 'children'),
+              Input('load_model_buton', 'n_clicks'),
+              Input('train_mode_som_button', 'n_clicks'),
+              Input('train_mode_gsom_button', 'n_clicks'),
+              Input('train_mode_ghsom_button', 'n_clicks'),
               State('trainready_dataframe_storage','data'),
               State('dataset_table_preview', 'selected_columns'),
+              State('modelos_guardados_en_la_app_dropdown','value'),
+
               prevent_initial_call=True)
-def analizar_datos_home( n_clicks,data, selected_col ):
+def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, selected_col, filename ):
+
 
     selected_col_name = selected_col[0]
     session_data.set_target(selected_col_name)
@@ -606,4 +904,44 @@ def analizar_datos_home( n_clicks,data, selected_col ):
         session_data.set_discrete_data(True)
 
 
-    return ' '
+
+    ctx = dash.callback_context
+    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+
+    if(button_id == 'load_model_buton'):
+
+        # Load data (deserialize)
+        with open(DIR_SAVED_MODELS + filename, 'rb') as handle:
+            unserialized_data = pickle.load(handle)
+            model_type= unserialized_data[0]
+            model_info = unserialized_data[1]
+            session_data.set_modelo(unserialized_data[2])
+
+        #TODO BORRAR ESTO SI NO ESTANDARIZO AL MAPEAR############################################################
+        session_data.estandarizar_data()
+
+        session_data.preparar_data_to_analyze()
+
+
+        if  model_type ==  'som':
+            session_data.set_som_model_info_dict_direct(model_info)
+            return dcc.Location(pathname=URLS['ANALYZE_SOM_URL'], id="redirect")
+        elif model_type ==   'gsom':
+            session_data.set_gsom_model_info_dict_direct(model_info)
+            return dcc.Location(pathname=URLS['ANALYZE_GSOM_URL'], id="redirect")
+        elif model_type ==   'ghsom':
+            session_data.set_ghsom_model_info_dict_direct(model_info)
+            return dcc.Location(pathname=URLS['ANALYZE_GHSOM_URL'], id="redirect")
+        else:   #if something goes worng 
+            return dcc.Location(pathname="/", id="redirect")
+
+
+    elif (button_id == 'train_mode_som_button'):
+        return dcc.Location(pathname=URLS['TRAINING_SOM_URL'], id="redirect")
+    elif(button_id == 'train_mode_gsom_button'):
+        return dcc.Location(pathname=URLS['TRAINING_GSOM_URL'], id="redirect")
+    elif(button_id == 'train_mode_ghsom_button'):
+        return dcc.Location(pathname=URLS['TRAINING_GHSOM_URL'], id="redirect")
+    else:   #if something goes wrong 
+        return dcc.Location(pathname="/", id="redirect")
+

@@ -37,8 +37,8 @@ def Training_animation():
 
                     # Modelos guardados en la app
                     dbc.ListGroupItem([
-                        html.H4('Entrenando...', id = 'status_string', className="card-title" , style={'textAlign': 'center'} ),
-                        html.Div(children =dbc.Badge("Tiempo transcurrido:", id ='badge_t_transcurrido', color="warning", className="mr-1"),
+                        html.H4('Training...', id = 'status_string', className="card-title" , style={'textAlign': 'center'} ),
+                        html.Div(children =dbc.Badge("Elapsed Time:", id ='badge_t_transcurrido', color="warning", className="mr-1"),
                                 style={'textAlign': 'center'}  
                         ),
                         html.P(id='timer_training',children="00 h 00 m 00 s", className="text-muted",  style= {'font-family': 'Courier New',  'font-size':'2vw', 'textAlign': 'center' }),
@@ -50,7 +50,7 @@ def Training_animation():
 
                         
                         html.Div( 
-                            [dbc.Button("Analizar Modelo", id="analyze_model_button",href='',disabled= True, className="mr-2", color="primary")],
+                            [dbc.Button("Analyze Model", id="analyze_model_button",href='',disabled= True, className="mr-2", color="primary")],
                             style={'textAlign': 'center'}
                         ),
                        
@@ -98,8 +98,8 @@ def update_progress(n):
 
     # only add text after 5% progress to ensure text isn't squashed too much
     if(int(progress) == 100 ):
-        return progress, f"{int(progress)} %",True, False, session_data.get_current_model_type_analyze_url(),t_formatedo, 'Entrenamiento Finalizado', 'success'
+        return progress, f"{int(progress)} %",True, False, session_data.get_current_model_type_analyze_url(),t_formatedo, 'Training Completed', 'success'
     else:
-        return progress, f"{round(progress,2)} %" if progress >= 5 else "",False, True,'', t_formatedo, 'Entrenando...','warning'
+        return progress, f"{round(progress,2)} %" if progress >= 5 else "",False, True,'', t_formatedo, 'Training...','warning'
 
 

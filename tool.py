@@ -14,7 +14,7 @@ from dash.dependencies import Input, Output
 
 from views.app import app
 from views.home import Home
-from views.training_selection import Training_selection
+#from views.training_selection import Training_selection
 from views.train_som import train_som_view
 from views.analyze_som_data import analyze_som_data
 from views.analyze_gsom_data import analyze_gsom_data
@@ -40,8 +40,6 @@ app.layout = get_layout
 def display_page(pathname):
     if pathname == '/':
         return Home()
-    elif pathname == URLS['TRAINING_SELECTION_URL']:
-        return Training_selection()
     elif pathname == URLS['TRAINING_GHSOM_URL']:
         return train_ghsom.layout
     elif pathname == URLS['TRAINING_GSOM_URL']:

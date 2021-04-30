@@ -71,7 +71,6 @@ DIR_SAVED_MODELS='Trained_Models/'
 
 #URLS
 URLS= {
-    'TRAINING_SELECTION_URL' : '/training_selection',
     'TRAINING_SOM_URL' : '/train-som', 
     'TRAINING_GSOM_URL' : '/train-gsom', 
     'TRAINING_GHSOM_URL' : '/train-ghsom', 
