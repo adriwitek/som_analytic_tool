@@ -293,7 +293,9 @@ def get_ghsom_fig():
     grafo = nx.Graph()
     #dataset = session_data.get_dataset()
     #g = zero_unit.child_map.get_structure_graph(grafo,dataset ,level=0)
-    data= session_data.get_data()
+    #data= session_data.get_data()
+    data= session_data.get_data_std()
+
     target_col = session_data.get_targets_col()
     g = zero_unit.child_map.get_structure_graph(grafo,data, target_col,level=0)
 
@@ -889,7 +891,10 @@ def save_ghsom_model(n_clicks,name,isvalid):
 
     data = []
     params = session_data.get_ghsom_model_info_dict()
+    columns_dtypes = session_data.get_colums_dtypes()
+    
     data.append('ghsom')
+    data.append(columns_dtypes)
     data.append(params)
     data.append(session_data.get_modelo())
 

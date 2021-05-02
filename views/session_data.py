@@ -86,25 +86,38 @@ class Sesion():
         self.ghsom_nodes_by_coord_dict = {}
 
 
-    def set_target(self,target_name):    
+    def set_target_name(self,target_name):    
         self.target_name = target_name
 
     def get_target_name(self):
         return self.target_name
 
     def get_target_np_column(self):
-        df = self.get_pd_dataframe()
-        return df[self.target_name].to_numpy()
+        #IF target selected
+        if(self.get_target_name() != ''):
+            df = self.get_pd_dataframe()
+            return df[self.target_name].to_numpy()
+        else:
+            return None
 
 
     
 
     def set_pd_dataframe(self,df):
       
-        self.pd_dataframe = df.copy()
-        df_without_target = df[df.columns.difference([self.target_name])]
-        self.features_names= df_without_target.columns.to_list()
+        #self.pd_dataframe = df.copy()
+        self.pd_dataframe = df
 
+        #IF target selected
+        if(self.get_target_name() != ''):
+            self.targets_col = df[self.target_name].to_numpy()
+            df_without_target = df[df.columns.difference([self.target_name])]
+        else:
+            df_without_target = df
+
+
+        self.features_names= df_without_target.columns.to_list()
+        
         self.n_samples, self.n_features = df_without_target.shape 
         #self.data = df_without_target.to_numpy()
         #self.targets_col = np.array(df[self.target_name].to_numpy(), copy=True)  
@@ -116,6 +129,7 @@ class Sesion():
       
         return self.pd_dataframe
 
+    '''
     #data ready to map
     def preparar_data_to_analyze(self):
 
@@ -139,7 +153,22 @@ class Sesion():
         
         return  self.data_std
 
- 
+    '''
+    #estandariza y converte datos a numpy
+    def estandarizar_data(self):
+        print('\t -->Standardizing Data...')
+        df = self.get_pd_dataframe()
+
+        #IF target selected
+        if(self.get_target_name() != ''):
+            self.targets_col = df[self.target_name].to_numpy()
+           
+        scaler = preprocessing.StandardScaler()
+        self.data_std  = scaler.fit_transform(df[self.get_only_features_names()])
+
+        print('\t -->Standardizing Complete.')
+        
+
 
     def get_only_features_names(self):
         return self.features_names
@@ -151,6 +180,7 @@ class Sesion():
         return self.targets_col.T
         
 
+    '''
     def get_data(self):
         #TODO ######################## if the data mapped is not standarized nad trained data is, mapping will not work well
         #return self.data
@@ -159,7 +189,7 @@ class Sesion():
             return self.data
         else:
             return self.data_std
-
+    '''
 
     def get_data_std(self):
         return self.data_std 
@@ -362,6 +392,10 @@ class Sesion():
         with open('filename', 'rb') as infile:
             model = pickle.load(infile)
         return model
+
+    def get_colums_dtypes(self):
+        return self.pd_dataframe.dtypes.to_dict()
+
 
 
 

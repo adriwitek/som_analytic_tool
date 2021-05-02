@@ -215,7 +215,7 @@ def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,ta
                                             decadencia_gsom,sigma_gausiana,epocas_gsom,max_iter_gsom,fun_disimilitud,
                                              check, seed)
 
-    session_data.estandarizar_data()
+    #session_data.estandarizar_data()
     data = session_data.get_data_std()
 
     start = time.time()
@@ -264,7 +264,7 @@ def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,ta
     #matriz_de_pesos_neuronas = __gmap_to_matrix(gsom.weights_map)
     session_data.set_modelo(zero_unit)
     end = time.time()
-    session_data.preparar_data_to_analyze()
+    #session_data.preparar_data_to_analyze()
 
     print('ENTRENAMIENTO DEL GSOM FINALIZADO\n')
     print('Tiempo transcurrido en el entrenamiento:',str(end - start),'segundos')

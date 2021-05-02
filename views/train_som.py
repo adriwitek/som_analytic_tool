@@ -217,7 +217,7 @@ def enable_train_som_button(tam_eje_vertical,tam_eje_horizontal,tasa_aprendizaje
               prevent_initial_call=True )
 def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, topology, distance,sigma,iteracciones,pesos_init, semilla, check_semilla):
 
-    session_data.estandarizar_data()
+    #session_data.estandarizar_data()
 
     tasa_aprendizaje=float(tasa_aprendizaje)
     sigma = float(sigma)
@@ -258,7 +258,7 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
     end = time.time()
     print('Tiempo transcurrido en el entrenamiento:',str(end - start),'segundos')
 
-    session_data.preparar_data_to_analyze()
+    #session_data.preparar_data_to_analyze()
 
     return 'Entrenamiento completado'
 

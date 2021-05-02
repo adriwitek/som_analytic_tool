@@ -136,6 +136,20 @@ def Training_selection():
                                                             #,style={'width': '35%'}
     
                                                         ),
+
+
+
+                                                        dbc.Alert(  id="alert_load_model",
+                                                                    children = "ERROR",
+                                                                    color="danger",
+                                                                    dismissable=False,
+                                                                    is_open=False,
+                                                        ),
+
+                                                        dbc.Collapse(   id = 'info_selected_model',
+                                                                        is_open = False,
+                                                                        children =''
+                                                        ),
     
                                                         dbc.Button("Load Selected Model", id="load_model_buton",disabled= True, className="mr-2", color="primary"),
                                                         html.Div(id='hidden_div_for_load_model',style={'textAlign': 'center'} ),
@@ -828,70 +842,74 @@ def select_card_train_or_loadmodel_div(train_b, load_b,outline1,outline2, is_ope
 
 
 #Habilitar boton load_saved_model
-@app.callback(Output('load_model_buton','disabled'),
-              Input('modelos_guardados_en_la_app_dropdown','value'),
-              prevent_initial_call=True
-              )
+@app.callback(  Output('load_model_buton','disabled'),
+                Output('info_selected_model','is_open'),
+                Output('info_selected_model','children'),
+                Input('modelos_guardados_en_la_app_dropdown','value'),
+                prevent_initial_call=True
+)
+def enable_load_saved_model_button(filename):
+    if ( filename ):
 
-def enable_load_saved_model_button(values):
-    if ( values ):
-        return False
+
+        with open(DIR_SAVED_MODELS + filename, 'rb') as handle:
+            unserialized_data = pickle.load(handle)
+            model_type= unserialized_data[0]
+            columns_dtypes =  unserialized_data[1]
+
+            col_names_badges = []
+
+            for c in columns_dtypes.keys():
+                col_names_badges.append( dbc.Badge(c, pill=True, color="info", className="mr-1"))
+        
+            children = html.Div(children= [
+
+
+                html.Br(),
+                html.Div(children = [
+                    dbc.Badge('Model Vector Dimensionality:', pill=True, color="light", className="mr-1"),
+                    dbc.Badge(len(columns_dtypes.keys()), pill=True, color="info", className="mr-1")
+                    
+                ]),
+                html.Br(),
+
+
+                dbc.Badge('Model Trained With Features:', pill=True, color="light", className="mr-1"),
+
+
+                html.Div(children= col_names_badges, style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}),
+                html.Br(),
+                html.Br()
+
+            ])
+
+
+                            
+        
+
+        
+        return False, True, children
     else:
-        return True
-
-'''
-#load selected model
-@app.callback(Output('hidden_div_for_redirect_callback', 'children'),
-              Input('load_model_buton', 'n_clicks'),
-              State('modelos_guardados_en_la_app_dropdown','value'),
-              prevent_initial_call=True )
-def load_selected_model(n_clicks,filename):
-
-
-    # Load data (deserialize)
-    with open(DIR_SAVED_MODELS + filename, 'rb') as handle:
-        unserialized_data = pickle.load(handle)
-        model_type= unserialized_data[0]
-        model_info = unserialized_data[1]
-        session_data.set_modelo(unserialized_data[2])
-
-    #TODO BORRAR ESTO SI NO ESTANDARIZO AL MAPEAR
-    session_data.estandarizar_data()
-    
-    session_data.preparar_data_to_analyze()
-
-
-    if  model_type ==  'som':
-        session_data.set_som_model_info_dict_direct(model_info)
-        return dcc.Location(pathname=URLS['ANALYZE_SOM_URL'], id="redirect")
-    elif model_type ==   'gsom':
-        session_data.set_gsom_model_info_dict_direct(model_info)
-        return dcc.Location(pathname=URLS['ANALYZE_GSOM_URL'], id="redirect")
-    elif model_type ==   'ghsom':
-        session_data.set_ghsom_model_info_dict_direct(model_info)
-        return dcc.Location(pathname=URLS['ANALYZE_GHSOM_URL'], id="redirect")
-    else:   #it something goes worng 
-        return dcc.Location(pathname="/", id="redirect")
-
-'''
+        return True,False, ''
 
 
 #Boton de continuar
-@app.callback(Output('hidden_div_for_redirect_callback', 'children'),
-              Input('load_model_buton', 'n_clicks'),
-              Input('train_mode_som_button', 'n_clicks'),
-              Input('train_mode_gsom_button', 'n_clicks'),
-              Input('train_mode_ghsom_button', 'n_clicks'),
-              State('trainready_dataframe_storage','data'),
-              State('dataset_table_preview', 'selected_columns'),
-              State('modelos_guardados_en_la_app_dropdown','value'),
-
-              prevent_initial_call=True)
+@app.callback(  Output('hidden_div_for_redirect_callback', 'children'),
+                Output('alert_load_model','is_open'),
+                Output('alert_load_model','children'),
+                Input('load_model_buton', 'n_clicks'),
+                Input('train_mode_som_button', 'n_clicks'),
+                Input('train_mode_gsom_button', 'n_clicks'),
+                Input('train_mode_ghsom_button', 'n_clicks'),
+                State('trainready_dataframe_storage','data'),
+                State('dataset_table_preview', 'selected_columns'),
+                State('modelos_guardados_en_la_app_dropdown','value'),
+                prevent_initial_call=True)
 def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, selected_col, filename ):
 
 
     selected_col_name = selected_col[0]
-    session_data.set_target(selected_col_name)
+    session_data.set_target_name(selected_col_name)
 
     df = pd.read_json(data,orient='split')
     session_data.set_pd_dataframe(df)
@@ -905,6 +923,9 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, sele
 
 
 
+    session_data.estandarizar_data()
+
+
     ctx = dash.callback_context
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
@@ -914,34 +935,43 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, sele
         with open(DIR_SAVED_MODELS + filename, 'rb') as handle:
             unserialized_data = pickle.load(handle)
             model_type= unserialized_data[0]
-            model_info = unserialized_data[1]
-            session_data.set_modelo(unserialized_data[2])
+            columns_dtypes =  unserialized_data[1]
+            model_info = unserialized_data[2]
+            session_data.set_modelo(unserialized_data[3])
 
-        #TODO BORRAR ESTO SI NO ESTANDARIZO AL MAPEAR############################################################
-        session_data.estandarizar_data()
+        if(len(session_data.get_colums_dtypes().keys()) != len(columns_dtypes.keys()) ):
+            #dim no coincide
+            return '', True, 'ERROR: Model dimensionality and selected Dataset ones are not the same. Please, edit the number of selected features before continue.'
 
-        session_data.preparar_data_to_analyze()
+        elif(session_data.get_colums_dtypes() != columns_dtypes ):
+            #types no coinciden
+            return '', True, 'ERROR: Model features-types and selected Dataset ones are not the same. Please, edit the selected features before continue.'
 
+        else:
+            #reorder selected dataframe cols to be the same as trained model
+            cols = list(columns_dtypes.keys()) 
+            df = session_data.get_pd_dataframe()[cols]
+            session_data.set_pd_dataframe(df)
 
         if  model_type ==  'som':
             session_data.set_som_model_info_dict_direct(model_info)
-            return dcc.Location(pathname=URLS['ANALYZE_SOM_URL'], id="redirect")
+            return dcc.Location(pathname=URLS['ANALYZE_SOM_URL'], id="redirect"), False, ''
         elif model_type ==   'gsom':
             session_data.set_gsom_model_info_dict_direct(model_info)
-            return dcc.Location(pathname=URLS['ANALYZE_GSOM_URL'], id="redirect")
+            return dcc.Location(pathname=URLS['ANALYZE_GSOM_URL'], id="redirect"), False, ''
         elif model_type ==   'ghsom':
             session_data.set_ghsom_model_info_dict_direct(model_info)
-            return dcc.Location(pathname=URLS['ANALYZE_GHSOM_URL'], id="redirect")
+            return dcc.Location(pathname=URLS['ANALYZE_GHSOM_URL'], id="redirect"), False, ''
         else:   #if something goes worng 
-            return dcc.Location(pathname="/", id="redirect")
+            return dcc.Location(pathname="/", id="redirect"), False, ''
 
 
     elif (button_id == 'train_mode_som_button'):
-        return dcc.Location(pathname=URLS['TRAINING_SOM_URL'], id="redirect")
+        return dcc.Location(pathname=URLS['TRAINING_SOM_URL'], id="redirect"), False, ''
     elif(button_id == 'train_mode_gsom_button'):
-        return dcc.Location(pathname=URLS['TRAINING_GSOM_URL'], id="redirect")
+        return dcc.Location(pathname=URLS['TRAINING_GSOM_URL'], id="redirect"), False, ''
     elif(button_id == 'train_mode_ghsom_button'):
-        return dcc.Location(pathname=URLS['TRAINING_GHSOM_URL'], id="redirect")
+        return dcc.Location(pathname=URLS['TRAINING_GHSOM_URL'], id="redirect"), False, ''
     else:   #if something goes wrong 
-        return dcc.Location(pathname="/", id="redirect")
+        return dcc.Location(pathname="/", id="redirect"), False, ''
 

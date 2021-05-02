@@ -308,7 +308,9 @@ def enable_ver_mapas_componentes_button(values):
 def ver_estadisticas_som(n_clicks):
 
     som = session_data.get_modelo()
-    data = session_data.get_data()
+    #data = session_data.get_data()
+    data = session_data.get_data_std()
+
 
     qe,mqe = som.get_qe_and_mqe_errors(data)
 
@@ -375,10 +377,14 @@ def update_som_fig(n_clicks, check_annotations):
  
     som = session_data.get_modelo()
     #dataset = session_data.get_dataset()
-    data = session_data.get_data()
+    #data = session_data.get_data()
+    data = session_data.get_data_std()
+
+    
     #targets = dataset[:,-1:]
     targets = session_data.get_targets_col()
     #targets_list = [t[0] for t in targets.tolist()]
+    #TODO poner aqui .T en vez de to list
     targets_list =  targets.tolist()
     
 
@@ -467,7 +473,10 @@ def annotate_freq_map_som(check_annotations, fig,n_clicks):
 def update_mapa_frecuencias_fig(click, check_annotations):
 
     som = session_data.get_modelo() 
-    model_data = session_data.get_data()
+    #model_data = session_data.get_data()
+    model_data = session_data.get_data_std()
+
+    
     params = session_data.get_som_model_info_dict()
     tam_eje_horizontal = params['tam_eje_horizontal'] 
     tam_eje_vertical = params['tam_eje_vertical']
@@ -588,8 +597,10 @@ def save_som_model(n_clicks,name,isvalid):
     data = []
 
     params = session_data.get_som_model_info_dict()
+    columns_dtypes = session_data.get_colums_dtypes()
 
     data.append('som')
+    data.append(columns_dtypes)
     data.append(params)
     data.append(session_data.get_modelo())
 

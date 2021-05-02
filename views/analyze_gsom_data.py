@@ -362,7 +362,9 @@ def update_winner_map_gsom(click,check_annotations):
 
     #dataset = session_data.get_dataset()
     targets_col =  session_data.get_targets_col()
-    data = session_data.get_data()
+    #data = session_data.get_data()
+    data = session_data.get_data_std()
+
     zero_unit = session_data.get_modelo()
     gsom = zero_unit.child_map
     tam_eje_vertical,tam_eje_horizontal=  gsom.map_shape()
@@ -426,7 +428,9 @@ def update_freq_map_gsom(click):
     
     #tam_eje_vertical = params['tam_eje_vertical']
     #tam_eje_horizontal = params['tam_eje_horizontal']
-    data = session_data.get_data()
+    #data = session_data.get_data()
+    data = session_data.get_data_std()
+
     zero_unit = session_data.get_modelo()
     gsom = zero_unit.child_map
     tam_eje_vertical,tam_eje_horizontal=  gsom.map_shape()
@@ -642,8 +646,10 @@ def save_gsom_model(n_clicks,name,isvalid):
     data = []
 
     params = session_data.get_gsom_model_info_dict()
+    columns_dtypes = session_data.get_colums_dtypes()
 
     data.append('gsom')
+    data.append(columns_dtypes)
     data.append(params)
     data.append(session_data.get_modelo())
 
