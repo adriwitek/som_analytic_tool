@@ -223,9 +223,22 @@ def Home():
                                             # Allow multiple files to be uploaded
                                             multiple=False),
 
+                        dbc.Collapse(id ='collapse_div_info_loaded_file',
+                                    is_open= False,
+                                    children = [   
+                                        html.Div(id='div_info_loaded_file',
+                                                style=hidden_div_style,
+                                                children = div_info_loaded_file('','','','')
+                                        )
+                                    ]
+                        ),
+
+
 
                         # Preview Table
                         html.Div(id = 'preview_table' ,children =''),
+                        html.Br(),
+
 
                         #info showed when the dataset its loaded
                         dbc.Collapse(id='collapse_modify_data_button', is_open = False, children = 
@@ -238,7 +251,7 @@ def Home():
                             children = [   
                                 html.Div(id='info_dataset_div',
                                         style=hidden_div_style,
-                                        children = div_info_dataset('','', '', '', None ) 
+                                        children = div_info_dataset( None,0 ) 
                                 )
                             ]
                         )
@@ -305,30 +318,68 @@ def get_app_saved_models():
 
 
  
-def div_info_dataset(filename,fecha_modificacion, n_samples, n_features, df):
+def div_info_loaded_file(filename,fecha_modificacion, n_samples, n_features):
+    return      html.Div(    id = 'div_info_loaded_file',
+                            style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
+                            children =[
+                                html.H6( dbc.Badge( 'Filename:' ,  pill=True, color="light", className="mr-1")   ),
+                                html.H6( dbc.Badge(filename, pill=True, color="info", className="mr-1")   ),
+                                html.H6( dbc.Badge( '---->' ,  pill=True, color="light", className="mr-1")   ),
+
+                                #html.H6( dbc.Badge(fecha_modificacion, pill=True, color="warning", className="mr-1")   ),
+                                html.H6( dbc.Badge(str(n_samples) , id= 'badge_n_samples', pill=True, color="info", className="mr-1")   ),
+                                html.H6( dbc.Badge( ' samples' , id= 'badge_n_samples', pill=True, color="light", className="mr-1")   ),
+
+                                html.H6( dbc.Badge(str(n_features) , id= 'badge_n_features', pill=True, color="info", className="mr-1")   ),
+                                html.H6( dbc.Badge( ' features' , id= 'badge_n_features', pill=True, color="light", className="mr-1")   )
+
+                ])
+    
+
+def div_info_dataset( df, n_samples):
     if(df is None):
         return ''
     return html.Div(id='output_uploaded_file',children=[
-                html.P(children= 'File:  ' + filename, style={'textAlign': 'center'} ),
-                html.P(children= 'Last modified: ' + fecha_modificacion, style={'textAlign': 'center'} ),
-                html.P(children= 'Number of Samples:  ' + n_samples , style={'textAlign': 'center'} ),
-                html.P(children= 'Number of Features:  ' + n_features , style={'textAlign': 'center'} ),
 
-
-                html.Div(id='output-data-upload_1',style={'textAlign': 'center'} ),
-                html.Div(id='output-data-upload_2',style={'textAlign': 'center'} ),
-                html.Div(id='n_samples',style={'textAlign': 'center'} ),
-                html.Div(id='n_features',style={'textAlign': 'center'} ),
-            
-
-
-
-
-                #Atrib names
-                html.H6('Feature Selection:'
-                       
+                html.Br(),
+                #Dataset percentage
+                html.Div(style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
+                        children = [
+                            html.H6(children='Dataset percentage\t'),
+                            html.H6( dbc.Badge( '100 %',  pill=True, color="info", className="mr-1",id ='badge_info_percentagedataset_slider')   )
+                        ]
                 ),
 
+                #Slider percentage
+                dcc.Slider(id='dataset_percentage_slider', min=(100/n_samples),max=100,value=100,step =1 ,
+                            marks={
+                                0: {'label': '0 %'},
+                                10: {'label': '10 %'},
+                                25: {'label':  '25 %'},
+                                50: {'label':  '50 %'},
+                                75: {'label':  '75 %'},
+                                100: {'label': '100 %'}
+                            }
+                ),
+
+
+                #Number of samples
+                html.Div(style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
+                        children = [
+                            html.H6(children='Number of samples\t'),
+                            dcc.Input(id="dataset_percentage_input", type="number", value=n_samples,step=1,min=1, max = n_samples),
+                        ]
+                
+                ),
+               
+                html.Br(),
+                html.Br(),
+
+
+                           
+
+                #Atrib names
+                html.H6('Feature Selection:'),
                 dcc.Dropdown(id='dropdown_col_df_names',
                            options=[],
                            multi=True,
@@ -345,6 +396,8 @@ def div_info_dataset(filename,fecha_modificacion, n_samples, n_features, df):
                     switch=True,
                 ),
 
+                html.Br(),
+
 
                 dbc.Checklist(  options=[{"label": "Apply One Hot Encoding", "value": 0}],
                                             value=[],
@@ -355,10 +408,6 @@ def div_info_dataset(filename,fecha_modificacion, n_samples, n_features, df):
 
 
 
-            
-                
-                #html.Div(id = 'preview_table' ,children =create_preview_table(df))
-                #html.Div(id = 'preview_table' ,children =''),
 
                 html.Div(
                     [
@@ -379,7 +428,7 @@ def div_info_dataset(filename,fecha_modificacion, n_samples, n_features, df):
 
                 
 
-            ])
+        ])
                       
 
 
@@ -397,6 +446,9 @@ def create_preview_table(df):
     
    
     return html.Div([
+
+                    html.Br(),
+
                     html.H4('Table Preview',className="card-title" , style={'textAlign': 'center'} ),
 
                     dcc.Loading(id='loading',
@@ -645,13 +697,16 @@ def show_onehot_menu(check_onehot):
 
 
 #Carga la info del dataset en el home
-@app.callback(Output('original_dataframe_storage', 'data'),
-              Output('info_dataset_div', 'children'),
-              Output('info_dataset_div', 'style'),
-              Input('upload-data', 'contents'),
-              State('upload-data', 'filename'),
-              State('upload-data', 'last_modified'), 
-              prevent_initial_call=True)
+@app.callback(  Output('original_dataframe_storage', 'data'),
+                Output('collapse_div_info_loaded_file','children'),
+                Output('collapse_div_info_loaded_file','is_open'),
+                Output('info_dataset_div', 'children'),
+                Output('info_dataset_div', 'style'),
+                Input('upload-data', 'contents'),
+                State('upload-data', 'filename'),
+                State('upload-data', 'last_modified'), 
+                prevent_initial_call=True
+)
 #TODO
 #@cache.memoize(timeout=60)  # in seconds
 def update_output( contents, filename, last_modified):
@@ -679,32 +734,31 @@ def update_output( contents, filename, last_modified):
                 dataframe = pd.read_excel(io.BytesIO(decoded))
 
             else:
-                return None,html.Div([ 'ERROR: File format not admited']),show_file_info_style
+                return None,'', False, html.Div([ 'ERROR: File format not admited']),show_file_info_style
 
         except Exception as e:
             print(e)
-            return None,html.Div([ 'An error occurred processing the file']), show_file_info_style
+            return None,'', False, html.Div([ 'An error occurred processing the file']), show_file_info_style
         
     
 
         n_samples, n_features=dataframe.shape
         if(n_samples == 0):
-            return None, html.Div([ 'ERROR: The file does not contain any  sample']),show_file_info_style
+            return None,'', False, html.Div([ 'ERROR: The file does not contain any  sample']),show_file_info_style
         elif(n_features<=2):
-            return None,html.Div([ 'ERROR: The file must contain at least 2 features']),show_file_info_style
+            return None,'', False, html.Div([ 'ERROR: The file must contain at least 2 features']),show_file_info_style
             
 
-      
-        divv = div_info_dataset(filename,
-                                datetime.utcfromtimestamp(last_modified).strftime('%d/%m/%Y %H:%M:%S'),
-                                str(n_samples),
-                                str(n_features),
-                                dataframe) 
-        return dataframe.to_json(date_format='iso',orient = 'split'),divv, show_file_info_style
+        div1 = div_info_loaded_file(filename,
+                                    datetime.utcfromtimestamp(last_modified).strftime('%d/%m/%Y %H:%M:%S'),
+                                    str(n_samples),
+                                    str(n_features))
+        div2 = div_info_dataset(dataframe,n_samples) 
+        return dataframe.to_json(date_format='iso',orient = 'split'),div1, True,   div2, show_file_info_style
                 
 
     else: 
-        return  None,div_info_dataset('','', '', '' , None)  ,{'textAlign': 'center', "visibility": "hidden"}
+        return  None,'' , False,  div_info_dataset( None,0)  ,{'textAlign': 'center', "visibility": "hidden"}
 
 
 
@@ -974,4 +1028,37 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, sele
         return dcc.Location(pathname=URLS['TRAINING_GHSOM_URL'], id="redirect"), False, ''
     else:   #if something goes wrong 
         return dcc.Location(pathname="/", id="redirect"), False, ''
+
+
+
+
+
+# Sync slider 
+@app.callback(  Output("dataset_percentage_slider", "value"),
+                Output("badge_info_percentagedataset_slider", "children"),
+                Output("dataset_percentage_input", "value"),
+                Input("dataset_percentage_slider", "value"),
+                Input("dataset_percentage_input", "value"),
+                State('original_dataframe_storage', 'data'),
+                prevent_initial_call=True
+                )
+def sync_slider_input_datasetpercentage(slider_percentage, n_samples_sel, input_data):
+    ctx = dash.callback_context
+    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    df = pd.read_json(input_data,orient='split')
+    n_samples, _ =df.shape
+
+    if (trigger_id == "dataset_percentage_slider"):
+        if(slider_percentage is None):
+            raise dash.exceptions.PreventUpdate
+        else:
+            number = (slider_percentage * n_samples)/100
+            return dash.no_update, (str(slider_percentage) + ' %'), number
+    else:
+        if(n_samples_sel is None or n_samples_sel >n_samples ):
+            raise dash.exceptions.PreventUpdate
+        else:
+            percentage = (n_samples_sel*100)/n_samples
+            return percentage, (str(percentage) + ' %'),dash.no_update
+
 
