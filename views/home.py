@@ -239,7 +239,7 @@ def Home():
 
 
                         # Preview Table
-                        html.Div(id = 'preview_table' ,children =''),
+                        html.Div(id = 'preview_table' ,children = create_preview_table(None)),
                         html.Br(),
 
 
@@ -360,6 +360,9 @@ def div_info_dataset( df, n_samples):
                            value = []
                 ),
         ])
+
+
+
     return html.Div(id='output_uploaded_file',children=[
 
                 html.Br(),
@@ -470,7 +473,16 @@ def div_info_dataset( df, n_samples):
     
 
 
-def create_preview_table(df):
+def create_preview_table(df, selected_columns = []):
+
+    if(df is None):
+        return   dash_table.DataTable(
+                                            id='dataset_table_preview',
+                                            column_selectable="single",
+                                            columns=[],
+                                        
+                                            selected_columns=[])
+
 
    
     return html.Div([
@@ -488,19 +500,24 @@ def create_preview_table(df):
                                         dash_table.DataTable(
                                             id='dataset_table_preview',
                                             column_selectable="single",
-                                            columns=[{"name": i, "id": i, "selectable": True} for i in df.columns],
+                                            columns=[{"name": str(i), "id": str(i), "selectable": True} for i in df.columns],
                                             
-                                            selected_columns=[],
+                                            selected_columns=selected_columns,
                                             data=df.head(DEFAULT_DATASET_ROWS_PREVIEW).to_dict('records'),
 
                                             style_cell={'textAlign': 'center',
                                                         'textOverflow': 'ellipsis',
                                                         'overflowX': 'auto'
                                             },
-
-
+ 
 
                                             style_data_conditional=[
+
+                                                #{
+                                                # 'if': { 'state': 'selected'   },
+                                                # 'background_color': '#D2F3FF'
+                                                #},
+
                                                 {
                                                     'if': {'row_index': 'odd'},
                                                     'backgroundColor': 'rgb(248, 248, 248)'
@@ -600,14 +617,15 @@ def getNumericVars(df, clean_categorical_data):
 #	                     CALLBACKS	                        #
 #############################################################
 
-'''
+
+
 #Seleccionar columna
 @app.callback(
     Output('dataset_table_preview', 'style_data_conditional'),
     Input('dataset_table_preview', 'selected_columns')
 )
 def update_styles(selected_columns):
-    print('selected coluss', selected_columns)
+    #print('selected coluss', selected_columns)
     # [] if no column selected
     dataset_table_preview =  [{
         'if': { 'column_id': i },
@@ -616,7 +634,7 @@ def update_styles(selected_columns):
 
     return dataset_table_preview
    
-'''
+
 
 
 @app.callback(  Output('dropdown_features_toonehot', 'options'),
@@ -881,17 +899,21 @@ def processed_df_callback(processed_df,not_numeric_df):
 
 @app.callback(  Output('dropdown_feature_selection','value'),
                 Output('dropdown_target_selection','value'),
+                
                 Input('dropdown_feature_selection','value'),
                 Input('dropdown_target_selection','value'),
                 Input('dropdown_feature_selection','options'),
+                    Input('dataset_table_preview', 'selected_columns'),
+
                 prevent_initial_call=True
 
 )
-def sync_target_and_feature_selection(features_values,target_value, feature_options):
+def sync_target_and_feature_selection(features_values,target_value, feature_options,table_selected_col):
 
     ctx = dash.callback_context
     trigger = ctx.triggered[0]["prop_id"]
     
+    #print('table_target_selection',table_selected_col)
 
     if(trigger == 'dropdown_feature_selection.options'): #first call select all
         all_features_values = []
@@ -900,6 +922,13 @@ def sync_target_and_feature_selection(features_values,target_value, feature_opti
         return all_features_values, None
 
     else:#rest of calls
+
+        
+        if(trigger =='dataset_table_preview.selected_columns' and table_selected_col is not None and len(table_selected_col)>0 ):
+            target_value = table_selected_col[0]
+            #print('hhiitt--->target_value',target_value)
+
+        #print('target_value es',target_value)
 
         if(target_value is None or len(target_value)==0): #no target
             return dash.no_update, dash.no_update
@@ -910,7 +939,7 @@ def sync_target_and_feature_selection(features_values,target_value, feature_opti
                 features_values.remove(target_value)
                 return features_values, target_value
             else:
-                return dash.no_update, dash.no_update
+                return dash.no_update, target_value
 
     
 
@@ -934,6 +963,7 @@ def callback_preview_table(input_data,features_values,target_value,n_of_samples,
 
 
     disabled_button = True
+    selected_columns = []
     
 
     if (input_data is  None) or  ( len(features_values)==0 and (target_value is  None or (len(target_value) ==0 )) ):
@@ -948,9 +978,12 @@ def callback_preview_table(input_data,features_values,target_value,n_of_samples,
         else:  
             dff =   pd.DataFrame(columns=[])
 
+        
 
         #Add target col
         if( target_value is not None and (len(target_value) >0 )):
+            
+            selected_columns = [target_value]
 
             if(target_value not in df.columns):
                 notnumeric_df = pd.read_json(notnumeric_df,orient='split')
@@ -998,7 +1031,7 @@ def callback_preview_table(input_data,features_values,target_value,n_of_samples,
             disabled_button = True
 
 
-    table =  create_preview_table(dff)
+    table =  create_preview_table(dff,selected_columns = selected_columns )
 
 
     return table, disabled_button, disabled_button
