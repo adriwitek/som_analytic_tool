@@ -106,7 +106,7 @@ class Sesion():
     def set_pd_dataframe(self,df_features,df_target=None):
       
         #self.pd_dataframe = df.copy()
-        self.pd_dataframe = df
+        self.pd_dataframe = df_features
         self.pd_dataframe_target = df_target
 
         if(df_target is not None):

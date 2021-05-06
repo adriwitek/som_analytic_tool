@@ -1094,6 +1094,8 @@ def toggle_collapse_info_dataset(n, is_open):
                 Output('load_saved_model_button','outline'),
                 Input('train_new_model_button','n_clicks'),
                 Input('load_saved_model_button','n_clicks'),
+                Input('dropdown_feature_selection','value'),
+
                 State('train_new_model_button','outline'),
                 State('load_saved_model_button','outline'),
                 State('train_newmodel_collapse','is_open'),
@@ -1101,16 +1103,22 @@ def toggle_collapse_info_dataset(n, is_open):
                 prevent_initial_call=True
 
 )
-def select_card_train_or_loadmodel_div(train_b, load_b,outline1,outline2, is_open1, is_open2):
+def select_card_train_or_loadmodel_div(train_b, load_b,features_values, outline1,outline2, is_open1, is_open2):
     
 
     ctx = dash.callback_context
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
+    if(  len(features_values)==0 ):
+        return False,False,True,True
     if(button_id == 'train_new_model_button'):
         return not is_open1 ,False, not outline1, True
-    else:
+    elif(button_id == 'load_saved_model_button'):
         return  False, not is_open2,True, not outline2
+    else:
+        return False,False,True,True
+
+
 
 
 #Habilitar boton load_saved_model
@@ -1118,6 +1126,7 @@ def select_card_train_or_loadmodel_div(train_b, load_b,outline1,outline2, is_ope
                 Output('info_selected_model','is_open'),
                 Output('info_selected_model','children'),
                 Input('modelos_guardados_en_la_app_dropdown','value'),
+                
                 prevent_initial_call=True
 )
 def enable_load_saved_model_button(filename):
@@ -1230,7 +1239,7 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notn
 
         session_data.set_target_name(str(target_selection))
 
-        if(target_value not in columns):
+        if(target_value not in df.columns):
             notnumeric_df = pd.read_json(notnumeric_df,orient='split')
             df_target = notnumeric_df[target_value] 
         else:
@@ -1245,13 +1254,14 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notn
 
 
     #TODO YA NO NECESITO ESTO SI NO TEXTO Y NO TEXTO
+    '''
     if(df[selected_col_name].dtype ==  np.float64):
         print('TARGET CONTINUOS')
         session_data.set_discrete_data(False)
     else:
         print('TARGET DISCRETOS')
         session_data.set_discrete_data(True)
-
+    '''
 
 
 
