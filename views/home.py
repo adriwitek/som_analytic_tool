@@ -29,7 +29,7 @@ import plotly.graph_objects as go
 from os import listdir,makedirs
 from os.path import isfile, join
 import pickle
-
+from math import ceil
 
 
 show_file_info_style =  {'textAlign': 'center',  'display': 'block'}
@@ -375,12 +375,11 @@ def div_info_dataset( df, n_samples):
                 ),
 
                 #Slider percentage
-                dcc.Slider(id='dataset_percentage_slider', min=(100/n_samples),max=100,value=100,step =1 ,
+                dcc.Slider(id='dataset_percentage_slider', min=ceil(100/n_samples),max=100,value=100,step =1 ,
                             marks={
                                 0: {'label': '0 %'},
                                 10: {'label': '10 %'},
                                 25: {'label':  '25 %'},
-                                30: {'label':  '30 %'},
                                 50: {'label':  '50 %'},
                                 75: {'label':  '75 %'},
                                 100: {'label': '100 %'}
@@ -476,12 +475,14 @@ def div_info_dataset( df, n_samples):
 def create_preview_table(df, selected_columns = []):
 
     if(df is None):
-        return   dash_table.DataTable(
+        return dash_table.DataTable(
                                             id='dataset_table_preview',
                                             column_selectable="single",
                                             columns=[],
                                         
                                             selected_columns=[])
+        
+
 
 
    
@@ -490,9 +491,10 @@ def create_preview_table(df, selected_columns = []):
                     html.Br(),
 
                     html.H4('Table Preview',className="card-title" , style={'textAlign': 'center'} ),
+                    html.P('Select a column to mark it as Target',className="text-secondary",  style={'textAlign': 'center'}  ),
 
                     dcc.Loading(id='loading',
-                                type='circle',
+                                type='dot',
                                 children=[
                                     
                                     html.Div(style = {"overflow": "scroll"},
@@ -803,55 +805,6 @@ def update_output( contents, filename, last_modified):
 
 
 
-
-'''
-# Select columns and store in filtered-data-storage
-@app.callback(  Output('train_new_model_button','disabled'),
-                Output('load_saved_model_button','disabled'),
-                Input('processed_dataframe_storage','data'),
-                Input('dropdown_feature_selection','value'),
-                prevent_initial_call=True
-               )
-
-def disable_train_load_buttons(processed_df,columns):
-
-    if processed_df is not None and len(columns)>0:
-        disabled_button = False
-
-    else:
-        disabled_button = True
-
-    return disabled_button,disabled_button
-'''
-
-'''
-# Select columns and store in filtered-data-storage
-@app.callback(  Output('preview_table','children'),
-                Output('trainready_dataframe_storage','data'),
-                Output('train_new_model_button','disabled'),
-                Output('load_saved_model_button','disabled'),
-                Input('processed_dataframe_storage','data'),
-                Input('dropdown_feature_selection','value'),
-                prevent_initial_call=True
-               )
-def update_table_preview(input_data,columns):
-
-    if input_data is not None and len(columns)>0:
-        dff = pd.read_json(input_data,orient='split')
-        dff = dff[columns]
-        disabled_button = False
-
-    else:
-        dff =   pd.DataFrame(columns=[])
-        disabled_button = True
-
-
-    data =  dff.to_json(date_format='iso',orient = 'split')
-    table =  create_preview_table(dff)
-
-
-    return table,data,disabled_button,disabled_button
-'''
 
 
 
@@ -1183,6 +1136,7 @@ def enable_load_saved_model_button(filename):
                 State('original_dataframe_storage', 'data'),
                 prevent_initial_call=True
                 )
+#todo en vez de leer json almacenar en un store
 def sync_slider_input_datasetpercentage(slider_percentage, n_samples_sel, input_data):
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
@@ -1194,13 +1148,15 @@ def sync_slider_input_datasetpercentage(slider_percentage, n_samples_sel, input_
             raise dash.exceptions.PreventUpdate
         else:
             number = (slider_percentage * n_samples)/100
-            return dash.no_update, (str(slider_percentage) + ' %'), number
+            number = ceil(number)
+            percentage = (number*100)/n_samples
+            return percentage, (str(percentage) + ' %'), number
     else:
         if(n_samples_sel is None or n_samples_sel >n_samples ):
             raise dash.exceptions.PreventUpdate
         else:
             percentage = (n_samples_sel*100)/n_samples
-            return percentage, (str(percentage) + ' %'),dash.no_update
+            return percentage, (str(  round(percentage, 3 )) + ' %'),dash.no_update
 
 
 
@@ -1217,21 +1173,24 @@ def sync_slider_input_datasetpercentage(slider_percentage, n_samples_sel, input_
                 State('notnumeric_dataframe_storage','data'),
 
                 State('modelos_guardados_en_la_app_dropdown','value'),
-                                State('dataset_nsamples_input','value'),
-                                State('dropdown_target_selection','value'),
-                                State('dropdown_feature_selection','value'),
+                                State("dataset_percentage_slider", "value"),
+
+                State('dataset_nsamples_input','value'),
+                State('dropdown_target_selection','value'),
+                State('dropdown_feature_selection','value'),
 
 
 
                 prevent_initial_call=True)
-def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notnumeric_df, filename, nsamples_selected, target_selection, feature_selection  ):
+def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notnumeric_df, filename,nsamples_percentage, nsamples_selected, target_selection, feature_selection  ):
 
 
     
   
 
     df = pd.read_json(data,orient='split')
-    df = df.sample(n=nsamples_selected)
+    if(nsamples_percentage != 100):
+        df = df.sample(n=nsamples_selected)
 
     df_target = None
 
