@@ -197,7 +197,10 @@ def Home():
         dcc.Store(id='original_dataframe_storage',data=None),
         dcc.Store(id='processed_dataframe_storage',data=None),
         dcc.Store(id='notnumeric_dataframe_storage',data=None),
-        dcc.Store(id='trainready_dataframe_storage',data=None),
+        #dcc.Store(id='trainready_dataframe_storage',data=None),
+        #For make quicker the home view this additional dcc store
+        dcc.Store(id='head_processed_dataframe_storage',data=None),
+
 
 
         elements.navigation_bar,
@@ -338,7 +341,25 @@ def div_info_loaded_file(filename,fecha_modificacion, n_samples, n_features):
 
 def div_info_dataset( df, n_samples):
     if(df is None):
-        return ''
+        return html.Div(style = { "visibility": "hidden",'display':'none'}  ,
+        
+                children = [
+                #Necesario para la callback de entrenarcargar modelo
+                #Target
+                dcc.Dropdown(id='dropdown_target_selection',
+                           options=[],
+                           multi=False,
+                           value = []
+                ),
+                html.Br(),           
+
+                #Atrib names
+                dcc.Dropdown(id='dropdown_feature_selection',
+                           options=[],
+                           multi=True,
+                           value = []
+                ),
+        ])
     return html.Div(id='output_uploaded_file',children=[
 
                 html.Br(),
@@ -346,7 +367,7 @@ def div_info_dataset( df, n_samples):
                 html.Div(style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
                         children = [
                             html.H6(children='Dataset percentage\t'),
-                            html.H6( dbc.Badge( '100 %',  pill=True, color="info", className="mr-1",id ='badge_info_percentagedataset_slider')   )
+                            html.H6( dbc.Badge( '100 %',  pill=True, color="warning", className="mr-1",id ='badge_info_percentagedataset_slider')   )
                         ]
                 ),
 
@@ -356,6 +377,7 @@ def div_info_dataset( df, n_samples):
                                 0: {'label': '0 %'},
                                 10: {'label': '10 %'},
                                 25: {'label':  '25 %'},
+                                30: {'label':  '30 %'},
                                 50: {'label':  '50 %'},
                                 75: {'label':  '75 %'},
                                 100: {'label': '100 %'}
@@ -367,7 +389,7 @@ def div_info_dataset( df, n_samples):
                 html.Div(style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
                         children = [
                             html.H6(children='Number of samples\t'),
-                            dcc.Input(id="dataset_percentage_input", type="number", value=n_samples,step=1,min=1, max = n_samples),
+                            dcc.Input(id="dataset_nsamples_input", type="number", value=n_samples,step=1,min=1, max = n_samples),
                         ]
                 
                 ),
@@ -376,16 +398,17 @@ def div_info_dataset( df, n_samples):
                 html.Br(),
 
 
-                           
+                #Target
+                html.H6('Target Selection:'),
+                dcc.Dropdown(id='dropdown_target_selection',
+                           options=[],
+                           multi=False,
+                           value = []
+                ),
+                html.Br(),           
 
                 #Atrib names
                 html.H6('Feature Selection:'),
-                dcc.Dropdown(id='dropdown_col_df_names',
-                           options=[],
-                           multi=True,
-                           value = []
-                ),
-
 
                 dbc.Checklist(
                     options=[
@@ -395,6 +418,17 @@ def div_info_dataset( df, n_samples):
                     id="clean_data_switch",
                     switch=True,
                 ),
+
+                dcc.Dropdown(id='dropdown_feature_selection',
+                           options=[],
+                           #options=session_data.get_data_features_names_dcc_dropdown_format(columns=df.columns.tolist()),
+                           multi=True,
+                           #value = df.columns.tolist()
+                           value = []
+                ),
+
+
+              
 
                 html.Br(),
 
@@ -438,12 +472,6 @@ def div_info_dataset( df, n_samples):
 
 def create_preview_table(df):
 
-    #TODO BORRAR ESTO SI NO QUIERO QUE SEA OBLIGATORI EL TARGET
-    selected_columns = []
-    
-    if (len(df.columns) > 0):
-        selected_columns.append(df.columns[len(df.columns)-1])
-    
    
     return html.Div([
 
@@ -462,7 +490,7 @@ def create_preview_table(df):
                                             column_selectable="single",
                                             columns=[{"name": i, "id": i, "selectable": True} for i in df.columns],
                                             
-                                            selected_columns=selected_columns,
+                                            selected_columns=[],
                                             data=df.head(DEFAULT_DATASET_ROWS_PREVIEW).to_dict('records'),
 
                                             style_cell={'textAlign': 'center',
@@ -505,9 +533,9 @@ def get_onehot_childrendiv_menu():
                 children = [
                 
                 
-                    html.H5("Select features to apply One Hot:"),
+                    html.H5("Select Categorical Features to apply them One Hot:"),
                     dcc.Dropdown(
-                        id='dropdown_atrib_names_home',
+                        id='dropdown_features_toonehot',
                         options=[],
                         multi=True
                     ),
@@ -572,31 +600,26 @@ def getNumericVars(df, clean_categorical_data):
 #	                     CALLBACKS	                        #
 #############################################################
 
-
+'''
 #Seleccionar columna
 @app.callback(
     Output('dataset_table_preview', 'style_data_conditional'),
     Input('dataset_table_preview', 'selected_columns')
 )
 def update_styles(selected_columns):
-    #print('selected coluss', selected_columns)
+    print('selected coluss', selected_columns)
+    # [] if no column selected
     dataset_table_preview =  [{
         'if': { 'column_id': i },
         'background_color': '#D2F3FF'
     } for i in selected_columns]
 
     return dataset_table_preview
-    #TODO AQUI VA LA CONDICION DE DESHABILITAR BOTON DE CARGAR MODELO SI NO HAY TARGET....
-    '''
-    if(not selected_columns):
-        return dataset_table_preview,
-    else:
-        return dataset_table_preview
-    '''
+   
+'''
 
 
-
-@app.callback(  Output('dropdown_atrib_names_home', 'options'),
+@app.callback(  Output('dropdown_features_toonehot', 'options'),
                 Input('notnumeric_dataframe_storage', 'data'),
                 prevent_initial_call=True 
 )
@@ -622,7 +645,7 @@ def onehot_dropdown_options(input_data):
                 Input('apply_onehot_button', 'n_clicks'),
                 State('processed_dataframe_storage','data'),
                 State('notnumeric_dataframe_storage','data'),
-                State('dropdown_atrib_names_home','value'),
+                State('dropdown_features_toonehot','value'),
                 State('check_nanvalues_onehot','value'),
                 prevent_initial_call=True
             )
@@ -763,16 +786,34 @@ def update_output( contents, filename, last_modified):
 
 
 
+'''
+# Select columns and store in filtered-data-storage
+@app.callback(  Output('train_new_model_button','disabled'),
+                Output('load_saved_model_button','disabled'),
+                Input('processed_dataframe_storage','data'),
+                Input('dropdown_feature_selection','value'),
+                prevent_initial_call=True
+               )
 
+def disable_train_load_buttons(processed_df,columns):
 
+    if processed_df is not None and len(columns)>0:
+        disabled_button = False
+
+    else:
+        disabled_button = True
+
+    return disabled_button,disabled_button
+'''
+
+'''
 # Select columns and store in filtered-data-storage
 @app.callback(  Output('preview_table','children'),
                 Output('trainready_dataframe_storage','data'),
-                #Output('continue_button_home','disabled'),
                 Output('train_new_model_button','disabled'),
                 Output('load_saved_model_button','disabled'),
                 Input('processed_dataframe_storage','data'),
-                Input('dropdown_col_df_names','value'),
+                Input('dropdown_feature_selection','value'),
                 prevent_initial_call=True
                )
 def update_table_preview(input_data,columns):
@@ -792,31 +833,175 @@ def update_table_preview(input_data,columns):
 
 
     return table,data,disabled_button,disabled_button
+'''
+
 
 
 # numerical_features_to_dropdown
-@app.callback(  Output('dropdown_col_df_names','options'),
-                Output('dropdown_col_df_names','value'),
+@app.callback(  Output('head_processed_dataframe_storage','data'),
+                Output('dropdown_feature_selection','options'),
+                Output('dropdown_target_selection','options'),
                 Input('processed_dataframe_storage','data'),
-                prevent_initial_call=True
+                State('notnumeric_dataframe_storage','data'),
             )
 
-def numerical_features_to_dropdown(input_data):
+def processed_df_callback(processed_df,not_numeric_df):
 
-        if input_data is not None:
-            dff = pd.read_json(input_data,orient='split')
-            columns = dff.columns
-        else:
-            columns=[]
+    
+
+    if processed_df is not None:
+        dff1 = pd.read_json(processed_df,orient='split')
+        processed_cols = dff1.columns.tolist()
+    else:
+        raise PreventUpdate
+  
+
+    if(not_numeric_df is not None):
+        dff2 = pd.read_json(not_numeric_df,orient='split')
+        notnum_cols = dff2.columns.tolist() 
+ 
+   
+    #Features options = processed df
+    options_feature_selection = []  # must be a list of dicts per option
+    for n in processed_cols:
+        options_feature_selection.append({'label' : n, 'value': n})
+
+    #Targets options = processed df + notnum df
+    options_target_selection = options_feature_selection.copy() 
+    for n in notnum_cols:
+        options_target_selection.append({'label' : n, 'value': n})
 
 
-        options = []  # must be a list of dicts per option
+    #For preview table
+    head = dff1.head(DEFAULT_DATASET_ROWS_PREVIEW).to_json(date_format='iso',orient = 'split') 
 
-        for n in columns:
-            options.append({'label' : n, 'value': n})
-
-        return options, columns
+    return  head, options_feature_selection, options_target_selection
        
+
+
+@app.callback(  Output('dropdown_feature_selection','value'),
+                Output('dropdown_target_selection','value'),
+                Input('dropdown_feature_selection','value'),
+                Input('dropdown_target_selection','value'),
+                Input('dropdown_feature_selection','options'),
+                prevent_initial_call=True
+
+)
+def sync_target_and_feature_selection(features_values,target_value, feature_options):
+
+    ctx = dash.callback_context
+    trigger = ctx.triggered[0]["prop_id"]
+    
+
+    if(trigger == 'dropdown_feature_selection.options'): #first call select all
+        all_features_values = []
+        for dic in feature_options:
+            all_features_values.append(dic['label'])
+        return all_features_values, None
+
+    else:#rest of calls
+
+        if(target_value is None or len(target_value)==0): #no target
+            return dash.no_update, dash.no_update
+
+        else:
+        
+            if( target_value in features_values):
+                features_values.remove(target_value)
+                return features_values, target_value
+            else:
+                return dash.no_update, dash.no_update
+
+    
+
+
+
+
+
+@app.callback(  Output('preview_table','children'),
+                Output('train_new_model_button','disabled'),
+                Output('load_saved_model_button','disabled'),
+                Input('head_processed_dataframe_storage','data'),
+                Input('dropdown_feature_selection','value'),
+                Input('dropdown_target_selection','value'),
+                State('dataset_nsamples_input','value'),
+                State('notnumeric_dataframe_storage', 'data'),
+                prevent_initial_call=True
+
+
+)
+def callback_preview_table(input_data,features_values,target_value,n_of_samples,notnumeric_df):
+
+
+    disabled_button = True
+    
+
+    if (input_data is  None) or  ( len(features_values)==0 and (target_value is  None or (len(target_value) ==0 )) ):
+        dff =   pd.DataFrame(columns=[])
+    else:#hay features y/o target que mostar
+
+        df = pd.read_json(input_data,orient='split')
+
+        if(len(features_values)>0):
+            disabled_button = False
+            dff = df[features_values]
+        else:  
+            dff =   pd.DataFrame(columns=[])
+
+
+        #Add target col
+        if( target_value is not None and (len(target_value) >0 )):
+
+            if(target_value not in df.columns):
+                notnumeric_df = pd.read_json(notnumeric_df,orient='split')
+                dff = pd.concat( [dff, notnumeric_df[target_value] ],axis=1)
+            else:
+                dff = pd.concat( [dff, df[target_value] ],axis=1)
+
+                
+
+
+  
+
+    '''
+    if input_data is not None and len(features_values)>0:
+
+        dff = pd.read_json(input_data,orient='split')
+        disabled_button = False
+
+
+
+        if( target_value is not None and (len(target_value) >0 )):
+
+            if(target_value not in dff.columns):
+                notnumeric_df = pd.read_json(notnumeric_df,orient='split')
+                dff = pd.concat( [dff, notnumeric_df[target_value] ],axis=1)
+            else:
+                features_values.append(target_value)
+                dff = dff[features_values]
+        else:
+            dff = dff[features_values]
+
+    
+
+    else:
+        dff =   pd.DataFrame(columns=[])
+        disabled_button = True
+    '''
+
+
+
+
+    if(n_of_samples < DEFAULT_DATASET_ROWS_PREVIEW):
+        dff = dff.head(n_of_samples)
+        if(n_of_samples == 0):
+            disabled_button = True
+
+
+    table =  create_preview_table(dff)
+
+
+    return table, disabled_button, disabled_button
 
 
 
@@ -825,7 +1010,7 @@ def numerical_features_to_dropdown(input_data):
                 Output('cabecera', 'is_open'),
                 Output('collapse_modify_data_button', 'is_open'),
                 Output('collapse_traing_sel_home','is_open' ),
-                Input("trainready_dataframe_storage", "data"), 
+                Input("head_processed_dataframe_storage", "data"), 
                 Input("close", "n_clicks"),
                 State("modal", "is_open"),
                 State("cabecera", "is_open"),
@@ -848,7 +1033,7 @@ def toggle_modal(input_data, n_clicks, modal_is_open, cabecera_is_open, button_i
     elif(trigger_id == 'trainready_dataframe_storage' ):
         return modal_is_open, cabecera_is_open, button_is_open, traing_sel_home_isopen
     else:
-        True, False, True ,True
+        return True, False, True ,True
 
 
                        
@@ -947,6 +1132,37 @@ def enable_load_saved_model_button(filename):
         return True,False, ''
 
 
+# Sync slider 
+@app.callback(  Output("dataset_percentage_slider", "value"),
+                Output("badge_info_percentagedataset_slider", "children"),
+                Output("dataset_nsamples_input", "value"),
+                Input("dataset_percentage_slider", "value"),
+                Input("dataset_nsamples_input", "value"),
+                State('original_dataframe_storage', 'data'),
+                prevent_initial_call=True
+                )
+def sync_slider_input_datasetpercentage(slider_percentage, n_samples_sel, input_data):
+    ctx = dash.callback_context
+    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    df = pd.read_json(input_data,orient='split')
+    n_samples, _ =df.shape
+
+    if (trigger_id == "dataset_percentage_slider"):
+        if(slider_percentage is None):
+            raise dash.exceptions.PreventUpdate
+        else:
+            number = (slider_percentage * n_samples)/100
+            return dash.no_update, (str(slider_percentage) + ' %'), number
+    else:
+        if(n_samples_sel is None or n_samples_sel >n_samples ):
+            raise dash.exceptions.PreventUpdate
+        else:
+            percentage = (n_samples_sel*100)/n_samples
+            return percentage, (str(percentage) + ' %'),dash.no_update
+
+
+
+
 #Boton de continuar
 @app.callback(  Output('hidden_div_for_redirect_callback', 'children'),
                 Output('alert_load_model','is_open'),
@@ -955,19 +1171,47 @@ def enable_load_saved_model_button(filename):
                 Input('train_mode_som_button', 'n_clicks'),
                 Input('train_mode_gsom_button', 'n_clicks'),
                 Input('train_mode_ghsom_button', 'n_clicks'),
-                State('trainready_dataframe_storage','data'),
-                State('dataset_table_preview', 'selected_columns'),
+                State('processed_dataframe_storage','data'),
+                State('notnumeric_dataframe_storage','data'),
+
                 State('modelos_guardados_en_la_app_dropdown','value'),
+                                State('dataset_nsamples_input','value'),
+                                State('dropdown_target_selection','value'),
+                                State('dropdown_feature_selection','value'),
+
+
+
                 prevent_initial_call=True)
-def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, selected_col, filename ):
+def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notnumeric_df, filename, nsamples_selected, target_selection, feature_selection  ):
 
 
-    selected_col_name = selected_col[0]
-    session_data.set_target_name(selected_col_name)
+    
+  
 
     df = pd.read_json(data,orient='split')
-    session_data.set_pd_dataframe(df)
+    df = df.sample(n=nsamples_selected)
 
+    df_target = None
+
+    if(target_selection is not None):
+
+        session_data.set_target_name(str(target_selection))
+
+        if(target_value not in columns):
+            notnumeric_df = pd.read_json(notnumeric_df,orient='split')
+            df_target = notnumeric_df[target_value] 
+        else:
+            df_target  = df[target_value]
+
+
+
+    df_features = df[feature_selection]
+    session_data.set_pd_dataframe(df_features,df_target )
+    session_data.estandarizar_data()
+
+
+
+    #TODO YA NO NECESITO ESTO SI NO TEXTO Y NO TEXTO
     if(df[selected_col_name].dtype ==  np.float64):
         print('TARGET CONTINUOS')
         session_data.set_discrete_data(False)
@@ -976,8 +1220,6 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, sele
         session_data.set_discrete_data(True)
 
 
-
-    session_data.estandarizar_data()
 
 
     ctx = dash.callback_context
@@ -1031,34 +1273,5 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, sele
 
 
 
-
-
-# Sync slider 
-@app.callback(  Output("dataset_percentage_slider", "value"),
-                Output("badge_info_percentagedataset_slider", "children"),
-                Output("dataset_percentage_input", "value"),
-                Input("dataset_percentage_slider", "value"),
-                Input("dataset_percentage_input", "value"),
-                State('original_dataframe_storage', 'data'),
-                prevent_initial_call=True
-                )
-def sync_slider_input_datasetpercentage(slider_percentage, n_samples_sel, input_data):
-    ctx = dash.callback_context
-    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    df = pd.read_json(input_data,orient='split')
-    n_samples, _ =df.shape
-
-    if (trigger_id == "dataset_percentage_slider"):
-        if(slider_percentage is None):
-            raise dash.exceptions.PreventUpdate
-        else:
-            number = (slider_percentage * n_samples)/100
-            return dash.no_update, (str(slider_percentage) + ' %'), number
-    else:
-        if(n_samples_sel is None or n_samples_sel >n_samples ):
-            raise dash.exceptions.PreventUpdate
-        else:
-            percentage = (n_samples_sel*100)/n_samples
-            return percentage, (str(percentage) + ' %'),dash.no_update
 
 

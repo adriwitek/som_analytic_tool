@@ -103,22 +103,18 @@ class Sesion():
 
     
 
-    def set_pd_dataframe(self,df):
+    def set_pd_dataframe(self,df_features,df_target=None):
       
         #self.pd_dataframe = df.copy()
         self.pd_dataframe = df
+        self.pd_dataframe_target = df_target
 
-        #IF target selected
-        if(self.get_target_name() != ''):
-            self.targets_col = df[self.target_name].to_numpy()
-            df_without_target = df[df.columns.difference([self.target_name])]
-        else:
-            df_without_target = df
+        if(df_target is not None):
+            self.targets_col = df_target.to_numpy()
 
-
-        self.features_names= df_without_target.columns.to_list()
+        self.features_names= df_features.columns.to_list()
         
-        self.n_samples, self.n_features = df_without_target.shape 
+        self.n_samples, self.n_features = df_features.shape 
         #self.data = df_without_target.to_numpy()
         #self.targets_col = np.array(df[self.target_name].to_numpy(), copy=True)  
 
@@ -126,45 +122,20 @@ class Sesion():
 
 
     def get_pd_dataframe(self):
+        #return features df
       
         return self.pd_dataframe
 
-    '''
-    #data ready to map
-    def preparar_data_to_analyze(self):
-
-        print('\t -->Converting Data to Analyze it...')
-        df = self.get_pd_dataframe()
-        self.targets_col = df[self.target_name].to_numpy()
-
-        df_without_target = df[df.columns.difference([self.target_name])]
-        self.data = df_without_target.to_numpy()
-        print('\t -->Converting Complete.')
 
 
-    #data ready to train
-    def estandarizar_data(self):
-        
-        print('\t -->Standardizing Data...')
-        df = self.get_pd_dataframe()
-        scaler = preprocessing.StandardScaler()
-        self.data_std  = scaler.fit_transform(df[self.features_names])
-        print('\t -->Standardizing Complete.')
-        
-        return  self.data_std
-
-    '''
     #estandariza y converte datos a numpy
     def estandarizar_data(self):
         print('\t -->Standardizing Data...')
-        df = self.get_pd_dataframe()
+        df_features = self.get_pd_dataframe()
 
-        #IF target selected
-        if(self.get_target_name() != ''):
-            self.targets_col = df[self.target_name].to_numpy()
-           
+      
         scaler = preprocessing.StandardScaler()
-        self.data_std  = scaler.fit_transform(df[self.get_only_features_names()])
+        self.data_std  = scaler.fit_transform(df_features)
 
         print('\t -->Standardizing Complete.')
         
@@ -201,9 +172,9 @@ class Sesion():
         return self.n_features
 
     
-    def get_data_features_names_dcc_dropdown_format(self,colums= None):
+    def get_data_features_names_dcc_dropdown_format(self,columns= None):
 
-        if(colums is None):
+        if(columns is None):
             atribs=  self.get_only_features_names()
 
         else:
