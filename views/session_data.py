@@ -14,6 +14,7 @@ import time
 
 import pandas as pd
 from sklearn import preprocessing
+from sklearn.model_selection import train_test_split
 
 
 class Sesion():
@@ -22,20 +23,38 @@ class Sesion():
   
 
     def __init__(self):
-        #Dataset
-        self.discrete_data = True
-        self.file_data = None
-        self.target_name = ''
-        self.n_samples = -1
-        self.n_features = -1
-     
-        self.features_names = []
 
-        #Used to analyze
-        self.pd_dataframe = None
-        self.data= None     # numpy array
-        self.data_std= None # numpy array
-        self.targets_col =None# numpy array
+
+        #Dataset
+        self.discrete_data = True #TODO BORRAR ESTO
+        self.file_data = None
+     
+    
+        #DATA
+            #if data not splitted, only train atribs will be used
+
+        #   features
+        self.features_names = []  #keep same order for ef. reasons
+        self.features_dtypes = {}
+        self.data_splitted = False
+        self.df_features_train = None
+        self.df_features_test = None
+        self.np_features_train = None
+        self.np_features_test = None
+        #   targets
+        self.target_name = None
+        self.df_targets_train = None
+        self.df_targets_test = None
+        #   joined data,only saved if it's used 
+        self.joined_train_test_np_data = None
+        self.joined_train_test_df_targets = None
+
+
+
+
+        #self.data= None     # numpy array
+        #self.data_std= None # numpy array
+        #self.targets_col =None# numpy array
 
     
 
@@ -61,21 +80,33 @@ class Sesion():
 
     #Call when closing app or loading home
     def clean_session_data(self):
+
+
         #Dataset
         self.discrete_data = True
         self.file_data = None
-        self.n_samples = -1
-        self.n_features = -1
+    
+     
+        #DATA
+        #   features
+        self.features_names = []  #keep same order for ef. reasons
+        self.features_dtypes = {}
+        self.data_splitted = False
+        self.df_features_train = None
+        self.df_features_test = None
+        self.np_features_train = None
+        self.np_features_test = None
+        #   targets
+        self.target_name = None
+        self.df_targets_train = None
+        self.df_targets_test = None
+        #   joined data,only saved if it's used 
+        self.joined_train_test_np_data = None
+        self.joined_train_test_df_targets = None
 
-        self.features_names = []
-        self.target_name = ''
 
 
-        self.pd_dataframe = None
-        self.data= None     # numpy array
-        self.data_std= None # numpy array
-        self.targets_col =None# numpy array
-        
+        #todo check si todo ok
 
         #tipo de modelo
         self.modelo = None
@@ -86,96 +117,194 @@ class Sesion():
         self.ghsom_nodes_by_coord_dict = {}
 
 
+
+    
+    #estandariza y converte datos a numpy
+    @staticmethod
+    def estandarizar_data( df, string_info = '', data_splitted = False):
+        if(not data_splitted):
+            print('\t -->Standardizing ' + 'All' + ' Data...')
+        else:
+            print('\t -->Standardizing ' + string_info + ' Data...')
+        scaler = preprocessing.StandardScaler()
+        print('\t -->Standardizing Complete.')
+        return  scaler.fit_transform(df)
+
+
+
+
     def set_target_name(self,target_name):    
         self.target_name = target_name
 
     def get_target_name(self):
         return self.target_name
 
+    '''
     def get_target_np_column(self):
         #IF target selected
-        if(self.get_target_name() != ''):
-            df = self.get_pd_dataframe()
-            return df[self.target_name].to_numpy()
+        if(self.get_target_name() is not None):
+            self.targets_col
         else:
             return None
-
+    '''
 
     
 
-    def set_pd_dataframe(self,df_features,df_target=None):
-      
-        #self.pd_dataframe = df.copy()
-        self.pd_dataframe = df_features
-        self.pd_dataframe_target = df_target
+    def set_pd_dataframes(self,df_features,df_targets, split = False, train_samples_number=1.0 ):
 
-        if(df_target is not None):
-            self.targets_col = df_target.to_numpy()
+
+        #self.n_samples, self.n_features = df_features.shape 
 
         self.features_names= df_features.columns.to_list()
+        self.features_dtypes = df_features.dtypes.to_dict()
+        self.data_splitted = split
+
+        if(split):
+            self.df_features_train , self.df_features_test, self.df_targets_train, self.df_targets_test = train_test_split(df_features, df_targets, train_size=train_samples_number ,shuffle = True)
+        else:
+            self.df_features_train= df_features
+            self.df_targets_train = df_targets
+            self.df_features_test= None
+            self.df_targets_test= None
+            self.joined_train_test_np_data= None
+            self.joined_train_test_df_targets = None
+
+
+
+    def convert_train_data_tonumpy(self):
+        self.np_features_train = self.estandarizar_data(self.df_features_train, 'Train', self.data_splitted)
+
+
+    def convert_test_data_tonumpy(self):
+        if(self.data_splitted):
+            self.np_features_test = self.estandarizar_data(self.df_features_test, 'Test',self.data_splitted )
+
+
+
+    def get_train_data(self):
+
+        if(self.np_features_train is None):
+            self.convert_train_data_tonumpy()
+
+        return self.np_features_train
+
+
+    def get_test_data(self):
+
+        if(not self.data_splitted):
+            return self.get_train_data()
+        elif(self.np_features_test is None):
+            self.convert_test_data_tonumpy()
+
+        return self.np_features_test
+
+
+
+    def _create_joined_data(self):
+
+        if(self.data_splitted):
+
+            train_data = self.get_train_data()
+            test_data = self.get_test_data()
+            
+            self.joined_train_test_np_data = np.concatenate((train_data, test_data), axis=0)
+            frames = [self.df_targets_train,self.df_targets_test ]
+            self.joined_train_test_df_targets =pd.concat(frames) 
+
+            '''
+            print('--DEBUG train test data\n' )
+            print('train_data\n',train_data)
+            print('test_data',test_data)
+            print('joined_train_test_np_data\n',self.joined_train_test_np_data)
+            print('-------')
+            print('train_targe\n',self.df_targets_train)
+            print('test_target\n',self.df_targets_test)
+            print('joined_targets\n',self.joined_train_test_df_targets)
+            '''
+
+
+
+    def get_joined_train_test_np_data(self):
+
+        if(not self.data_splitted):
+            return self.get_train_data()
+
+        elif(self.joined_train_test_np_data is None):
+            self._create_joined_data()
         
-        self.n_samples, self.n_features = df_features.shape 
-        #self.data = df_without_target.to_numpy()
-        #self.targets_col = np.array(df[self.target_name].to_numpy(), copy=True)  
+        return self.joined_train_test_np_data 
+
+    def get_joined_train_test_df_targets(self):
+
+        if(not self.data_splitted):
+            return self.df_targets_train
+
+        elif(self.joined_train_test_df_targets is None):
+            self._create_joined_data()
+        
+        return self.joined_train_test_df_targets 
+
+
+    def get_data(self,option):
+
+        '''
+            option = 1 --> Train Data
+            option = 2 --> Test Data
+            option = 3 --> Train + Test Data
+        '''
+
+        if(option == 1 or not self.data_splitted):
+            return self.get_train_data()
+        elif(option == 2):
+            return self.get_test_data()
+        else:
+            return self.get_joined_train_test_np_data()
+
+
+    '''
+    #def get_dataset(self):#TODOOOO TO NUMPY Y SELECCION
+    def get_targets_col(self):
+        return self.targets_col.T
+    '''
+  
 
 
 
 
+    '''
     def get_pd_dataframe(self):
         #return features df
       
         return self.pd_dataframe
+    '''
 
 
 
-    #estandariza y converte datos a numpy
-    def estandarizar_data(self):
-        print('\t -->Standardizing Data...')
-        df_features = self.get_pd_dataframe()
-
-      
-        scaler = preprocessing.StandardScaler()
-        self.data_std  = scaler.fit_transform(df_features)
-
-        print('\t -->Standardizing Complete.')
         
 
 
-    def get_only_features_names(self):
+    def get_features_names(self):
         return self.features_names
 
 
 
-    #def get_dataset(self):
-    def get_targets_col(self):
-        return self.targets_col.T
-        
+
+
+    
+   
+    def get_train_data_n_samples(self):
+        n_samples, _ = self.get_train_data().shape
+        return n_samples
 
     '''
-    def get_data(self):
-        #TODO ######################## if the data mapped is not standarized nad trained data is, mapping will not work well
-        #return self.data
-        #CORREGIR ESTOOOO:
-        if(self.data_std is None):
-            return self.data
-        else:
-            return self.data_std
-    '''
-
-    def get_data_std(self):
-        return self.data_std 
-
-    def get_data_n_samples(self):
-        return self.n_samples
-
     def get_data_n_features(self):
         return self.n_features
-
+    '''
     
     def get_data_features_names_dcc_dropdown_format(self,columns= None):
 
         if(columns is None):
-            atribs=  self.get_only_features_names()
+            atribs=  self.get_features_names()
 
         else:
             atribs= columns  
@@ -187,7 +316,66 @@ class Sesion():
 
         return options
 
+
+
+
+
+
+          
+    def get_targets_list(self, option):
+
+        '''
+            option = 1 --> Train Data
+            option = 2 --> Test Data
+            option = 3 --> Train + Test Data
+        '''
+
+
+        if(option == 1 or  not self.data_splitted ):
+            if(self.df_targets_train is not None):
+                return self.df_targets_train[self.get_target_name()].tolist()
+            else:
+                return []
+        elif(option == 2):
+            if(self.df_targets_test is not None):
+                return self.df_targets_test[self.get_target_name()].tolist()
+            else:
+                return []
+        else:
+            if(self.df_targets_test is not None and self.df_targets_train is not None):
+                return self.get_joined_train_test_df_targets()[self.get_target_name()].tolist()
+            else:
+                return []
+
+
+
+
+    def get_targets_options_dcc_dropdown_format(self):
+
+        if(self.df_targets_train is not None):
+
+            atribs = self.df_targets_train.columns
+
+        else:
+            atribs = []
+
+        options = []  # must be a list of dicts per option
+
+        for n in atribs:
+            options.append({'label' : n, 'value': n})
+
+        return options
         
+
+
+
+
+
+
+
+
+
+
  
     
     def set_filedata(self,filedata):
@@ -364,8 +552,8 @@ class Sesion():
             model = pickle.load(infile)
         return model
 
-    def get_colums_dtypes(self):
-        return self.pd_dataframe.dtypes.to_dict()
+    def get_features_dtypes(self):
+        return self.features_dtypes
 
 
 

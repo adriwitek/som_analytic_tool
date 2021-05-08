@@ -72,7 +72,7 @@ def analyze_ghsom_data():
                         ),
 
                         html.Div(
-                            dbc.Checklist(  options=[{"label": "Etiquetar Neuronas", "value": 1}],
+                            dbc.Checklist(  options=[{"label": "Label Neurons", "value": 1}],
                                             value=[],
                                             id="check_annotations_winmap_ghsom"),
                             style={'textAlign': 'center'}
@@ -137,7 +137,7 @@ def analyze_ghsom_data():
                                     style= pu.get_single_heatmap_css_style()
                             ),
 
-                            html.Div(dbc.Checklist(  options=[{"label": "Etiquetar Neuronas", "value": 1}],
+                            html.Div(dbc.Checklist(  options=[{"label": "Label Neurons", "value": 1}],
                                                     value=[],
                                                     id="check_annotations_comp_ghsom"),
                                         style={'textAlign': 'center'}
@@ -167,7 +167,7 @@ def analyze_ghsom_data():
                                 style= pu.get_single_heatmap_css_style()
                         ),
 
-                        html.Div(dbc.Checklist(     options=[{"label": "Etiquetar Neuronas", "value": 1}],
+                        html.Div(dbc.Checklist(     options=[{"label": "Label Neurons", "value": 1}],
                                                     value=[],
                                                     id="check_annotations_um_ghsom"),
                                 style={'textAlign': 'center'}
@@ -697,7 +697,7 @@ def update_freq_map_ghsom(clickdata, figure):
 def on_form_change(check):
 
     if(check):
-        atribs = session_data.get_only_features_names()
+        atribs = session_data.get_features_names()
         return atribs
     else:
         return []
@@ -750,7 +750,7 @@ def update_mapa_componentes_ghsom_fig(clickdata,check_annotations,fig_grafo,name
     weights_map= gsom.get_weights_map()
     # weights_map[(row,col)] = np vector whith shape=n_feauters, dtype=np.float32
 
-    nombres_atributos = session_data.get_only_features_names()
+    nombres_atributos = session_data.get_features_names()
 
     lista_de_indices = []
     for n in names:
@@ -891,7 +891,7 @@ def save_ghsom_model(n_clicks,name,isvalid):
 
     data = []
     params = session_data.get_ghsom_model_info_dict()
-    columns_dtypes = session_data.get_colums_dtypes()
+    columns_dtypes = session_data.get_features_dtypes()
     
     data.append('ghsom')
     data.append(columns_dtypes)

@@ -29,16 +29,18 @@ import plotly.graph_objects as go
 from os import listdir,makedirs
 from os.path import isfile, join
 import pickle
-from math import ceil
+from math import ceil,floor
 
 
 show_file_info_style =  {'textAlign': 'center',  'display': 'block'}
 hidden_div_style ={'textAlign': 'center', "visibility": "hidden",'display':'none'} 
 
+
+
+
 #############################################################
 #	                       LAYOUT	                        #
 #############################################################
-
 
 
 #### TRAINING SELECTION
@@ -47,7 +49,6 @@ def Training_selection():
     layout = html.Div(id = 'training_selection_div',
         children=[
 
-            #html.Div(id="hidden_div_for_redirect_callback"),
 
             #elements.navigation_bar,
             html.Div(   id='select_button', 
@@ -61,9 +62,7 @@ def Training_selection():
             dbc.Collapse(id = 'train_newmodel_collapse',
                         is_open = False,
                         children = [
-            #html.Div(id = 'train_newmodel_div',
-            #            style=hidden_div_style,
-            #            children = [
+           
                         
                                 dbc.Card(color = 'light',
                                     children=[
@@ -113,9 +112,7 @@ def Training_selection():
             dbc.Collapse(id = 'loadmodel_collapse',
                         is_open = False,
                         children = [
-            #html.Div(id = 'loadmodel_div',
-            #        style=hidden_div_style ,
-            #        children = [
+    
                         dbc.Card(color = 'light',
                             children=[
                                 dbc.CardHeader(html.H2('Load Pre-Trained Model')),
@@ -198,7 +195,7 @@ def Home():
         dcc.Store(id='processed_dataframe_storage',data=None),
         dcc.Store(id='notnumeric_dataframe_storage',data=None),
         #dcc.Store(id='trainready_dataframe_storage',data=None),
-        #For make quicker the home view this additional dcc store
+        # making quicker the home view this additional dcc store
         dcc.Store(id='head_processed_dataframe_storage',data=None),
 
 
@@ -214,6 +211,7 @@ def Home():
                     # Archivo Local
                     dbc.ListGroupItem([
                         html.H4('Local File',className="card-title" , style={'textAlign': 'center'} ),
+
                         dcc.Upload( id='upload-data', children=html.Div(['Drag and Drop or  ', html.A('Select File  (.csv or .xls)')]),
                                             style={'width': '100%',
                                                     'height': '60px',
@@ -224,19 +222,25 @@ def Home():
                                                     'textAlign': 'center',
                                                     'margin': '10px'},
                                             # Allow multiple files to be uploaded
-                                            multiple=False),
-
-                        dbc.Collapse(id ='collapse_div_info_loaded_file',
-                                    is_open= False,
-                                    children = [   
-                                        html.Div(id='div_info_loaded_file',
-                                                style=hidden_div_style,
-                                                children = div_info_loaded_file('','','','')
-                                        )
-                                    ]
+                                            multiple=False
                         ),
 
+                        html.Br(),
 
+                        dcc.Loading(id='loading',
+                                type='dot',
+                                children=[
+                                        dbc.Collapse(id ='collapse_div_info_loaded_file',
+                                                    is_open= False,
+                                                    children = [   
+                                                        html.Div(id='div_info_loaded_file',
+                                                                style=hidden_div_style,
+                                                                children = div_info_loaded_file('','','','')
+                                                        )
+                                                    ]
+                                        )
+
+                        ]),
 
                         # Preview Table
                         html.Div(id = 'preview_table' ,children = create_preview_table(None)),
@@ -339,6 +343,55 @@ def div_info_loaded_file(filename,fecha_modificacion, n_samples, n_features):
                 ])
     
 
+
+
+def get_split_menu(n_samples):
+
+    children = [
+
+        html.P('To let 100% of rows be train or test data, It\'s not necessary to split dataset',className="text-secondary",  style={'textAlign': 'center'}  ),
+
+        #Train/Test percentage badge
+        html.Div(style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
+                children = [
+                    html.H6(children='Train percentage  '),
+                    html.H6( dbc.Badge( '50 %',  pill=True, color="warning", className="mr-1",id ='badge_info_percentage_train_slider')   ),
+                    html.H6(children='Test percentage  '),
+                    html.H6( dbc.Badge( '50 %',  pill=True, color="warning", className="mr-1",id ='badge_info_percentage_test_slider')   )
+                ]
+        ),
+
+
+        #Slider split percentage
+        dcc.Slider(id='split_slider', min=0,max=100,value=50,step =1 ,
+                    marks={
+                        0: {'label': '0 %'},
+                        10: {'label': '10 %'},
+                        25: {'label':  '25 %'},
+                        50: {'label':  '50 %'},
+                        75: {'label':  '75 %'},
+                        100: {'label': '100 %'}
+                    }
+        ),
+
+
+        #Number of samples train/test
+        html.Div(style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
+                children = [
+                    html.H6(children='Train Samples\t'),
+                    dcc.Input(id="train_samples_input", type="number", value=ceil(n_samples/2),step=1,min=0, max = n_samples),
+                    html.H6(children='Test Samples\t'),
+                    dcc.Input(id="test_samples_input", type="number", value=floor(n_samples/2),step=1,min=0, max = n_samples),
+                ]
+        
+        ),
+
+    ]
+
+
+    return children
+
+
 def div_info_dataset( df, n_samples):
     if(df is None):
         return html.Div(style = { "visibility": "hidden",'display':'none'}  ,
@@ -395,6 +448,33 @@ def div_info_dataset( df, n_samples):
                         ]
                 
                 ),
+
+
+
+                #Split Dataset Train/Test
+
+                dbc.Checklist(  options=[{"label": "Split Dataset in Train/Test", "value": 0}],
+                                            value=[],
+                                            id="check_split_dataset"
+                ),
+
+                dbc.Collapse(   id = 'collapse_split_dataset',
+                                is_open= False,
+                                children = [
+                                    dbc.Card( color = 'light',
+                                            children=[
+                                                dbc.CardBody(
+                                                    get_split_menu(n_samples)
+
+                                                )
+                                    ])
+                                ]
+
+
+                ),
+
+
+
                
                 html.Br(),
                 html.Br(),
@@ -484,9 +564,9 @@ def create_preview_table(df, selected_columns = []):
         
 
 
-
+    else:
    
-    return html.Div([
+        return html.Div([
 
                     html.Br(),
 
@@ -944,39 +1024,7 @@ def callback_preview_table(input_data,features_values,target_value,n_of_samples,
             else:
                 dff = pd.concat( [dff, df[target_value] ],axis=1)
 
-                
-
-
-  
-
-    '''
-    if input_data is not None and len(features_values)>0:
-
-        dff = pd.read_json(input_data,orient='split')
-        disabled_button = False
-
-
-
-        if( target_value is not None and (len(target_value) >0 )):
-
-            if(target_value not in dff.columns):
-                notnumeric_df = pd.read_json(notnumeric_df,orient='split')
-                dff = pd.concat( [dff, notnumeric_df[target_value] ],axis=1)
-            else:
-                features_values.append(target_value)
-                dff = dff[features_values]
-        else:
-            dff = dff[features_values]
-
-    
-
-    else:
-        dff =   pd.DataFrame(columns=[])
-        disabled_button = True
-    '''
-
-
-
+            
 
     if(n_of_samples < DEFAULT_DATASET_ROWS_PREVIEW):
         dff = dff.head(n_of_samples)
@@ -1133,15 +1181,16 @@ def enable_load_saved_model_button(filename):
                 Output("dataset_nsamples_input", "value"),
                 Input("dataset_percentage_slider", "value"),
                 Input("dataset_nsamples_input", "value"),
-                State('original_dataframe_storage', 'data'),
+                State('dataset_nsamples_input', 'max'),
                 prevent_initial_call=True
                 )
 #todo en vez de leer json almacenar en un store
-def sync_slider_input_datasetpercentage(slider_percentage, n_samples_sel, input_data):
+def sync_slider_input_datasetpercentage(slider_percentage, n_samples_sel, n_samples):
+
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    df = pd.read_json(input_data,orient='split')
-    n_samples, _ =df.shape
+
+  
 
     if (trigger_id == "dataset_percentage_slider"):
         if(slider_percentage is None):
@@ -1156,7 +1205,97 @@ def sync_slider_input_datasetpercentage(slider_percentage, n_samples_sel, input_
             raise dash.exceptions.PreventUpdate
         else:
             percentage = (n_samples_sel*100)/n_samples
-            return percentage, (str(  round(percentage, 3 )) + ' %'),dash.no_update
+            return percentage, (str(  round(percentage, 2 )) + ' %'),dash.no_update
+
+
+
+
+#if                 Output("dataset_nsamples_input", "value"), es 0 el check de split cloopaseaaa
+
+##############################################
+
+
+
+@app.callback(
+            Output('collapse_split_dataset', 'is_open'),
+            Output('check_split_dataset', 'value'),
+            Input('check_split_dataset', 'value'),
+            Input("dataset_nsamples_input", "value"),
+            prevent_initial_call=True
+    
+)
+def split_dataset_collapse(check, n_sel_samples):
+
+    if(check):
+
+        if(n_sel_samples is None or n_sel_samples< 2):
+            return False, 0
+        else:
+            return True, dash.no_update
+   
+    else:
+        return False, dash.no_update
+
+
+# Sync slider split train test
+@app.callback(  Output("split_slider", "value"),
+                Output("badge_info_percentage_train_slider", "children"),
+                Output("badge_info_percentage_test_slider", "children"),
+
+
+                
+                Output("train_samples_input", "value"),
+                Output("test_samples_input", "value"),
+
+
+                Input("split_slider", "value"),
+                Input("train_samples_input", "value"),
+                Input("test_samples_input", "value"),
+                Input("dataset_nsamples_input", "value"),
+                prevent_initial_call=True
+                )
+#todo en vez de leer json almacenar en un store
+def sync_slider_split(slider_percentage, train_samples_sel,test_samples_sel, n_of_sel_samples): 
+   
+
+    ctx = dash.callback_context
+    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+
+    if(n_of_sel_samples is None or n_of_sel_samples < 1):
+        raise dash.exceptions.PreventUpdate
+
+    elif(trigger_id == 'dataset_nsamples_input' ):
+        return 50, (str(50) + ' %'), (str(50) + ' %'), ceil(n_of_sel_samples/2), floor(n_of_sel_samples/2), 
+
+    elif (trigger_id == "split_slider"):
+        if(slider_percentage is None):
+            raise dash.exceptions.PreventUpdate
+        else:
+            number = (slider_percentage * n_of_sel_samples)/100
+            number = ceil(number)
+            percentage = (number*100)/n_of_sel_samples
+            return percentage, (str(percentage) + ' %'), (str((100 - percentage)) + ' %'), number, (n_of_sel_samples - number)
+
+    elif(train_samples_sel is None or test_samples_sel is None ):
+        
+        raise dash.exceptions.PreventUpdate
+    elif(trigger_id == 'train_samples_input'):
+
+        percentage_train = (train_samples_sel*100)/n_of_sel_samples
+        percentage_test =  100 - percentage_train
+        test_samples_sel =n_of_sel_samples - train_samples_sel
+        return percentage_train, (str(  round(percentage_train, 2 )) + ' %'),(str(  round(percentage_test, 2 )) + ' %'),train_samples_sel,    test_samples_sel
+
+    else:
+        percentage_test = (test_samples_sel*100)/n_of_sel_samples
+
+        percentage_train =  100 - percentage_test
+        train_samples_sel =n_of_sel_samples - test_samples_sel
+        return percentage_train, (str(  round(percentage_train, 2 )) + ' %'),(str(  round(percentage_test, 2 )) + ' %'),train_samples_sel,    test_samples_sel
+
+
+
+
 
 
 
@@ -1171,58 +1310,54 @@ def sync_slider_input_datasetpercentage(slider_percentage, n_samples_sel, input_
                 Input('train_mode_ghsom_button', 'n_clicks'),
                 State('processed_dataframe_storage','data'),
                 State('notnumeric_dataframe_storage','data'),
-
                 State('modelos_guardados_en_la_app_dropdown','value'),
-                                State("dataset_percentage_slider", "value"),
-
+                State("dataset_percentage_slider", "value"),
                 State('dataset_nsamples_input','value'),
                 State('dropdown_target_selection','value'),
                 State('dropdown_feature_selection','value'),
-
-
-
-                prevent_initial_call=True)
-def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notnumeric_df, filename,nsamples_percentage, nsamples_selected, target_selection, feature_selection  ):
+                State('check_split_dataset','value'),
+                State("train_samples_input", "value"),
+                prevent_initial_call=True
+)
+def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notnumeric_df, filename,nsamples_percentage, nsamples_selected,
+                         target_selection, feature_selection,check_split_dataset,train_samples_input  ):
 
 
     
-  
+
 
     df = pd.read_json(data,orient='split')
+    notnumeric_df = pd.read_json(notnumeric_df,orient='split')
+    df_features = df[feature_selection]
+    df_targets =  pd.concat( [notnumeric_df,  df[df.columns.difference(feature_selection)] ],axis=1)  
+
     if(nsamples_percentage != 100):
-        df = df.sample(n=nsamples_selected)
 
-    df_target = None
+        df_features = df_features.sample(n=nsamples_selected, replace=False)
+        df_targets = df_targets.loc[df_features.index,:]
+        '''
+        print('DEBUG:sampling random selection:')
+        print('nsamples_selected',nsamples_selected)
+        print('train_samples_input',train_samples_input)
+        print('df_features',df_features)
+        print('df_targets',df_targets)
+        '''
 
+        
+
+
+    #preselected target
+    
     if(target_selection is not None):
-
         session_data.set_target_name(str(target_selection))
 
-        if(target_value not in df.columns):
-            notnumeric_df = pd.read_json(notnumeric_df,orient='split')
-            df_target = notnumeric_df[target_value] 
-        else:
-            df_target  = df[target_value]
 
-
-
-    df_features = df[feature_selection]
-    session_data.set_pd_dataframe(df_features,df_target )
-    session_data.estandarizar_data()
-
-
-
-    #TODO YA NO NECESITO ESTO SI NO TEXTO Y NO TEXTO
-    '''
-    if(df[selected_col_name].dtype ==  np.float64):
-        print('TARGET CONTINUOS')
-        session_data.set_discrete_data(False)
+    if(check_split_dataset and (train_samples_input == 0 or train_samples_input == nsamples_selected)):
+        split = False
     else:
-        print('TARGET DISCRETOS')
-        session_data.set_discrete_data(True)
-    '''
+        split = check_split_dataset
 
-
+    session_data.set_pd_dataframes(df_features,df_targets, split = split, train_samples_number=train_samples_input )
 
     ctx = dash.callback_context
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
@@ -1237,38 +1372,46 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notn
             model_info = unserialized_data[2]
             session_data.set_modelo(unserialized_data[3])
 
-        if(len(session_data.get_colums_dtypes().keys()) != len(columns_dtypes.keys()) ):
+        if(len(session_data.get_features_dtypes().keys()) != len(columns_dtypes.keys()) ):
             #dim no coincide
             return '', True, 'ERROR: Model dimensionality and selected Dataset ones are not the same. Please, edit the number of selected features before continue.'
 
-        elif(session_data.get_colums_dtypes() != columns_dtypes ):
+        elif(session_data.get_features_dtypes() != columns_dtypes ):
             #types no coinciden
             return '', True, 'ERROR: Model features-types and selected Dataset ones are not the same. Please, edit the selected features before continue.'
 
         else:
             #reorder selected dataframe cols to be the same as trained model
             cols = list(columns_dtypes.keys()) 
-            df = session_data.get_pd_dataframe()[cols]
-            session_data.set_pd_dataframe(df)
+            df_features = df[cols]
+            session_data.set_pd_dataframes(df_features,df_targets,test_samples_number )
+
+            #df = session_data.get_pd_dataframe()[cols]
+            #session_data.set_pd_dataframe(df)
 
         if  model_type ==  'som':
             session_data.set_som_model_info_dict_direct(model_info)
+            session_data.convert_test_data_tonumpy()
             return dcc.Location(pathname=URLS['ANALYZE_SOM_URL'], id="redirect"), False, ''
         elif model_type ==   'gsom':
             session_data.set_gsom_model_info_dict_direct(model_info)
+            session_data.convert_test_data_tonumpy()
             return dcc.Location(pathname=URLS['ANALYZE_GSOM_URL'], id="redirect"), False, ''
         elif model_type ==   'ghsom':
             session_data.set_ghsom_model_info_dict_direct(model_info)
+            session_data.convert_test_data_tonumpy()
             return dcc.Location(pathname=URLS['ANALYZE_GHSOM_URL'], id="redirect"), False, ''
         else:   #if something goes worng 
             return dcc.Location(pathname="/", id="redirect"), False, ''
 
-
     elif (button_id == 'train_mode_som_button'):
+        #session_data.convert_train_data_tonumpy()
         return dcc.Location(pathname=URLS['TRAINING_SOM_URL'], id="redirect"), False, ''
     elif(button_id == 'train_mode_gsom_button'):
+        #session_data.convert_train_data_tonumpy()
         return dcc.Location(pathname=URLS['TRAINING_GSOM_URL'], id="redirect"), False, ''
     elif(button_id == 'train_mode_ghsom_button'):
+        #session_data.convert_train_data_tonumpy()
         return dcc.Location(pathname=URLS['TRAINING_GHSOM_URL'], id="redirect"), False, ''
     else:   #if something goes wrong 
         return dcc.Location(pathname="/", id="redirect"), False, ''

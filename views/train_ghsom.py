@@ -216,7 +216,7 @@ def train_ghsom(n_clicks,tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,e
 
 
     #session_data.estandarizar_data()
-    data = session_data.get_data_std() 
+    data = session_data.get_train_data() 
 
     start = time.time()
     session_data.start_timer()

@@ -46,7 +46,7 @@ def analyze_gsom_data():
                     dbc.CardBody(children=[ 
                         html.Div( id='div_estadisticas_gsom',children = '', style={'textAlign': 'center'}),
                         html.Div([
-                            dbc.Button("Ver", id="ver_estadisticas_gsom_button", className="mr-2", color="primary")],
+                            dbc.Button("Plot", id="ver_estadisticas_gsom_button", className="mr-2", color="primary")],
                             style={'textAlign': 'center'}
                         )
                     ]),
@@ -64,10 +64,10 @@ def analyze_gsom_data():
                                 style= pu.get_single_heatmap_css_style()
                         ),
                         html.Div([  
-                                dbc.Checklist(options=[{"label": "Etiquetar Neuronas", "value": 1}],
+                                dbc.Checklist(options=[{"label": "Label Neurons", "value": 1}],
                                             value=[],
                                             id="check_annotations_win_gsom"),
-                                dbc.Button("Ver", id="ver_winners_map_gsom_button", className="mr-2", color="primary")],
+                                dbc.Button("Plot", id="ver_winners_map_gsom_button", className="mr-2", color="primary")],
                             style={'textAlign': 'center'}
                         )
                     ]),
@@ -87,7 +87,7 @@ def analyze_gsom_data():
                                 style= pu.get_single_heatmap_css_style()
                         ),
                         html.Div([  
-                                dbc.Button("Ver", id="ver_freq_map_gsom_button", className="mr-2", color="primary")],
+                                dbc.Button("Plot", id="ver_freq_map_gsom_button", className="mr-2", color="primary")],
                             style={'textAlign': 'center'}
                         )
                     ]),
@@ -114,7 +114,7 @@ def analyze_gsom_data():
                                     options=[{"label": "Seleccionar todos", "value": 1}],
                                     value=[],
                                     id="check_seleccionar_todos_mapas_gsom"),
-                                dbc.Checklist(  options=[{"label": "Etiquetar Neuronas", "value": 1}],
+                                dbc.Checklist(  options=[{"label": "Label Neurons", "value": 1}],
                                                 value=[],
                                                 id="check_annotations_comp_gsom"),
                                 dbc.Button("Ver Mapas de Componentes", id="ver_mapas_componentes_button_gsom", className="mr-2", color="primary")],
@@ -143,10 +143,10 @@ def analyze_gsom_data():
                                 style= pu.get_single_heatmap_css_style()
                         ),
                         html.Div( 
-                            [dbc.Checklist(  options=[{"label": "Etiquetar Neuronas", "value": 1}],
+                            [dbc.Checklist(  options=[{"label": "Label Neurons", "value": 1}],
                                                 value=[],
                                                 id="check_annotations_umax_gsom"),
-                            dbc.Button("Ver", id="ver_umatrix_gsom_button", className="mr-2", color="primary")],
+                            dbc.Button("Plot", id="ver_umatrix_gsom_button", className="mr-2", color="primary")],
                             style={'textAlign': 'center'}
                         )
 
@@ -492,7 +492,7 @@ def update_mapa_componentes_gsom_fig(click,names, check_annotations):
     weights_map= gsom.get_weights_map()
     # weights_map[(row,col)] = np vector whith shape=n_feauters, dtype=np.float32
 
-    nombres_atributos = session_data.get_only_features_names()
+    nombres_atributos = session_data.get_features_names()
     lista_de_indices = []
 
     for n in names:
@@ -533,7 +533,7 @@ def update_mapa_componentes_gsom_fig(click,names, check_annotations):
 def on_form_change(check):
 
     if(check):
-        atribs = session_data.get_only_features_names()
+        atribs = session_data.get_features_names()
         return atribs
     else:
         return []
@@ -646,7 +646,7 @@ def save_gsom_model(n_clicks,name,isvalid):
     data = []
 
     params = session_data.get_gsom_model_info_dict()
-    columns_dtypes = session_data.get_colums_dtypes()
+    columns_dtypes = session_data.get_features_dtypes()
 
     data.append('gsom')
     data.append(columns_dtypes)

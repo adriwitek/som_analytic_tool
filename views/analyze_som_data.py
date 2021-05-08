@@ -22,91 +22,98 @@ import views.plot_utils as pu
 
 
 
+#############################################################
+#	                  AUX LAYOUT FUNS	                    #
+#############################################################
 
-
-
-
-def analyze_som_data():
-
-    # Body
-    body =  html.Div(children=[
-        html.H4('Análisis de los datos \n',className="card-title"  ),
-
-        html.H6('Parámetros de entrenamiento',className="card-title"  ),
-        html.Div(id = 'info_table_som',children=info_trained_params_som_table(),style={'textAlign': 'center'} ),
-
-        html.Div(children=[ 
-
-    
-            #Card Estadísticas
-            dbc.Card([
-                dbc.CardHeader(
-                    html.H2(dbc.Button("Estadísticas",color="link",id="button_collapse_1"),style={'textAlign': 'center', 'justify':'center'})
-                ),
-                dbc.Collapse(id="collapse_1",children=
-                    dbc.CardBody(children=[ 
+#ESTADISTICAS
+def get_estadisticas_som_card():
+    return  dbc.CardBody(children=[ 
                         html.Div( id='div_estadisticas_som',children = '', style={'textAlign': 'center'}),
                         html.Div([
-                            dbc.Button("Ver", id="ver_estadisticas_som_button", className="mr-2", color="primary")],
+                            dbc.Button("Plot", id="ver_estadisticas_som_button", className="mr-2", color="primary")],
                             style={'textAlign': 'center'}
                         )
-                    ]),
-                ),
-            ]),
-
-            #Card Mapa neurona winners
-            dbc.Card([
-                dbc.CardHeader(
-                    html.H2(dbc.Button("Mapa de neuronas ganadoras",color="link",id="button_collapse_2"),style={'textAlign': 'center'})
-                ),
-                dbc.Collapse(id="collapse_2",children=
-                    dbc.CardBody(children=[ 
-                        html.Div( id='div_mapa_neuronas_ganadoras',children = '', style= pu.get_single_heatmap_css_style()),
-                        html.Div([
-                            dbc.Checklist(  options=[{"label": "Etiquetar Neuronas", "value": 1}],
-                                            value=[],
-                                            id="check_annotations_winnersmap"),
-                            dbc.Button("Ver", id="ver", className="mr-2", color="primary")],
-                            style={'textAlign': 'center'}
-                        )
-                    ]),
-                ),
-            ]),
+                    ])
+            
 
 
 
-            #Card: Frecuencias de activacion
-            dbc.Card([
-                dbc.CardHeader(
-                    html.H2(dbc.Button("Mapa de frecuencias de activación",color="link",id="button_collapse_3"),style={'textAlign': 'center'})
-                ),
-                dbc.Collapse(id="collapse_3",children=
-                    dbc.CardBody(children=[
+#Mapa neurona winners
+def get_mapaneuronasganadoras_som_card():
+
+    return  dbc.CardBody(children=[ 
+
+                    dbc.Alert(
+                        [
+                            html.H4("Target not selected yet !", className="alert-heading"),
+                            html.P(
+                                "Please select a target below to print winners map. "
+                            )
+                        ],
+                        color='danger',
+                        id='alert_target_not_selected_som',
+                        is_open=True
+
+                    ),
+
+
+                    dcc.Dropdown(id='dropdown_target_selection_som',
+                           options=session_data.get_targets_options_dcc_dropdown_format() ,
+                           multi=False,
+                           value = session_data.get_target_name()
+                    ),
+                    html.Br(),    
+
+                    dbc.Collapse(
+                        id='collapse_winnersmap_som',
+                        is_open=False,
+                        children=[
+
+                            html.Div( id='div_mapa_neuronas_ganadoras',children = '', style= pu.get_single_heatmap_css_style()),
+                                html.Div([
+                                    dbc.Checklist(  options=[{"label": "Label Neurons", "value": 1}],
+                                                    value=[],
+                                                    id="check_annotations_winnersmap"),
+                                    dbc.Button("Plot", id="ver", className="mr-2", color="primary")],
+                                    style={'textAlign': 'center'}
+                                )
+                            ])
+            
+
+                        ])
+
+#Mapa frecuencias
+def get_mapafrecuencias_som_card():
+
+    #return  #dbc.Card([
+            #    dbc.CardHeader(
+            #        html.H2(dbc.Button("Mapa de frecuencias de activación",color="link",id="button_collapse_3"),style={'textAlign': 'center'})
+            #    ),
+            #    dbc.Collapse(id="collapse_3",children=
+            return  dbc.CardBody(children=[
                         html.Div( id='div_frequency_map',children = '',style= pu.get_single_heatmap_css_style()),
                         html.Div([ 
-                            dbc.Checklist(options=[{"label": "Etiquetar Neuronas", "value": 1}],
+                            dbc.Checklist(options=[{"label": "Label Neurons", "value": 1}],
                                             value=[],
                                             id="check_annotations_freq"),
                                         
-                            dbc.Button("Ver", id="frequency_map_button", className="mr-2", color="primary") ],
+                            dbc.Button("Plot", id="frequency_map_button", className="mr-2", color="primary") ],
                             style={'textAlign': 'center'}
                         )
                         
-                    ]),
-                ),
-            ]),
+                    ])
+                #),
+            #])
 
 
 
 
-            #Card: Component plans
-            dbc.Card([
-                dbc.CardHeader(
-                    html.H2(dbc.Button("Mapa de componentes",color="link",id="button_collapse_4"),style={'textAlign': 'center'})
-                ),
-                dbc.Collapse(id="collapse_4",children=
-                    dbc.CardBody(children=[
-                        html.H5("Seleccionar atributos para mostar:"),
+#Card: Component plans
+def get_componentplans_som_card():
+
+    return  dbc.CardBody(children=[
+                        html.H5("Select Features"),
                         dcc.Dropdown(
                             id='dropdown_atrib_names',
                             options=session_data.get_data_features_names_dcc_dropdown_format(),
@@ -114,34 +121,29 @@ def analyze_som_data():
                         ),
                         html.Div( 
                             [dbc.Checklist(
-                                options=[{"label": "Seleccionar todos", "value": 1}],
+                                options=[{"label": "Select all", "value": 1}],
                                 value=[],
                                 id="check_seleccionar_todos_mapas"),
 
-                            dbc.Checklist(options=[{"label": "Etiquetar Neuronas", "value": 1}],
+                            dbc.Checklist(options=[{"label": "Label Neurons", "value": 1}],
                                        value=[],
                                        id="check_annotations_comp"),
                                         
-                            dbc.Button("Ver Mapas de Componentes", id="ver_mapas_componentes_button", className="mr-2", color="primary")],
+                            dbc.Button("Plot Selected Components Map", id="ver_mapas_componentes_button", className="mr-2", color="primary")],
                             style={'textAlign': 'center'}
                         ),
                         html.Div(id='component_plans_figures_div', children=[''],
                                 style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
                         )
 
-                    ]),
-                ),
-            ]),
+                ])
 
 
 
-            #Card: U Matrix
-            dbc.Card([
-                dbc.CardHeader(
-                    html.H2(dbc.Button("Matriz U",color="link",id="button_collapse_5"),style={'textAlign': 'center'})
-                ),
-                dbc.Collapse(id="collapse_5",children=
-                    dbc.CardBody(children=[
+#Card: U Matrix
+def get_umatrix_som_card():
+
+    return  dbc.CardBody(children=[
 
                     html.H5("U-Matrix"),
                     html.H6("Returns the distance map of the weights.Each cell is the normalised sum of the distances betweena neuron and its neighbours. Note that this method usesthe euclidean distance"),
@@ -149,8 +151,8 @@ def analyze_som_data():
                     html.Div(id='umatrix_figure_div', children=[''],style= pu.get_single_heatmap_css_style()
                     ),
 
-                    html.Div([dbc.Button("Ver", id="umatrix_button", className="mr-2", color="primary"),
-                            dbc.Checklist(options=[{"label": "Etiquetar Neuronas", "value": 1}],
+                    html.Div([dbc.Button("Plot", id="umatrix_button", className="mr-2", color="primary"),
+                            dbc.Checklist(options=[{"label": "Label Neurons", "value": 1}],
                                        value=[],
                                        id="check_annotations_umax")
                             ],
@@ -158,36 +160,73 @@ def analyze_som_data():
                     )
 
                    
-                    ])
+            ])
 
-                    ),
-            ]),
-
+              
 
 
-            #Card: Guardar modelo
-            dbc.Card([
-                dbc.CardHeader(
-                    html.H2(dbc.Button("Guardar modelo entrenado",color="link",id="button_collapse_6"),style={'textAlign': 'center'})
-                ),
-                dbc.Collapse(id="collapse_6",children=
-                    dbc.CardBody(children=[
+ #Card: Guardar modelo
+def get_savemodel_som_card():
+
+    return dbc.CardBody(children=[
                   
                         html.Div(children=[
                             
-                            html.H5("Nombre del fichero"),
-                            dbc.Input(id='nombre_de_fichero_a_guardar_som',placeholder="Nombre del archivo", className="mb-3"),
+                            html.H5("Filename"),
+                            dbc.Input(id='nombre_de_fichero_a_guardar_som',placeholder="Filename", className="mb-3"),
 
-                            dbc.Button("Guardar modelo", id="save_model_som", className="mr-2", color="primary"),
+                            dbc.Button("Save Model", id="save_model_som", className="mr-2", color="primary"),
                             html.P('',id="check_correctly_saved_som")
                             ],
                             style={'textAlign': 'center'}
                         ),
-                    ]),
-                ),
             ])
+          
 
-        ])
+
+
+#############################################################
+#	                       LAYOUT	                        #
+#############################################################
+
+
+
+def analyze_som_data():
+
+    # Body
+    body =  html.Div(children=[
+        html.H4('Data Analysis \n',className="card-title"  ),
+
+        html.H6('Train Parameters',className="card-title"  ),
+        html.Div(id = 'info_table_som',children=info_trained_params_som_table(),style={'textAlign': 'center'} ),
+
+
+        dbc.Label("Select dataset portion"),
+        dbc.RadioItems(
+            options=[
+                {"label": "Train Data", "value": 1},
+                {"label": "Test Data", "value": 2},
+                {"label": "Train + Test Data", "value": 3},
+            ],
+            value=2,
+            id="dataset_portion_radio_analyze_som",
+        ),
+
+        dbc.Tabs(
+            id='tabs_som',
+            active_tab='components_plans_som',
+            style ={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
+            children=[
+                dbc.Tab(get_estadisticas_som_card(),label = 'Statistics',tab_id='statistics_som' ),
+                dbc.Tab(get_mapaneuronasganadoras_som_card(),label = 'Winners Target Map',tab_id='winners_map_som'),
+                dbc.Tab( get_mapafrecuencias_som_card() ,label = 'Freq',tab_id='freq_som'),
+                dbc.Tab( get_componentplans_som_card(), label='Components Plans',tab_id='components_plans_som'),
+                dbc.Tab(get_umatrix_som_card()  , label='U-Matrix',tab_id='umatrix_som'),
+                dbc.Tab(get_savemodel_som_card() ,label = 'Save Model',tab_id='save_model_som'),
+            ]
+        ),
+
+     
     ])
 
 
@@ -210,6 +249,9 @@ def analyze_som_data():
 ##################################################################
 
 
+
+
+
 def info_trained_params_som_table():
 
     info = session_data.get_som_model_info_dict()
@@ -217,15 +259,15 @@ def info_trained_params_som_table():
     #Table
     table_header = [
          html.Thead(html.Tr([
-                        html.Th("Tamaño Horizontal del Grid"),
-                        html.Th("Tamaño Vertical del Grid"),
-                        html.Th("Tasa Aprendizaje"),
-                        html.Th("Función de Vecindad"),
-                        html.Th("Función de Distancia"),
-                        html.Th("Sigma Gaussiana"),
-                        html.Th("Iteraciones"),
-                        html.Th("Inicialización de Pesos"),
-                        html.Th("Semilla")
+                        html.Th("Grid Horizontal Size"),
+                        html.Th("Grid Vertical Size"),
+                        html.Th("Learning Rate"),
+                        html.Th("Neighborhood Function"),
+                        html.Th("Distance Function"),
+                        html.Th("Gaussian Sigma"),
+                        html.Th("Max Iterations"),
+                        html.Th("Weights Initialization"),
+                        html.Th("Seed")
         ]))
     ]
 
@@ -259,32 +301,63 @@ def info_trained_params_som_table():
 #                       CALLBACKS
 ##################################################################
 
+
 @app.callback(
-    [Output(f"collapse_{i}", "is_open") for i in range(1, 7)],
-    [Input(f"button_collapse_{i}", "n_clicks") for i in range(1, 7)],
-    [State(f"collapse_{i}", "is_open") for i in range(1, 7)],
-    prevent_initial_call=True)
-def toggle_accordion(n1, n2,n3,n4,n5,n6, is_open1, is_open2,is_open3,is_open4,is_open5,is_open6):
+    Output('alert_target_not_selected_som', 'is_open'),
+    Output('collapse_winnersmap_som','is_open'),
+    Output('dropdown_target_selection_som', 'value'),
+    Input('info_table_som', 'children'), #udpate on load
+    Input('dropdown_target_selection_som', 'value'),
+)
+def toggle_winners_som(info_table,target_value):
+
     ctx = dash.callback_context
+    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
-    if not ctx.triggered:
-        return False, False, False
+    preselected_target = session_data.get_target_name()
+
+    if( trigger_id == 'info_table_som' ): #init call
+        if(preselected_target is None):
+            return False,True, None
+
+        else:
+            return False,True, preselected_target
+
+    elif(target_value is None or not target_value):
+        session_data.set_target_name(None)
+        #session_data.targets_col = []
+        return True,False, None
+
+
     else:
-        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+        session_data.set_target_name(target_value)
+        #df = pd.read_json(origina_df,orient='split')
+        #df = df[target_value]
+        #session_data.targets_col = df_target.to_numpy()
+        
+        return False, True,dash.no_update
 
-    if button_id == "button_collapse_1" and n1:
-        return not is_open1, is_open2, is_open3,is_open4, is_open5, is_open6
-    elif button_id == "button_collapse_2" and n2:
-        return is_open1, not is_open2, is_open3,is_open4, is_open5, is_open6
-    elif button_id == "button_collapse_3" and n3:
-        return is_open1, is_open2, not is_open3,is_open4, is_open5, is_open6
-    elif button_id == "button_collapse_4" and n4:
-        return is_open1, is_open2, is_open3, not is_open4, is_open5, is_open6
-    elif button_id == "button_collapse_5" and n5:
-        return is_open1, is_open2, is_open3, is_open4, not is_open5, is_open6
-    elif button_id == "button_collapse_6" and n6:
-        return is_open1, is_open2, is_open3, is_open4, is_open5, not is_open6
-    return False, False, False,False,False,False
+    
+
+#TODO BORRAR
+'''
+@app.callback(
+                Output('dropdown_target_selection_som', 'options'),
+                Input('info_table_som', 'children'), #udpate on load
+                State('original_dataframe_storage','data')
+)
+def get_target_optins(info_table, origina_df):
+
+    df = pd.read_json(origina_df,orient='split',nrows = 1)
+    df = df[exclude = session_data.get_features_names()]
+    columnas = df.columns.tolist()
+
+    options = []  # must be a list of dicts per option
+
+    for n in columnas:
+        options.append({'label' : n, 'value': n})
+    return options
+'''
 
 
 
@@ -304,13 +377,13 @@ def enable_ver_mapas_componentes_button(values):
 #Estadisticas
 @app.callback(Output('div_estadisticas_som', 'children'),
               Input('ver_estadisticas_som_button', 'n_clicks'),
+              State('dataset_portion_radio_analyze_som','value'),
               prevent_initial_call=True )
-def ver_estadisticas_som(n_clicks):
+def ver_estadisticas_som(n_clicks,data_portion_option):
 
     som = session_data.get_modelo()
-    #data = session_data.get_data()
-    data = session_data.get_data_std()
-
+    #data = session_data.get_data_std()
+    data = session_data.get_data(data_portion_option)
 
     qe,mqe = som.get_qe_and_mqe_errors(data)
 
@@ -329,11 +402,11 @@ def ver_estadisticas_som(n_clicks):
 
     #Table
     table_header = [
-        html.Thead(html.Tr([html.Th("Magnitud"), html.Th("Valor")]))
+        html.Thead(html.Tr([html.Th("Metric"), html.Th("Value")]))
     ]
-    row0 = html.Tr([html.Td("Error de Cuantización"), html.Td(qe)])
-    row1 = html.Tr([html.Td("Error de Cuantización Medio"), html.Td(mqe)])
-    row2 = html.Tr([html.Td("Error Topográfico"), html.Td(tp)])
+    row0 = html.Tr([html.Td("Quantization Error"), html.Td(qe)])
+    row1 = html.Tr([html.Td("Average Quantization Error"), html.Td(mqe)])
+    row2 = html.Tr([html.Td("Topographic Error"), html.Td(tp)])
     table_body = [html.Tbody([row0,row1, row2])]
     table = dbc.Table(table_header + table_body,bordered=True,dark=False,hover=True,responsive=True,striped=True)
     children = [table]
@@ -367,8 +440,9 @@ def annotate_winners_map_som(check_annotations, fig,n_clicks):
 @app.callback(Output('div_mapa_neuronas_ganadoras', 'children'),
               Input('ver', 'n_clicks'),
               State('check_annotations_winnersmap', 'value'),
+              State('dataset_portion_radio_analyze_som','value'),
               prevent_initial_call=True )
-def update_som_fig(n_clicks, check_annotations):
+def update_som_fig(n_clicks, check_annotations, data_portion_option):
 
     params = session_data.get_som_model_info_dict()
     tam_eje_vertical = params['tam_eje_vertical']
@@ -378,15 +452,19 @@ def update_som_fig(n_clicks, check_annotations):
     som = session_data.get_modelo()
     #dataset = session_data.get_dataset()
     #data = session_data.get_data()
-    data = session_data.get_data_std()
+    #data = session_data.get_data_std()
+    data = session_data.get_data(data_portion_option)
+
 
     
     #targets = dataset[:,-1:]
-    targets = session_data.get_targets_col()
     #targets_list = [t[0] for t in targets.tolist()]
     #TODO poner aqui .T en vez de to list
+    '''
+    targets = session_data.get_targets_col()
     targets_list =  targets.tolist()
-    
+    '''
+    targets_list = session_data.get_targets_list(data_portion_option)
 
     #'data and labels must have the same length.
     labels_map = som.labels_map(data, targets_list)
@@ -465,16 +543,18 @@ def annotate_freq_map_som(check_annotations, fig,n_clicks):
 
 
 #Actualizar mapas de frecuencias
-@app.callback(Output('div_frequency_map','children'),
-              Input('frequency_map_button','n_clicks'),
-              State('check_annotations_freq', 'value'),
-              prevent_initial_call=True 
-              )
-def update_mapa_frecuencias_fig(click, check_annotations):
+@app.callback(  Output('div_frequency_map','children'),
+                Input('frequency_map_button','n_clicks'),
+                State('check_annotations_freq', 'value'),
+                State('dataset_portion_radio_analyze_som','value'),
+                prevent_initial_call=True 
+)
+def update_mapa_frecuencias_fig(click, check_annotations, data_portion_option):
 
     som = session_data.get_modelo() 
     #model_data = session_data.get_data()
-    model_data = session_data.get_data_std()
+    #model_data = session_data.get_data_std()
+    model_data =  session_data.get_data(data_portion_option)
 
     
     params = session_data.get_som_model_info_dict()
@@ -506,7 +586,7 @@ def update_mapa_componentes_fig(click,names,check_annotations):
     tam_eje_horizontal = params['tam_eje_horizontal'] 
     tam_eje_vertical = params['tam_eje_vertical'] 
 
-    nombres_atributos = session_data.get_only_features_names()
+    nombres_atributos = session_data.get_features_names()
     lista_de_indices = []
 
     for n in names:
@@ -536,7 +616,7 @@ def update_mapa_componentes_fig(click,names,check_annotations):
 def on_form_change(check):
 
     if(check):
-        atribs = session_data.get_only_features_names()
+        atribs = session_data.get_features_names()
         return atribs
     else:
         return []
@@ -597,7 +677,7 @@ def save_som_model(n_clicks,name,isvalid):
     data = []
 
     params = session_data.get_som_model_info_dict()
-    columns_dtypes = session_data.get_colums_dtypes()
+    columns_dtypes = session_data.get_features_dtypes()
 
     data.append('som')
     data.append(columns_dtypes)
@@ -609,4 +689,4 @@ def save_som_model(n_clicks,name,isvalid):
     with open(DIR_SAVED_MODELS + filename, 'wb') as handle:
         pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    return 'Modelo guardado correctamente. Nombre del fichero: ' + filename
+    return 'Model saved! Filename: ' + filename

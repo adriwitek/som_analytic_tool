@@ -216,7 +216,7 @@ def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,ta
                                              check, seed)
 
     #session_data.estandarizar_data()
-    data = session_data.get_data_std()
+    data = session_data.get_train_data()
 
     start = time.time()
     session_data.start_timer()
