@@ -1333,8 +1333,11 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notn
 
     if(nsamples_percentage != 100):
 
+        print('\t -->Shuffling Data...')
         df_features = df_features.sample(n=nsamples_selected, replace=False)
         df_targets = df_targets.loc[df_features.index,:]
+        print('\t -->Shuffling Complete.')
+
         '''
         print('DEBUG:sampling random selection:')
         print('nsamples_selected',nsamples_selected)
@@ -1342,6 +1345,11 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notn
         print('df_features',df_features)
         print('df_targets',df_targets)
         '''
+    else:
+        print('\t -->Shuffling Data...')
+        df_features = df_features.sample(frac=1, replace=False)
+        df_targets = df_targets.loc[df_features.index,:]
+        print('\t -->Shuffling Complete.')
 
         
 
