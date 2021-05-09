@@ -344,7 +344,7 @@ def div_info_loaded_file(filename,fecha_modificacion, n_samples, n_features):
     
 
 
-
+# AUX FUN for #CARD DATASET SIZE EDIT
 def get_split_menu(n_samples):
 
     children = [
@@ -392,6 +392,130 @@ def get_split_menu(n_samples):
     return children
 
 
+
+#CARD DATASET SIZE EDIT
+def get_dataset_size_card(n_samples):
+
+    return  dbc.Card(  color = 'light',
+                        children=[
+                            dbc.CardBody(children=[
+
+                                html.Div(children=[
+
+                                        #Dataset percentage
+                                        html.Div(style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
+                                                children = [
+                                                    html.H6(children='Dataset percentage\t'),
+                                                    html.H6( dbc.Badge( '100 %',  pill=True, color="warning", className="mr-1",id ='badge_info_percentagedataset_slider')   )
+                                                ]
+                                        ),
+
+                                        #Slider percentage
+                                        dcc.Slider(id='dataset_percentage_slider', min=ceil(100/n_samples),max=100,value=100,step =1 ,
+                                                    marks={
+                                                        0: {'label': '0 %'},
+                                                        10: {'label': '10 %'},
+                                                        25: {'label':  '25 %'},
+                                                        50: {'label':  '50 %'},
+                                                        75: {'label':  '75 %'},
+                                                        100: {'label': '100 %'}
+                                                    }
+                                        ),
+
+                                        #Number of samples
+                                        html.Div(style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
+                                                children = [
+                                                    html.H6(children='Number of samples\t'),
+                                                    dcc.Input(id="dataset_nsamples_input", type="number", value=n_samples,step=1,min=1, max = n_samples),
+                                                ]
+
+                                        ),
+
+                                        #Split Dataset Train/Test
+                                        dbc.Checklist(  options=[{"label": "Split Dataset in Train/Test", "value": 0}],
+                                                                    value=[],
+                                                                    id="check_split_dataset"
+                                        ),
+
+                                        dbc.Collapse(   id = 'collapse_split_dataset',
+                                                        is_open= False,
+                                                        children = [
+                                                            dbc.Card( color = 'light',
+                                                                    children=[
+                                                                        dbc.CardBody(
+                                                                            get_split_menu(n_samples)
+                                                                        )
+                                                            ])
+                                                        ]
+                                        ),
+                                    ],
+                                    style={'textAlign': 'center'}
+                                ),
+                            ])
+                ])
+
+
+
+#CARD TARGET SELECTION
+def get_select_target_card():
+    return  dbc.Card(  color = 'light',
+                        children=[
+                                                                   
+                dbc.CardBody(children=[
+
+                            html.Div(children=[
+
+                                    #Target
+                                    html.H6('Target Selection:'),
+                                    dcc.Dropdown(id='dropdown_target_selection',
+                                               options=[],
+                                               multi=False,
+                                               value = []
+                                    ),
+                                ],
+                                style={'textAlign': 'center'}
+                            ),
+                ])
+            ])
+
+
+
+
+#CARD FEATURES SELECTION
+def get_features_selection_card():
+     
+    return  dbc.Card(  color = 'light',
+                        children=[
+                            dbc.CardBody(children=[
+
+                                html.Div(children=[
+                                        #Atrib names
+                                        html.H6('Feature Selection:'),
+
+                                        dbc.Checklist(
+                                            options=[
+                                                {"label": "Detect and Clean Categorical Data", "value": 1},
+                                            ],
+                                            value=[],
+                                            id="clean_data_switch",
+                                            switch=True,
+                                        ),
+
+                                        dcc.Dropdown(id='dropdown_feature_selection',
+                                                   options=[],
+                                                   #options=session_data.get_data_features_names_dcc_dropdown_format(columns=df.columns.tolist()),
+                                                   multi=True,
+                                                   #value = df.columns.tolist()
+                                                   value = []
+                                        ),
+                                    ],
+                                    style={'textAlign': 'center'}
+                                ),
+                            ])  
+             ])    
+
+
+
 def div_info_dataset( df, n_samples):
     if(df is None):
         return html.Div(style = { "visibility": "hidden",'display':'none'}  ,
@@ -418,110 +542,24 @@ def div_info_dataset( df, n_samples):
 
     return html.Div(id='output_uploaded_file',children=[
 
-                html.Br(),
-                #Dataset percentage
-                html.Div(style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
-                        children = [
-                            html.H6(children='Dataset percentage\t'),
-                            html.H6( dbc.Badge( '100 %',  pill=True, color="warning", className="mr-1",id ='badge_info_percentagedataset_slider')   )
-                        ]
+                dbc.Tabs(
+                    id='tabs_edit_dataset_home',
+                    active_tab='target_size_tab',
+                    style ={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
+                    children=[
+                        dbc.Tab(get_dataset_size_card(n_samples), label = 'Target Size',tab_id='target_size_tab' ),
+                        dbc.Tab(get_select_target_card() ,label = 'Target Selection',tab_id='target_select_tab'),
+                        dbc.Tab( get_features_selection_card() ,label = 'Feature Selection',tab_id='feature_selection_card'),
+                        dbc.Tab(get_onehot_childrendiv_menu() ,label = 'Apply One Hot Econding',tab_id='onehot_tab'),
+                    ]
                 ),
 
-                #Slider percentage
-                dcc.Slider(id='dataset_percentage_slider', min=ceil(100/n_samples),max=100,value=100,step =1 ,
-                            marks={
-                                0: {'label': '0 %'},
-                                10: {'label': '10 %'},
-                                25: {'label':  '25 %'},
-                                50: {'label':  '50 %'},
-                                75: {'label':  '75 %'},
-                                100: {'label': '100 %'}
-                            }
-                ),
-
-
-                #Number of samples
-                html.Div(style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
-                        children = [
-                            html.H6(children='Number of samples\t'),
-                            dcc.Input(id="dataset_nsamples_input", type="number", value=n_samples,step=1,min=1, max = n_samples),
-                        ]
                 
-                ),
-
-
-
-                #Split Dataset Train/Test
-
-                dbc.Checklist(  options=[{"label": "Split Dataset in Train/Test", "value": 0}],
-                                            value=[],
-                                            id="check_split_dataset"
-                ),
-
-                dbc.Collapse(   id = 'collapse_split_dataset',
-                                is_open= False,
-                                children = [
-                                    dbc.Card( color = 'light',
-                                            children=[
-                                                dbc.CardBody(
-                                                    get_split_menu(n_samples)
-
-                                                )
-                                    ])
-                                ]
-
-
-                ),
-
-
+                html.Br(),
 
                
-                html.Br(),
-                html.Br(),
 
-
-                #Target
-                html.H6('Target Selection:'),
-                dcc.Dropdown(id='dropdown_target_selection',
-                           options=[],
-                           multi=False,
-                           value = []
-                ),
-                html.Br(),           
-
-                #Atrib names
-                html.H6('Feature Selection:'),
-
-                dbc.Checklist(
-                    options=[
-                        {"label": "Detect and Clean Categorical Data", "value": 1},
-                    ],
-                    value=[],
-                    id="clean_data_switch",
-                    switch=True,
-                ),
-
-                dcc.Dropdown(id='dropdown_feature_selection',
-                           options=[],
-                           #options=session_data.get_data_features_names_dcc_dropdown_format(columns=df.columns.tolist()),
-                           multi=True,
-                           #value = df.columns.tolist()
-                           value = []
-                ),
-
-
-              
-
-                html.Br(),
-
-
-                dbc.Checklist(  options=[{"label": "Apply One Hot Encoding", "value": 0}],
-                                            value=[],
-                                            id="check_onehot"),
-
-
-                html.Div(id='div_onehot_menu',children=get_onehot_childrendiv_menu()),
-
+                #html.Div(id='div_onehot_menu',children=get_onehot_childrendiv_menu()),
 
 
 
@@ -551,7 +589,7 @@ def div_info_dataset( df, n_samples):
 
     
 
-
+#PREVIEW DATASET TABLE
 def create_preview_table(df, selected_columns = []):
 
     if(df is None):
@@ -625,34 +663,36 @@ def create_preview_table(df, selected_columns = []):
 
 def get_onehot_childrendiv_menu():
 
-    collapse = dbc.Collapse(id="collapse_onehot_menu",children=
-        dbc.CardBody(children=[ 
-            html.Div(
+        
+ return  dbc.Card(  color = 'light',
+                        children=[
+    
+                            dbc.CardBody(children=[ 
+                                html.Div(
+                                
+                                    children = [
+                                    
+                                    
+                                        html.H5("Select Categorical Features to apply them One Hot:"),
+                                        dcc.Dropdown(
+                                            id='dropdown_features_toonehot',
+                                            options=[],
+                                            multi=True
+                                        ),
 
-                children = [
-                
-                
-                    html.H5("Select Categorical Features to apply them One Hot:"),
-                    dcc.Dropdown(
-                        id='dropdown_features_toonehot',
-                        options=[],
-                        multi=True
-                    ),
+                                        dbc.Checklist(  options=[{"label": "Consider empty values", "value": 0}],
+                                                                            value=[],
+                                                                            id="check_nanvalues_onehot"
+                                        ),
 
-                    dbc.Checklist(  options=[{"label": "Consider empty values", "value": 0}],
-                                                        value=[],
-                                                        id="check_nanvalues_onehot"
-                    ),
+                                        dbc.Button("Apply One Hot", id="apply_onehot_button", className="mr-2", color="primary")
 
-                    dbc.Button("Apply One Hot", id="apply_onehot_button", className="mr-2", color="primary")
+                                    ]
+                                )
+                            ])
 
-
-                ]
-            )
-        ])
-    )
-
-    return collapse
+            ])
+   
 
 
 
@@ -803,17 +843,6 @@ def process_data(input_data , clean_categorical_data, n_clicks, processed_data, 
 
 
 
-
-
-#Show One Hot Encoding Menu
-@app.callback(Output('collapse_onehot_menu', 'is_open'),
-              Input('check_onehot', 'value'),
-              prevent_initial_call=True )
-def show_onehot_menu(check_onehot):
-    if(check_onehot):
-        return True
-    else:
-        return False
 
 
 
@@ -1210,10 +1239,6 @@ def sync_slider_input_datasetpercentage(slider_percentage, n_samples_sel, n_samp
 
 
 
-#if                 Output("dataset_nsamples_input", "value"), es 0 el check de split cloopaseaaa
-
-##############################################
-
 
 
 @app.callback(
@@ -1241,13 +1266,8 @@ def split_dataset_collapse(check, n_sel_samples):
 @app.callback(  Output("split_slider", "value"),
                 Output("badge_info_percentage_train_slider", "children"),
                 Output("badge_info_percentage_test_slider", "children"),
-
-
-                
                 Output("train_samples_input", "value"),
                 Output("test_samples_input", "value"),
-
-
                 Input("split_slider", "value"),
                 Input("train_samples_input", "value"),
                 Input("test_samples_input", "value"),
@@ -1323,20 +1343,18 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notn
                          target_selection, feature_selection,check_split_dataset,train_samples_input  ):
 
 
-    
-
 
     df = pd.read_json(data,orient='split')
     notnumeric_df = pd.read_json(notnumeric_df,orient='split')
     df_features = df[feature_selection]
     df_targets =  pd.concat( [notnumeric_df,  df[df.columns.difference(feature_selection)] ],axis=1)  
 
+    print('\t -->Shuffling Data...')
+
     if(nsamples_percentage != 100):
 
-        print('\t -->Shuffling Data...')
         df_features = df_features.sample(n=nsamples_selected, replace=False)
         df_targets = df_targets.loc[df_features.index,:]
-        print('\t -->Shuffling Complete.')
 
         '''
         print('DEBUG:sampling random selection:')
@@ -1346,10 +1364,10 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notn
         print('df_targets',df_targets)
         '''
     else:
-        print('\t -->Shuffling Data...')
         df_features = df_features.sample(frac=1, replace=False)
         df_targets = df_targets.loc[df_features.index,:]
-        print('\t -->Shuffling Complete.')
+
+    print('\t -->Shuffling Complete.')
 
         
 
@@ -1421,7 +1439,7 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notn
     elif(button_id == 'train_mode_ghsom_button'):
         #session_data.convert_train_data_tonumpy()
         return dcc.Location(pathname=URLS['TRAINING_GHSOM_URL'], id="redirect"), False, ''
-    else:   #if something goes wrong 
+    else:   #if something goes wrong, but app never should get here anyway
         return dcc.Location(pathname="/", id="redirect"), False, ''
 
 

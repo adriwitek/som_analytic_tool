@@ -81,7 +81,7 @@ def get_mapaneuronasganadoras_som_card():
                             ])
             
 
-                        ])
+            ])
 
 #Mapa frecuencias
 def get_mapafrecuencias_som_card():
