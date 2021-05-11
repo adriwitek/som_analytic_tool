@@ -491,6 +491,7 @@ def get_features_selection_card():
                                 html.Div(children=[
                                         #Atrib names
                                         html.H6('Feature Selection:'),
+                                        html.P('Select at least 2 features',className="text-secondary",  style={'textAlign': 'center'}  ),
 
                                         dbc.Checklist(
                                             options=[
@@ -547,20 +548,12 @@ def div_info_dataset( df, n_samples):
                     active_tab='target_size_tab',
                     style ={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
                     children=[
-                        dbc.Tab(get_dataset_size_card(n_samples), label = 'Target Size',tab_id='target_size_tab' ),
+                        dbc.Tab(get_dataset_size_card(n_samples), label = 'Dataset Size',tab_id='target_size_tab' ),
                         dbc.Tab(get_select_target_card() ,label = 'Target Selection',tab_id='target_select_tab'),
                         dbc.Tab( get_features_selection_card() ,label = 'Feature Selection',tab_id='feature_selection_card'),
                         dbc.Tab(get_onehot_childrendiv_menu() ,label = 'Apply One Hot Econding',tab_id='onehot_tab'),
                     ]
                 ),
-
-                
-                html.Br(),
-
-               
-
-                #html.Div(id='div_onehot_menu',children=get_onehot_childrendiv_menu()),
-
 
 
                 html.Div(
@@ -1034,9 +1027,13 @@ def callback_preview_table(input_data,features_values,target_value,n_of_samples,
 
         df = pd.read_json(input_data,orient='split')
 
-        if(len(features_values)>0):
+        if(len(features_values)==1 ):
+            disabled_button = True
+            dff = df[features_values]
+        elif(len(features_values)> 1):
             disabled_button = False
             dff = df[features_values]
+
         else:  
             dff =   pd.DataFrame(columns=[])
 
@@ -1369,8 +1366,6 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notn
 
     print('\t -->Shuffling Complete.')
 
-        
-
 
     #preselected target
     
@@ -1409,8 +1404,11 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notn
         else:
             #reorder selected dataframe cols to be the same as trained model
             cols = list(columns_dtypes.keys()) 
-            df_features = df[cols]
-            session_data.set_pd_dataframes(df_features,df_targets,test_samples_number )
+            df_features = df_features[cols]
+
+
+
+            session_data.set_pd_dataframes(df_features,df_targets,split = split, train_samples_number=train_samples_input )
 
             #df = session_data.get_pd_dataframe()[cols]
             #session_data.set_pd_dataframe(df)

@@ -347,20 +347,40 @@ class GSOM:
         neurons_mapped_targets = {} 
         #data = dataset[:,:-1]
 
-        # Getting winnig neurons for each data element
-        for i,d in enumerate(data):
-            winner_neuron = self.winner_neuron(d)[0][0]
-            r, c = winner_neuron.position
-            mapping[r][c].append(i)
+        if(target_col is not None): # Si hay traget calculamos los winners,si no solo el hit rate
 
-            if((r,c) in neurons_mapped_targets):
-                #neurons_mapped_targets[(r,c)].append(dataset[i][-1]) 
-                neurons_mapped_targets[(r,c)].append(target_col[i]) 
+            # Getting winnig neurons for each data element
+            for i,d in enumerate(data):
+                winner_neuron = self.winner_neuron(d)[0][0]
+                r, c = winner_neuron.position
+                mapping[r][c].append(i)
 
-            else:
-                neurons_mapped_targets[(r,c)] = []
-                #neurons_mapped_targets[(r,c)].append(dataset[i][-1]) 
-                neurons_mapped_targets[(r,c)].append(target_col[i]) 
+                if((r,c) in neurons_mapped_targets):
+                    #neurons_mapped_targets[(r,c)].append(dataset[i][-1]) 
+                    neurons_mapped_targets[(r,c)].append(target_col[i]) 
+
+                else:
+                    neurons_mapped_targets[(r,c)] = []
+                    #neurons_mapped_targets[(r,c)].append(dataset[i][-1]) 
+                    neurons_mapped_targets[(r,c)].append(target_col[i]) 
+
+        else:#numero de veces que se golpea cada neurona
+
+            # Getting winnig neurons for each data element
+            for i,d in enumerate(data):
+                winner_neuron = self.winner_neuron(d)[0][0]
+                r, c = winner_neuron.position
+                mapping[r][c].append(i)
+
+                if((r,c) in neurons_mapped_targets):
+                    #neurons_mapped_targets[(r,c)].append(dataset[i][-1]) 
+                    neurons_mapped_targets[(r,c)].append(1) 
+
+                else:
+                    neurons_mapped_targets[(r,c)] = []
+                    #neurons_mapped_targets[(r,c)].append(dataset[i][-1]) 
+                    neurons_mapped_targets[(r,c)].append(1) 
+
 
 
         grafo.add_node(self,nivel =level, neurons_mapped_targets = neurons_mapped_targets )
@@ -379,7 +399,13 @@ class GSOM:
                 r, c = neuron.position
                 index_list= mapping[r][c]
                 #grafo = neuron.child_map.get_structure_graph(grafo,dataset[index_list], level=level+1)
-                grafo = neuron.child_map.get_structure_graph(grafo,data[index_list],target_col[index_list], level=level+1)
+                if(target_col is not None): # Si hay traget calculamos los winners,si no nada
+                    
+                    grafo = neuron.child_map.get_structure_graph(grafo,data[index_list], [ target_col[i] for i in index_list] , level=level+1)
+                    #grafo = neuron.child_map.get_structure_graph(grafo,data[index_list], target_col[index_list], level=level+1)
+                else:
+                    grafo = neuron.child_map.get_structure_graph(grafo,data[index_list], None, level=level+1)
+
 
 
 
@@ -399,3 +425,7 @@ class GSOM:
                 mapped_neurons += 1
 
         return MAP_QE , (MAP_QE / mapped_neurons)
+
+
+    def replace_parent_dataset(self,data):
+        self.__parent_dataset =data 

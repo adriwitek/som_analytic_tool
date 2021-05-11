@@ -38,10 +38,10 @@ class GHSOM:
 
         #TODO BORRAR ESTO
         #network
-        self.structure_graph= nx.Graph()
-        self.structure_graph.add_node(zero_unit.child_map)
-        self.structure_graph.add_node(1, nivel = 1, parent = 0 )
-        self.structure_graph.add_edge(0, 1)
+        #self.structure_graph= nx.Graph()
+        #self.structure_graph.add_node(zero_unit.child_map)
+        #self.structure_graph.add_node(1, nivel = 1, parent = 0 )
+        #self.structure_graph.add_edge(0, 1)
         self.node_counter = 2
 
         #Progressbar
@@ -101,7 +101,7 @@ class GHSOM:
         session_data.update_progressbar_value(maxvalue )
 
         #TODO BORRAR ESTO si no construyo aqui el grafo
-        zero_unit.graph = self.structure_graph
+        #zero_unit.graph = self.structure_graph
 
         return zero_unit
 

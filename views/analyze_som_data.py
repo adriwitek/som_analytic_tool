@@ -86,25 +86,19 @@ def get_mapaneuronasganadoras_som_card():
 #Mapa frecuencias
 def get_mapafrecuencias_som_card():
 
-    #return  #dbc.Card([
-            #    dbc.CardHeader(
-            #        html.H2(dbc.Button("Mapa de frecuencias de activación",color="link",id="button_collapse_3"),style={'textAlign': 'center'})
-            #    ),
-            #    dbc.Collapse(id="collapse_3",children=
-            return  dbc.CardBody(children=[
-                        html.Div( id='div_frequency_map',children = '',style= pu.get_single_heatmap_css_style()),
-                        html.Div([ 
-                            dbc.Checklist(options=[{"label": "Label Neurons", "value": 1}],
-                                            value=[],
-                                            id="check_annotations_freq"),
-                                        
-                            dbc.Button("Plot", id="frequency_map_button", className="mr-2", color="primary") ],
-                            style={'textAlign': 'center'}
-                        )
-                        
-                    ])
-                #),
-            #])
+    return  dbc.CardBody(children=[
+                html.Div( id='div_frequency_map',children = '',style= pu.get_single_heatmap_css_style()),
+                html.Div([ 
+                    dbc.Checklist(options=[{"label": "Label Neurons", "value": 1}],
+                                    value=[],
+                                    id="check_annotations_freq"),
+                                
+                    dbc.Button("Plot", id="frequency_map_button", className="mr-2", color="primary") ],
+                    style={'textAlign': 'center'}
+                )
+                
+            ])
+            
 
 
 
@@ -165,7 +159,7 @@ def get_umatrix_som_card():
               
 
 
- #Card: Guardar modelo
+#Card: Guardar modelo
 def get_savemodel_som_card():
 
     return dbc.CardBody(children=[
@@ -182,6 +176,24 @@ def get_savemodel_som_card():
                         ),
             ])
           
+
+def get_select_splitted_option_card():
+
+    return     dbc.CardBody(   id='get_select_splitted_option_card_som',
+                        children=[
+                            dbc.Label("Select dataset portion"),
+                            dbc.RadioItems(
+                                options=[
+                                    {"label": "Train Data", "value": 1},
+                                    {"label": "Test Data", "value": 2},
+                                    {"label": "Train + Test Data", "value": 3},
+                                ],
+                                value=2,
+                                id="dataset_portion_radio_analyze_som",
+                            )
+                        ]
+                )
+
 
 
 
@@ -201,26 +213,20 @@ def analyze_som_data():
         html.Div(id = 'info_table_som',children=info_trained_params_som_table(),style={'textAlign': 'center'} ),
 
 
-        dbc.Label("Select dataset portion"),
-        dbc.RadioItems(
-            options=[
-                {"label": "Train Data", "value": 1},
-                {"label": "Test Data", "value": 2},
-                {"label": "Train + Test Data", "value": 3},
-            ],
-            value=2,
-            id="dataset_portion_radio_analyze_som",
-        ),
+     
+     
+      
 
         dbc.Tabs(
             id='tabs_som',
             active_tab='components_plans_som',
             style ={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
             children=[
+                dbc.Tab(get_select_splitted_option_card(),label = 'Select Dataset Splitted Part',tab_id='splitted_part',disabled= (not session_data.data_splitted )),
                 dbc.Tab(get_estadisticas_som_card(),label = 'Statistics',tab_id='statistics_som' ),
                 dbc.Tab(get_mapaneuronasganadoras_som_card(),label = 'Winners Target Map',tab_id='winners_map_som'),
                 dbc.Tab( get_mapafrecuencias_som_card() ,label = 'Freq',tab_id='freq_som'),
-                dbc.Tab( get_componentplans_som_card(), label='Components Plans',tab_id='components_plans_som'),
+                dbc.Tab( get_componentplans_som_card(), label='Component Plans',tab_id='components_plans_som'),
                 dbc.Tab(get_umatrix_som_card()  , label='U-Matrix',tab_id='umatrix_som'),
                 dbc.Tab(get_savemodel_som_card() ,label = 'Save Model',tab_id='save_model_som'),
             ]
@@ -244,11 +250,12 @@ def analyze_som_data():
 
 
 
+
+
+
 ##################################################################
 #                       AUX FUNCTIONS
 ##################################################################
-
-
 
 
 
@@ -297,11 +304,48 @@ def info_trained_params_som_table():
 
 
 
+
+
+
+
+
 ##################################################################
 #                       CALLBACKS
 ##################################################################
 
+'''
 
+#Show select splitted target part if it es splitted
+@app.callback(  Output('get_select_splitted_option_card_som', 'is_open'),
+                Input('info_table_som', 'children'), #udpate on load
+)
+def toggle_show_dataset_splitted_option(info_table):
+
+
+    dbc.CardBody(children=[
+                html.Div( id='div_frequency_map',children = '',style= pu.get_single_heatmap_css_style()),
+                html.Div([ 
+                    dbc.Checklist(options=[{"label": "Label Neurons", "value": 1}],
+                                    value=[],
+                                    id="check_annotations_freq"),
+                                
+                    dbc.Button("Plot", id="frequency_map_button", className="mr-2", color="primary") ],
+                    style={'textAlign': 'center'}
+                )
+                
+            ])
+
+    print('debugdsfa',flush=True)
+
+    if(session_data.data_splitted):
+
+        
+        return True
+    else:
+        return False
+'''
+
+#Toggle winners map if selected target
 @app.callback(
     Output('alert_target_not_selected_som', 'is_open'),
     Output('collapse_winnersmap_som','is_open'),
@@ -552,8 +596,7 @@ def annotate_freq_map_som(check_annotations, fig,n_clicks):
 def update_mapa_frecuencias_fig(click, check_annotations, data_portion_option):
 
     som = session_data.get_modelo() 
-    #model_data = session_data.get_data()
-    #model_data = session_data.get_data_std()
+   
     model_data =  session_data.get_data(data_portion_option)
 
     

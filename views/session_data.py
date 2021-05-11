@@ -261,36 +261,13 @@ class Sesion():
             return self.get_joined_train_test_np_data()
 
 
-    '''
-    #def get_dataset(self):#TODOOOO TO NUMPY Y SELECCION
-    def get_targets_col(self):
-        return self.targets_col.T
-    '''
-  
 
-
-
-
-    '''
-    def get_pd_dataframe(self):
-        #return features df
-      
-        return self.pd_dataframe
-    '''
-
-
-
-        
 
 
     def get_features_names(self):
         return self.features_names
 
 
-
-
-
-    
    
     def get_train_data_n_samples(self):
         n_samples, _ = self.get_train_data().shape
@@ -335,17 +312,17 @@ class Sesion():
             if(self.df_targets_train is not None):
                 return self.df_targets_train[self.get_target_name()].tolist()
             else:
-                return []
+                return None
         elif(option == 2):
             if(self.df_targets_test is not None):
                 return self.df_targets_test[self.get_target_name()].tolist()
             else:
-                return []
+                return None
         else:
             if(self.df_targets_test is not None and self.df_targets_train is not None):
                 return self.get_joined_train_test_df_targets()[self.get_target_name()].tolist()
             else:
-                return []
+                return None
 
 
 
@@ -372,12 +349,6 @@ class Sesion():
 
 
 
-
-
-
-
- 
-    
     def set_filedata(self,filedata):
         self.file_data = filedata
 

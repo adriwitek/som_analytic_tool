@@ -26,6 +26,200 @@ import views.plot_utils as pu
 
 
 
+##################################################################
+#                       AUX LAYOUT FUNCTIONS
+##################################################################
+
+#Card Statistics
+def get_statistics_card_ghsom():
+
+    return  dbc.CardBody(children=[ 
+
+                        html.Div(id = 'grafo_ghsom_estadisticas',children = '',
+                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+                        ),
+                        html.Div( id='div_estadisticas_ghsom',children = '', style={'textAlign': 'center'}) 
+            ])
+            
+            
+
+
+#Card winners map
+def get_winnersmap_card_ghsom():
+    return  dbc.CardBody(children=[ 
+
+
+                        dbc.Alert(
+                        [
+                            html.H4("Target not selected yet!", className="alert-heading"),
+                            html.P(
+                                "Please select a target below to print winners map. "
+                            )
+                        ],
+                        color='danger',
+                        id='alert_target_not_selected_ghsom',
+                        is_open=True
+
+                        ),
+
+                        dcc.Dropdown(id='dropdown_target_selection_ghsom',
+                           options=session_data.get_targets_options_dcc_dropdown_format() ,
+                           multi=False,
+                           value = session_data.get_target_name()
+                        ),
+                        html.Br(),  
+
+
+                        dbc.Collapse(
+                            id='collapse_winnersmap_ghsom',
+                            is_open=False,
+                            children=[
+
+                                html.Div(id = 'grafo_ghsom_winners',children = '',
+                                        style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+                                ),
+        
+                                html.Div(   id = 'winners_map_ghsom',children = '',
+                                            style= pu.get_single_heatmap_css_style()
+                                ),
+        
+                                html.Div(
+                                    dbc.Checklist(  options=[{"label": "Label Neurons", "value": 1}],
+                                                    value=[],
+                                                    id="check_annotations_winmap_ghsom"),
+                                    style={'textAlign': 'center'}
+                                )
+
+                        ])
+
+                    
+
+            ])
+        
+
+#Card Freq Map
+def get_freqmap_card_ghsom():
+    return  dbc.CardBody(children=[ 
+
+                         html.Div(id = 'grafo_ghsom_freq',children = '',
+                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+                        ),
+
+                        html.Div(id = 'div_freq_map_ghsom',children=None,
+                                style={'margin': '0 auto','width': '100%', 'display': 'flex',
+                                                    'align-items': 'center', 'justify-content': 'center',
+                                                   'flex-wrap': 'wrap', 'flex-direction': 'column ' } 
+                        )
+            ])
+          
+
+#Card Component plans
+def get_componentplans_card_ghsom():
+      
+    return  dbc.CardBody(children=[
+                            html.H5("Seleccionar atributos para mostar:"),
+                            dcc.Dropdown(
+                                id='dropdown_atrib_names_ghsom',
+                                options=session_data.get_data_features_names_dcc_dropdown_format(),
+                                multi=True
+                            ),
+                            html.Div( 
+                                [dbc.Checklist(
+                                    options=[{"label": "Check All", "value": 1}],
+                                    value=[],
+                                    id="check_seleccionar_todos_mapas_ghsom")],
+                                style={'textAlign': 'center'}
+                            ),
+
+                            
+                            dbc.Alert(
+                                    [
+                                        html.H4("Feature(s) not selected yet!", className="alert-heading"),
+                                        html.P(
+                                            "Please select at least one feature below to plot his Component Plan. "
+                                        )
+                                    ],
+                                    color='danger',
+                                    id='alert_cplans_not_selected_ghsom',
+                                    is_open=True
+
+                            ),
+
+
+                            dbc.Collapse(
+                                id='collapse_cplan_ghsom',
+                                is_open=False,
+                                children=[
+                                    html.Div(id = 'grafo_ghsom_cplans',children = '',
+                                        style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+                                    ),
+
+                                    html.Div(id='component_plans_figures_ghsom_div', children=[''],
+                                            style= pu.get_single_heatmap_css_style()
+                                    ),
+
+                                    html.Div(dbc.Checklist(  options=[{"label": "Label Neurons", "value": 1}],
+                                                            value=[],
+                                                            id="check_annotations_comp_ghsom"),
+                                                style={'textAlign': 'center'}
+                                    )
+
+
+                            ])
+
+            ])
+                    
+         
+
+
+#Card UMatrix
+def get_umatrix_card_ghsom():
+       
+    return dbc.CardBody(children=[
+            html.Div(id = 'grafo_ghsom_umatrix',children = '',
+                    style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+            ),
+            
+            html.Div(id = 'umatrix_div_fig_ghsom',children = '',
+                    style= pu.get_single_heatmap_css_style()
+            ),
+            
+            html.Div(dbc.Checklist(     options=[{"label": "Label Neurons", "value": 1}],
+                                        value=[],
+                                        id="check_annotations_um_ghsom"),
+                    style={'textAlign': 'center'}
+            )
+        
+        ])
+
+
+
+#Card Guardar modelo
+def get_savemodel_card_ghsom():
+
+    return  dbc.CardBody(children=[
+        
+                html.Div(children=[
+
+                    html.H5("Nombre del fichero"),
+                    dbc.Input(id='nombre_de_fichero_a_guardar_ghsom',placeholder="Nombre del archivo", className="mb-3"),
+                    dbc.Button("Guardar modelo", id="save_model_ghsom", className="mr-2", color="primary"),
+                    html.P('',id="check_correctly_saved_ghsom")
+                    ],
+                    style={'textAlign': 'center'}
+                ),
+        ])
+         
+
+
+
+
+
+
+#############################################################
+#	                       LAYOUT	                        #
+#############################################################
+
 def analyze_ghsom_data():
 
     # Body
@@ -35,173 +229,23 @@ def analyze_ghsom_data():
         html.H6('Parámetros de entrenamiento',className="card-title"  ),
         html.Div(id = 'info_table_ghsom',children=info_trained_params_ghsom_table(),style={'textAlign': 'center'} ),
 
-        html.Div(children=[ 
 
-            #Card Estadísticas
-            dbc.Card([
-                dbc.CardHeader(
-                    html.H2(dbc.Button("Estadísticas",color="link",id="button_collapse_ghsom_1"),style={'textAlign': 'center', 'justify':'center'})
-                ),
-                dbc.Collapse(id="collapse_ghsom_1",children=
-                    dbc.CardBody(children=[ 
 
-                        html.Div(id = 'grafo_ghsom_estadisticas',children = '',
-                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
-                        ),
-                        html.Div( id='div_estadisticas_ghsom',children = '', style={'textAlign': 'center'})
-                       
-                    ]),
-                ),
-            ]),
-
-            #Card Mapa neurona winners
-            dbc.Card([
-                dbc.CardHeader(
-                    html.H2(dbc.Button("Mapa de neuronas ganadoras",color="link",id="button_collapse_ghsom_2"),style={'textAlign': 'center'})
-                ),
-                dbc.Collapse(id="collapse_ghsom_2",children=
-                    dbc.CardBody(children=[ 
+        dbc.Tabs(
+                id='tabs_ghsom',
+                active_tab='',
+                style ={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
+                children=[
+                    dbc.Tab(get_select_splitted_option_card(),label = 'Select Dataset Splitted Part',tab_id='splitted_part',disabled= (not session_data.data_splitted )),
+                    dbc.Tab(get_statistics_card_ghsom() ,label = 'Statistics',tab_id='statistics_card'),
+                    dbc.Tab( get_winnersmap_card_ghsom() ,label = 'Winners Map',tab_id='winners_card'),
+                    dbc.Tab( get_freqmap_card_ghsom() ,label = 'Freq. Map',tab_id='freq_card'),
+                    dbc.Tab( get_componentplans_card_ghsom() ,label = 'Component Plans',tab_id='componentplans_card'),
+                    dbc.Tab( get_umatrix_card_ghsom() ,label = 'U Matrix',tab_id='umatrix_card'),
+                    dbc.Tab( get_savemodel_card_ghsom() ,label = 'Save Model',tab_id='save_model_card'),
                     
-                    
-                        html.Div(id = 'grafo_ghsom_winners',children = '',
-                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
-                        ),
-
-                        html.Div(   id = 'winners_map_ghsom',children = '',
-                                    style= pu.get_single_heatmap_css_style()
-                        ),
-
-                        html.Div(
-                            dbc.Checklist(  options=[{"label": "Label Neurons", "value": 1}],
-                                            value=[],
-                                            id="check_annotations_winmap_ghsom"),
-                            style={'textAlign': 'center'}
-                        )
-                    ]),
-                ),
-            ]),
-
-
-
-            #Card Mapa frecuencias
-            dbc.Card([
-                dbc.CardHeader(
-                    html.H2(dbc.Button("Mapa de frecuencias",color="link",id="button_collapse_ghsom_3"),style={'textAlign': 'center'})
-                ),
-                dbc.Collapse(id="collapse_ghsom_3",children=
-                    dbc.CardBody(children=[ 
-
-                         html.Div(id = 'grafo_ghsom_freq',children = '',
-                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
-                        ),
-
-                        html.Div(id = 'div_freq_map_ghsom',children='',
-                                style={'margin': '0 auto','width': '100%', 'display': 'flex',
-                                                    'align-items': 'center', 'justify-content': 'center',
-                                                   'flex-wrap': 'wrap', 'flex-direction': 'column ' } 
-                        )
-                    ]),
-                ),
-            ]),
-
-
-
-
-            #Card: Component plans
-            dbc.Card([
-                dbc.CardHeader(
-                    html.H2(dbc.Button("Mapa de componentes",color="link",id="button_collapse_ghsom_4"),style={'textAlign': 'center'})
-                ),
-                dbc.Collapse(id="collapse_ghsom_4",children=
-                    dbc.CardBody(children=[
-                        dbc.CardBody(children=[
-                            html.H5("Seleccionar atributos para mostar:"),
-                            dcc.Dropdown(
-                                id='dropdown_atrib_names_ghsom',
-                                options=session_data.get_data_features_names_dcc_dropdown_format(),
-                                multi=True
-                            ),
-                            html.Div( 
-                                [dbc.Checklist(
-                                    options=[{"label": "Seleccionar todos", "value": 1}],
-                                    value=[],
-                                    id="check_seleccionar_todos_mapas_ghsom")],
-                                style={'textAlign': 'center'}
-                            ),
-
-                            html.Div(id = 'grafo_ghsom_cplans',children = '',
-                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
-                            ),
-
-                            html.Div(id='component_plans_figures_ghsom_div', children=[''],
-                                    style= pu.get_single_heatmap_css_style()
-                            ),
-
-                            html.Div(dbc.Checklist(  options=[{"label": "Label Neurons", "value": 1}],
-                                                    value=[],
-                                                    id="check_annotations_comp_ghsom"),
-                                        style={'textAlign': 'center'}
-                            )
-
-
-                        ]),
-                    ]),
-                ),
-            ]),
-
-
-
-            #Card: U Matrix
-            dbc.Card([
-                dbc.CardHeader(
-                    html.H2(dbc.Button("Matriz U",color="link",id="button_collapse_ghsom_5"),style={'textAlign': 'center'})
-                ),
-                dbc.Collapse(id="collapse_ghsom_5",children=
-                    dbc.CardBody(children=[
-
-                        html.Div(id = 'grafo_ghsom_umatrix',children = '',
-                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
-                        ),
-
-                        html.Div(id = 'umatrix_div_fig_ghsom',children = '',
-                                style= pu.get_single_heatmap_css_style()
-                        ),
-
-                        html.Div(dbc.Checklist(     options=[{"label": "Label Neurons", "value": 1}],
-                                                    value=[],
-                                                    id="check_annotations_um_ghsom"),
-                                style={'textAlign': 'center'}
-                        )
-                    
-                    ])
-
-                    ),
-            ]),
-
-
-            #Card: Guardar modelo
-            dbc.Card([
-                dbc.CardHeader(
-                    html.H2(dbc.Button("Guardar modelo entrenado",color="link",id="button_collapse_ghsom_6"),style={'textAlign': 'center'})
-                ),
-                dbc.Collapse(id="collapse_ghsom_6",children=
-                    dbc.CardBody(children=[
-                  
-                        html.Div(children=[
-                            
-                            html.H5("Nombre del fichero"),
-                            dbc.Input(id='nombre_de_fichero_a_guardar_ghsom',placeholder="Nombre del archivo", className="mb-3"),
-
-                            dbc.Button("Guardar modelo", id="save_model_ghsom", className="mr-2", color="primary"),
-                            html.P('',id="check_correctly_saved_ghsom")
-                            ],
-                            style={'textAlign': 'center'}
-                        ),
-                    ]),
-                ),
-            ])
-
-        ])
+                ]
+        ),
 
         
     ])
@@ -209,7 +253,6 @@ def analyze_ghsom_data():
 
 
 
-###############################   LAYOUT     ##############################
     layout = html.Div(children=[
 
         elements.navigation_bar,
@@ -240,13 +283,13 @@ def info_trained_params_ghsom_table():
          html.Thead(html.Tr([
                         html.Th("Tau 1"),
                         html.Th("Tau 2"),
-                        html.Th("Tasa Aprendizaje"),
-                        html.Th("Decadencia"),
-                        html.Th("Sigma Gaussiana"),
-                        html.Th("Épocas por iteracción"),
-                        html.Th("Num. Máximo de Iteraciones"),
-                        html.Th("Función de Desigualdad"),
-                        html.Th("Semilla")
+                        html.Th("Learning Rate"),
+                        html.Th("Decadency"),
+                        html.Th("Gaussian Sigma"),
+                        html.Th("Epochs per Iteration"),
+                        html.Th("Max. Iterations"),
+                        html.Th("Dissimilarity Function"),
+                        html.Th("Seed")
         ]))
     ]
 
@@ -288,16 +331,17 @@ def get_ghsom_graph_div(fig,dcc_graph_id):
     return div
 
 # Grafo de la estructura del ghsom
-def get_ghsom_fig():
+def get_ghsom_fig(data, target_list):
     zero_unit = session_data.get_modelo()
     grafo = nx.Graph()
     #dataset = session_data.get_dataset()
     #g = zero_unit.child_map.get_structure_graph(grafo,dataset ,level=0)
     #data= session_data.get_data()
-    data= session_data.get_data_std()
 
-    target_col = session_data.get_targets_col()
-    g = zero_unit.child_map.get_structure_graph(grafo,data, target_col,level=0)
+    #data= session_data.get_data_std()
+    #target_col = session_data.get_targets_col()
+
+    g = zero_unit.child_map.get_structure_graph(grafo,data, target_list,level=0)
 
 
     session_data.set_ghsom_structure_graph(g)
@@ -374,8 +418,8 @@ def get_ghsom_fig():
         y=node_y,
         mode='markers',
         text=hover_text,
-        hovertemplate= 'Coordenadas neurona padre: <b>%{text}</b><br>'+
-                        'Nivel: %{y}<br>' 
+        hovertemplate= 'Neuron Parent Coordinates: <b>%{text}</b><br>'+
+                        'Level: %{y}<br>' 
                         +"<extra></extra>"
         ,
         marker=dict(
@@ -390,7 +434,7 @@ def get_ghsom_fig():
 
 
     layout = go.Layout(
-            title="Estructura de los submapas que componen la red",
+            title="Complete GHSOM Structure",
             titlefont_size=16,
             showlegend=False,
             hovermode='closest',
@@ -404,12 +448,10 @@ def get_ghsom_fig():
     return fig
 
 
-
-
 #Aux fun for calculating u-matrix distiances
 def get_distances(weights_map, saved_distances, x,y,a,b):
     '''
-        Aux. fun for ver_umatrix_gsom_fig callbacks to optimize the calc. of umatrix
+        Aux. fun for ver_umatrix_ghsom_fig callbacks to optimize the calc. of umatrix
     '''
     if (  (x,y,a,b) in saved_distances ):
         return saved_distances[(x,y,a,b)]
@@ -424,6 +466,27 @@ def get_distances(weights_map, saved_distances, x,y,a,b):
 
 
 
+#Card select dataset part
+
+def get_select_splitted_option_card():
+
+    return     dbc.CardBody(   
+                        children=[
+                            dbc.Label("Select dataset portion"),
+                            dbc.RadioItems(
+                                options=[
+                                    {"label": "Train Data", "value": 1},
+                                    {"label": "Test Data", "value": 2},
+                                    {"label": "Train + Test Data", "value": 3},
+                                ],
+                                value=2,
+                                id="dataset_portion_radio_analyze_ghsom",
+                            )
+                        ]
+                )
+
+
+
 
 
 
@@ -432,6 +495,84 @@ def get_distances(weights_map, saved_distances, x,y,a,b):
 ##################################################################
 
 
+
+#Toggle winners map if selected target
+@app.callback(
+    Output('alert_target_not_selected_ghsom', 'is_open'),
+    Output('collapse_winnersmap_ghsom','is_open'),
+    Output('dropdown_target_selection_ghsom', 'value'),
+    Input('info_table_ghsom', 'children'), #udpate on load
+    Input('dropdown_target_selection_ghsom', 'value'),
+)
+def toggle_winners_som(info_table,target_value):
+
+    ctx = dash.callback_context
+    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+
+    preselected_target = session_data.get_target_name()
+
+    if( trigger_id == 'info_table_gsom' ): #init call
+        if(preselected_target is None):
+            return False,True, None
+
+        else:
+            return False,True, preselected_target
+
+    elif(target_value is None or not target_value):
+        session_data.set_target_name(None)
+        #session_data.targets_col = []
+        return True,False, None
+
+
+    else:
+        session_data.set_target_name(target_value)
+        return False, True,dash.no_update
+
+
+#load ghsom graph
+@app.callback(
+    Output('grafo_ghsom_estadisticas','children'),
+    Output('grafo_ghsom_winners','children'),
+    Output('grafo_ghsom_cplans','children'),
+    Output('grafo_ghsom_umatrix','children'),
+    Output('grafo_ghsom_freq','children'),
+    #Input('tabs_ghsom', 'children'), #udpate on load
+    Input("tabs_ghsom", "active_tab"),
+    Input('dataset_portion_radio_analyze_ghsom', 'value'),
+    Input('dropdown_target_selection_ghsom', 'value'),
+    State('div_freq_map_ghsom', 'children'), #AQUIII PROBAR A PONER EL CHCILDREN A NONE EN LA CARGA INCIAL PARA QUE SEA MAS FACI OCMPARA
+
+    prevent_initial_call=True  
+)
+def load_graph_ghsom(tabs, option,target_selection,div_f):
+
+    ctx = dash.callback_context
+    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if(trigger_id == 'tabs_ghsom' and div_f is not None ):
+        raise PreventUpdate()
+    else:
+
+        print('\tLoading GHSOM Graph...', flush=True)
+        data = session_data.get_data(option)
+        if(session_data.get_target_name() is None):
+            target_list = None
+        else:
+            target_list = session_data.get_targets_list(option)
+
+        
+        fig=  get_ghsom_fig(data, target_list)
+
+        div_0 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_0')
+        div_1 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_1')
+        div_2 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_2')
+        div_3 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_3')
+        div_4 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_4')
+        print('\tLoading Complete.', flush=True)
+
+        return div_0, div_1, div_2, div_3, div_4
+
+
+'''
 #Control de pliegues y carga del grafo de la estructura del ghsom
 @app.callback(
     [Output(f"collapse_ghsom_{i}", "is_open") for i in range(1, 7)],
@@ -471,16 +612,19 @@ def toggle_accordion(n1, n2,n3,n4,n5,n6, is_open1, is_open2,is_open3,is_open4, i
     elif button_id == "button_collapse_ghsom_6" and n6:
         return is_open1, is_open2, is_open3, is_open4, is_open5, not is_open6,div_0,div_1,div_2,div_3,div_4
     return False, False, False,False,False,False,div_0, div_1,div_2,div_3,div_4
+'''
 
 
-#Estadisticas del gsom  del punto seleccionado del grafo
+
+#Estadisticas del ghsom  del punto seleccionado del grafo
 @app.callback(Output('div_estadisticas_ghsom','children'),
               Output('dcc_ghsom_graph_0','figure'),
               Input('dcc_ghsom_graph_0','clickData'),
               State('dcc_ghsom_graph_0','figure'),
+              State('dataset_portion_radio_analyze_ghsom', 'value'),
               prevent_initial_call=True 
               )
-def view_stats_map_by_selected_point(clickdata,figure):
+def view_stats_map_by_selected_point(clickdata,figure,option):
 
     if clickdata is  None:
         raise PreventUpdate
@@ -510,6 +654,8 @@ def view_stats_map_by_selected_point(clickdata,figure):
 
     nodes_dict = session_data.get_ghsom_nodes_by_coord_dict()
     gsom = nodes_dict[(cord_vertical_punto_clickeado,cord_horizontal_punto_clickeado)]
+    data= session_data.get_data(option)
+    gsom.replace_parent_dataset(data)
     qe, mqe = gsom.get_map_qe_and_mqe()
     params = session_data.get_ghsom_model_info_dict()
     fun_disimilitud = params['fun_disimilitud']
@@ -613,7 +759,7 @@ def view_winner_map_by_selected_point(clickdata,check_annotations,figure):
     fig =  pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None)
     children = pu.get_fig_div_with_info(fig,'winnersmap_fig_ghsom','Mapa de neuronas ganadoras',tam_eje_horizontal, tam_eje_vertical,level,neurona_padre_string)
 
-    print('\nVISUALIZACION:ghsom renderfinalizado\n')
+    print('\nGHSOM Render finished\n')
     return children,figure
 
 
@@ -686,6 +832,20 @@ def update_freq_map_ghsom(clickdata, figure):
 
 
 
+#Seleccionar al menos un atrib para poder plotear los component plans
+@app.callback(
+                Output('alert_cplans_not_selected_ghsom', 'is_open'),
+                Output('collapse_cplan_ghsom', 'is_open'),
+                Input('dropdown_atrib_names_ghsom', 'value'),
+                prevent_initial_call=True
+)
+def show_graph_cplans(names):
+
+    if(names is None or len(names)== 0):
+        return True, False
+    else:
+        return False, True
+
 
 
 # Checklist seleccionar todos mapas de componentes
@@ -718,7 +878,7 @@ def on_form_change(check):
 def update_mapa_componentes_ghsom_fig(clickdata,check_annotations,fig_grafo,names):
 
 
-    if(clickdata is None):
+    if(clickdata is None or names is None or len(names) == 0):
         raise PreventUpdate
 
     #{'points': [{'curveNumber': 0, 'x': 0, 'y': 0, 'z': 0}]}

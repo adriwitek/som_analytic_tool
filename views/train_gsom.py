@@ -215,7 +215,6 @@ def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,ta
                                             decadencia_gsom,sigma_gausiana,epocas_gsom,max_iter_gsom,fun_disimilitud,
                                              check, seed)
 
-    #session_data.estandarizar_data()
     data = session_data.get_train_data()
 
     start = time.time()
@@ -240,7 +239,7 @@ def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,ta
     print('parent_quantization_error', parent_quantization_error)
     print('tau1', tau_1)
 
-    print('condi:',parent_quantization_error* tau_1)
+    print('Condition:',parent_quantization_error* tau_1)
 
     zero_unit.child_map = GSOM( initial_map_size,
                                 parent_quantization_error,
@@ -250,8 +249,10 @@ def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,ta
                                 data,
                                 neuron_builder)
     
-    print('test gsom train point',flush= True)
+    #print('test gsom train point',flush= True)
     #Train
+    print('Training gsom...')
+
     zero_unit.child_map.single_train(epocas_gsom,
                             sigma_gausiana,
                             tasa_aprendizaje_gsom,
@@ -263,14 +264,13 @@ def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,ta
     gsom = zero_unit.child_map
     #matriz_de_pesos_neuronas = __gmap_to_matrix(gsom.weights_map)
     session_data.set_modelo(zero_unit)
-    end = time.time()
-    #session_data.preparar_data_to_analyze()
 
-    print('ENTRENAMIENTO DEL GSOM FINALIZADO\n')
-    print('Tiempo transcurrido en el entrenamiento:',str(end - start),'segundos')
+    end = time.time()
+    print('Training Complete!')
+    print('\t Elapsed Time:',str(end - start),'seconds')
 
     #TODO
-    return 'Gsom entrenado'
+    return 'Training Complete'
 
 
 
