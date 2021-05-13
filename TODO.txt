@@ -2,6 +2,7 @@ mirar el freq y el statistic de som y gsom sin target, ya que si que los puedo c
 revisar que el numero de datos y features es ahora el correcto
 spinners a los botones
 vista previa tabla en home
+target string o bool en caso de empate coge la que le da la gana
 pointcloud para los grafos del ghsom
 
 

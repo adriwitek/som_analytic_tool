@@ -494,14 +494,8 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option):
     
  
     som = session_data.get_modelo()
-    #dataset = session_data.get_dataset()
-    #data = session_data.get_data()
-    #data = session_data.get_data_std()
     data = session_data.get_data(data_portion_option)
 
-
-    
-    #targets = dataset[:,-1:]
     #targets_list = [t[0] for t in targets.tolist()]
     #TODO poner aqui .T en vez de to list
     '''
@@ -509,14 +503,13 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option):
     targets_list =  targets.tolist()
     '''
     targets_list = session_data.get_targets_list(data_portion_option)
-
     #'data and labels must have the same length.
     labels_map = som.labels_map(data, targets_list)
-    data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
-    #labeled heatmap does not support nonetypes
-    data_to_plot[:] = np.nan
+    
 
 
+    
+    '''
     targets_freq = {}
     for t in targets_list:
         if (t in targets_freq):
@@ -525,19 +518,32 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option):
             targets_freq[t] = 1
     lista_targets_unicos = list(targets_freq.keys())
     #print('lista de targets unicos', lista_targets_unicos)
-
+    '''
     
-    if(session_data.get_discrete_data() ):
-        #showing the class more represented in each neuron
-        for position in labels_map.keys():
-            label_fracs = [ labels_map[position][t] for t in lista_targets_unicos]
-            max_value= max(label_fracs)
-            winner_class_index = label_fracs.index(max_value)
-            data_to_plot[position[0]][position[1]] = lista_targets_unicos[winner_class_index]
-    else: #continuos data: mean of the mapped values in each neuron
+
+
+    if( session_data.get_is_selected_target_numerical(data_portion_option)): #numerical data: mean of the mapped values in each neuron
         
+        data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=np.float64)
+        #labeled heatmap does not support nonetypes
+        data_to_plot[:] = np.nan
+
+
         for position in labels_map.keys():
-         
+          
+            label_fracs = labels_map[position]
+            #denom = sum(label_fracs.values())
+            numerador = 0.0
+            denom = 0.0
+            for k,it in label_fracs.items():
+                numerador = numerador + k*it
+                denom = denom + it
+
+            mean = numerador / denom
+            data_to_plot[position[0]][position[1]] = mean
+    
+
+            '''
             #fractions
             label_fracs = [ labels_map[position][t] for t in lista_targets_unicos]
             #print('label_fracs', label_fracs)
@@ -545,11 +551,32 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option):
             mean = sum([a*b for a,b in zip(lista_targets_unicos,label_fracs)])
             mean = mean/ mean_div
             data_to_plot[position[0]][position[1]] = mean
+            '''
+
+
+    else: #string or bool target
+
+
+        data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
+        #labeled heatmap does not support nonetypes
+        data_to_plot[:] = np.nan
+
+        #showing the class more represented in each neuron
+        for position in labels_map.keys():
+            max_target = max(labels_map[position], key=labels_map[position].get)
+            '''
+            label_fracs = [ labels_map[position][t] for t in lista_targets_unicos]
+            max_value= max(label_fracs)
+            winner_class_index = label_fracs.index(max_value)
+            data_to_plot[position[0]][position[1]] = lista_targets_unicos[winner_class_index]
+            '''       
+            data_to_plot[position[0]][position[1]] = max_target
+
         
 
     fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations)
-    children = pu.get_fig_div_with_info(fig,'winners_map', 'Mapa de neuronas ganadoras',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,neurona_padre=None)
-    print('\nVISUALIZACION:renderfinalizado\n')
+    children = pu.get_fig_div_with_info(fig,'winners_map', 'Winning Neuron Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,neurona_padre=None)
+    print('\n Winning Neuron Map: Plotling complete! \n')
 
     return children
 

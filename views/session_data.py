@@ -6,6 +6,7 @@
     Modelo para controlar las variables de estado de la aplicación grafica,
     con el patrón MVC.
 '''
+from logging import raiseExceptions
 import numpy as np
 import pickle
 
@@ -345,7 +346,41 @@ class Sesion():
         
 
 
+    #dont call fun if not selected target
+    def get_is_selected_target_numerical(self, option):
 
+        
+        '''
+            option = 1 --> Train Data
+            option = 2 --> Test Data
+            option = 3 --> Train + Test Data
+        '''
+        
+
+        if(option == 1 or  not self.data_splitted ):
+            if(self.df_targets_train is not None):
+                t_column =  self.df_targets_train[self.get_target_name()]
+            else:
+                t_column =  None
+        elif(option == 2):
+            if(self.df_targets_test is not None):
+                t_column =  self.df_targets_test[self.get_target_name()]
+            else:
+                t_column =  None
+        else:
+            if(self.df_targets_test is not None and self.df_targets_train is not None):
+                t_column =  self.get_joined_train_test_df_targets()[self.get_target_name()]
+            else:
+                t_column =  None
+
+        if(t_column is None):
+            raiseExceptions('Unexpedted error')
+        elif( pd.api.types.is_string_dtype(t_column) or pd.api.types.is_bool_dtype(t_column)):
+            #print('es string o bool el target')
+            return False
+        else:
+            #print('el target es numerico')
+            return True
 
 
 
