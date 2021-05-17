@@ -5,6 +5,7 @@ import dash_bootstrap_components as dbc
 from plotly.graph_objs import graph_objs
 import numpy as np
 from  config.config import DEFAULT_HEATMAP_COLORSCALE, DEFAULT_HEATMAP_PX_HEIGHT, DEFAULT_HEATMAP_PX_WIDTH, DISCRETE_COLORSCALE_269, DISCRETE_COLORSCALE_64
+import dash_table
 
 
 def get_DISCRETE_COLORSCALE_269():
@@ -219,7 +220,7 @@ def fig_del_annotations(figure):
 
 
 #Plot fig with titles and gsom size
-def get_fig_div_with_info(fig,fig_id, title,tam_eje_horizontal, tam_eje_vertical,gsom_level= None,neurona_padre=None):
+def get_fig_div_with_info(fig,fig_id, title,tam_eje_horizontal, tam_eje_vertical,gsom_level= None,neurona_padre=None, table_legend = None):
     '''
 
         neurona_padre: None or str tuple if it exits
@@ -266,7 +267,23 @@ def get_fig_div_with_info(fig,fig_id, title,tam_eje_horizontal, tam_eje_vertical
                 'flex-wrap': 'wrap', 'flex-direction': 'column ' })
 
 
-    children =[ div_inf_grid, dcc.Graph(id=fig_id,figure=fig)  ]
+
+    if(table_legend is not None):
+        
+        div_mapa =  html.Div(children= [
+                            dcc.Graph(id=fig_id,figure=fig),
+                            table_legend
+
+                        ], style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+                    )
+
+        children =[ div_inf_grid, div_mapa  ]
+
+    else:
+        children =[ div_inf_grid, dcc.Graph(id=fig_id,figure=fig)  ]
+
+
+
     '''
     div = html.Div(children=children, style={'margin': '0 auto','width': '100%', 'display': 'flex',
                                              'align-items': 'center', 'justify-content': 'center',
@@ -277,10 +294,64 @@ def get_fig_div_with_info(fig,fig_id, title,tam_eje_horizontal, tam_eje_vertical
 
 
 
+    
+def get_color_table_legend(colores,unique_targets):
+
+    
+    columns = [
+    		{'name':'Color', 'id': 'col1', 'editable':False},
+    		{'name':'Target', 'id': 'col2', 'editable':False}
+
+    ]
+    style_data_conditional=[]
+    rows = []
+    i = 0
+
+
+    for color,target in zip(colores,unique_targets):
+
+
+    	row = {'col1':' ', 'col2':target}
+        #row = {'col1':color, 'col2':target}
+
+    	rows.append(row)
+
+    	diccionario = {	'if':	{	'row_index': i, 
+    								'column_id': 'col1'
+
+    							},
+    
+    					'backgroundColor': color,
+
+    	}
+    
+    	style_data_conditional.append(diccionario)
+    	i = i+1
+    
+    
+    table =  dash_table.DataTable(	columns = columns,
+    								data = rows,
+    								style_data_conditional = style_data_conditional,
+    								editable=False,
+                                    style_cell={    
+                                            'textAlign': 'center'
+                                    },
+                                    style_as_list_view=True,
+                                    style_header={
+                                            'backgroundColor': 'white',
+                                            'fontWeight': 'bold'
+                                    },
+    )
+
+    return table
+
+
 
 def create_heatmap_figure(data,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None, 
                             colorscale =DEFAULT_HEATMAP_COLORSCALE, reversescale=False, text = None,
                             discrete_values_range=None,unique_targets=None ):
+
+    table_legend = None
 
     if(tam_eje_horizontal >tam_eje_vertical ):
         xaxis_dict ={'tickformat': ',d', 'range': [-0.5,(tam_eje_horizontal-1)+0.5] , 'constrain' : "domain"}
@@ -328,38 +399,45 @@ def create_heatmap_figure(data,tam_eje_horizontal,tam_eje_vertical,check_annotat
 
             discrete_values_range.append( 1.0 )#cuadrar rangos en la funcion
             colores = get_DISCRETE_COLORSCALE_269()[0:( (len(discrete_values_range)-1) ) ]
-            print('longitud de colres', len(colores))
-            #print('discrete_values_range',discrete_values_range)
-            #print('colores',colores)
+ 
             d_color_scale,tickvals = discrete_colorscale(bvals = discrete_values_range, colors = colores )
 
-            #bvals = np.array(discrete_values_range[:-1])
-            #tickvals = [np.mean(bvals[k:k+2]) for k in range(len(bvals)-1)]
+            if(len(colores) > 30 ):#colorbar too large, will be replaced by a table
+                trace = dict(type='heatmap', z=data, 
+                            zmin=0.0,
+                            zmax=1.0,
+                            showlegend=False,
+                            showscale=False,
+                            colorscale= d_color_scale,
+                            text=text,
+                            hovertemplate= '%{text}</b><br>'
+                                +'x: %{x} , y: %{y}<br>' 
+                                +"<extra></extra>"
+                )
 
-            #print('escala:', d_color_scale)
-            #print('unique targets',unique_targets)
-            #print('lista corriente',['a','b','c'])
-            #print('valores para ticks',tickvals)
-            
-            #print('data',data)
-            #print('text',text)
-            trace = dict(type='heatmap', z=data, 
-                        #name = text,
-                        zmin=0.0,
-                        zmax=1.0,
-                        #colorscale= [[0.0,'#0d0887'], [0.1,'#46039f'], [0.2,'#7201a8'], [0.3,'#9c179e'], [0.4,'#bd3786'], [0.5,'#d8576b'], [0.6,'#ed7953'], [0.7,'#fb9f3a'], [0.8,'#fdca26'], [1.0,'#f0f921']],
-                        colorbar = dict(    thickness=25,
-                                         tickvals=tickvals, 
-                                         ticktext=unique_targets,             
-                        ),
-                        showlegend=False,
+                table_legend = get_color_table_legend(colores,unique_targets)
 
-                        colorscale= d_color_scale,
-                        text=text,
-                        hovertemplate= '%{text}</b><br>'
-                            +'x: %{x} , y: %{y}<br>' 
-                            +"<extra></extra>"
-            )
+
+
+            else:
+           
+                trace = dict(type='heatmap', z=data, 
+                            #name = text,
+                            zmin=0.0,
+                            zmax=1.0,
+                            #colorscale= [[0.0,'#0d0887'], [0.1,'#46039f'], [0.2,'#7201a8'], [0.3,'#9c179e'], [0.4,'#bd3786'], [0.5,'#d8576b'], [0.6,'#ed7953'], [0.7,'#fb9f3a'], [0.8,'#fdca26'], [1.0,'#f0f921']],
+                            colorbar = dict(    thickness=25,
+                                             tickvals=tickvals, 
+                                             ticktext=unique_targets,             
+                            ),
+                            showlegend=False,
+
+                            colorscale= d_color_scale,
+                            text=text,
+                            hovertemplate= '%{text}</b><br>'
+                                +'x: %{x} , y: %{y}<br>' 
+                                +"<extra></extra>"
+                )
 
 
 
@@ -376,7 +454,7 @@ def create_heatmap_figure(data,tam_eje_horizontal,tam_eje_vertical,check_annotat
 
     
 
-    return figure
+    return figure, table_legend
 
 
 

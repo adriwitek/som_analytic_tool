@@ -757,7 +757,7 @@ def view_winner_map_by_selected_point(clickdata,check_annotations,figure):
 
 
     fig =  pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None)
-    children = pu.get_fig_div_with_info(fig,'winnersmap_fig_ghsom','Mapa de neuronas ganadoras',tam_eje_horizontal, tam_eje_vertical,level,neurona_padre_string)
+    children,_ = pu.get_fig_div_with_info(fig,'winnersmap_fig_ghsom','Mapa de neuronas ganadoras',tam_eje_horizontal, tam_eje_vertical,level,neurona_padre_string)
 
     print('\nGHSOM Render finished\n')
     return children,figure
@@ -825,7 +825,7 @@ def update_freq_map_ghsom(clickdata, figure):
 
     
     fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,True, title = None)
-    children = pu.get_fig_div_with_info(fig,'freq_map_ghsom', 'Mapa de Frecuencias por Neurona',tam_eje_horizontal, tam_eje_vertical)
+    children, _ = pu.get_fig_div_with_info(fig,'freq_map_ghsom', 'Mapa de Frecuencias por Neurona',tam_eje_horizontal, tam_eje_vertical)
 
     return children,figure
 
@@ -1014,7 +1014,7 @@ def ver_umatrix_ghsom_fig(clickdata,check_annotations,fig_grafo):
  
     fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None,
                                     colorscale = UMATRIX_HEATMAP_COLORSCALE,  reversescale=True)
-    children = pu.get_fig_div_with_info(fig,'umatrix_fig_ghsom', 'Matriz de Distancias Unificadas',tam_eje_horizontal, tam_eje_vertical)
+    children,_ = pu.get_fig_div_with_info(fig,'umatrix_fig_ghsom', 'Matriz de Distancias Unificadas',tam_eje_horizontal, tam_eje_vertical)
 
     print('\nVISUALIZACION:gsom renderfinalizado\n')
 

@@ -618,17 +618,20 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option):
 
 
 
-    print('values son',values)
+    #print('values son',values)
 
-    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations,
+    fig,table_legend = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations,
                                      text = text, discrete_values_range= values, unique_targets = unique_targets)
-    children = pu.get_fig_div_with_info(fig,'winners_map', 'Winning Neuron Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,neurona_padre=None)
+    if(table_legend is not None):
+        children = pu.get_fig_div_with_info(fig,'winners_map', 'Winning Neuron Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,
+                                            neurona_padre=None,  table_legend =  table_legend)
+    else:
+        children = pu.get_fig_div_with_info(fig,'winners_map', 'Winning Neuron Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,neurona_padre=None)
     print('\n Winning Neuron Map: Plotling complete! \n')
 
     return children, output_alert_too_categorical_targets
 
 
-    
 
     
 
@@ -683,7 +686,7 @@ def update_mapa_frecuencias_fig(click, check_annotations, data_portion_option):
     
     figure = pu.create_heatmap_figure(frequencies_list,tam_eje_horizontal,tam_eje_vertical,check_annotations)
 
-    children = pu.get_fig_div_with_info(figure,'frequency_map','Mapa de frecuencias',tam_eje_horizontal, tam_eje_vertical)
+    children,_ = pu.get_fig_div_with_info(figure,'frequency_map','Mapa de frecuencias',tam_eje_horizontal, tam_eje_vertical)
 
     return children
   

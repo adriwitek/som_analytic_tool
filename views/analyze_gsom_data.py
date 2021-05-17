@@ -506,7 +506,7 @@ def update_winner_map_gsom(click,check_annotations, data_portion_option):
         
 
     fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None)
-    children = pu.get_fig_div_with_info(fig,'winners_map_gsom', 'Mapa de Neuronas Ganadoras',tam_eje_horizontal, tam_eje_vertical)
+    children,_ = pu.get_fig_div_with_info(fig,'winners_map_gsom', 'Mapa de Neuronas Ganadoras',tam_eje_horizontal, tam_eje_vertical)
 
     return children
    
@@ -546,7 +546,7 @@ def update_freq_map_gsom(click, data_portion_option):
      
 
     fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,True, title = None)
-    children = pu.get_fig_div_with_info(fig,'freq_map_gsom', 'Mapa de Frecuencias por Neurona',tam_eje_horizontal, tam_eje_vertical)
+    children,_ = pu.get_fig_div_with_info(fig,'freq_map_gsom', 'Mapa de Frecuencias por Neurona',tam_eje_horizontal, tam_eje_vertical)
 
     return children
 
@@ -608,7 +608,7 @@ def update_mapa_componentes_gsom_fig(click,names, check_annotations):
       
         id ='graph-{}'.format(k)
         figure = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = nombres_atributos[k])
-        children = pu.get_fig_div_with_info(figure,id, '',None, None,gsom_level= None,neurona_padre=None)
+        children,_ = pu.get_fig_div_with_info(figure,id, '',None, None,gsom_level= None,neurona_padre=None)
 
         
 
@@ -707,7 +707,7 @@ def ver_umatrix_gsom_fig(click, check_annotations):
     '''
     fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None,
                                     colorscale = UMATRIX_HEATMAP_COLORSCALE,  reversescale=True)
-    children =  pu.get_fig_div_with_info(fig,'umatrix_fig_gsom', 'Matriz U',tam_eje_horizontal, tam_eje_vertical)
+    children,_ =  pu.get_fig_div_with_info(fig,'umatrix_fig_gsom', 'Matriz U',tam_eje_horizontal, tam_eje_vertical)
 
     return children
 
