@@ -376,7 +376,8 @@ class Sesion():
                 t_column =  None
 
 
-        print('el tipo de la columna esssss:',t_column.dtype)
+        #print('el tipo de la columna esssss:',t_column.dtype)
+        #print('-------es numerico??',pd.api.types.is_numeric_dtype(t_column)  )
         if(t_column is None):
             raiseExceptions('Unexpedted error')
             return None,_
@@ -386,15 +387,16 @@ class Sesion():
             return 'boolean'
             '''
 
-        elif( pd.api.types.is_string_dtype(t_column) or  pd.api.types.is_bool_dtype(t_column) ): #bool or string
-            print('es string  el target')
+    
+        elif(pd.api.types.is_numeric_dtype(t_column)):
+        
+            print('el target es numerico')
+            return 'numerical',None
+        else:
+            #elif( pd.api.types.is_string_dtype(t_column) or  pd.api.types.is_bool_dtype(t_column)  ): #bool or string
+            print('es string (object)  el target')
             lista = list(pd.unique(t_column))
             return 'string', lista
-        
-        
-        else:
-            print('el target es numerico')
-            return 'numerical',_
 
 
 

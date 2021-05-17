@@ -510,20 +510,15 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option):
     params = session_data.get_som_model_info_dict()
     tam_eje_vertical = params['tam_eje_vertical']
     tam_eje_horizontal = params['tam_eje_horizontal']
-    
  
     som = session_data.get_modelo()
     data = session_data.get_data(data_portion_option)
-
 
     targets_list = session_data.get_targets_list(data_portion_option)
     #'data and labels must have the same length.
     labels_map = som.labels_map(data, targets_list)
     
-
-    
     target_type,unique_targets = session_data.get_selected_target_type(data_portion_option)
-
     values=None 
     text = None
 
@@ -533,8 +528,7 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option):
         data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=np.float64)
         #labeled heatmap does not support nonetypes
         data_to_plot[:] = np.nan
-        text = None
-
+        #text = None
 
         for position in labels_map.keys():
           
@@ -581,7 +575,6 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option):
             '''
 
 
-
     elif(target_type == 'string'):
 
         data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=np.float64)
@@ -606,14 +599,12 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option):
             text[position[0]][position[1]] = max_target
 
             
-
     else: #error
-        raiseExceptions('Unexpedted error')
-        data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype= np.bool_)
+        raiseExceptions('Unexpected error')
+        data_to_plot = np.empty([1 ,1],dtype= np.bool_)
         #labeled heatmap does not support nonetypes
         data_to_plot[:] = np.nan
-        text = None
-
+        #text = None
 
 
 
@@ -627,7 +618,7 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option):
                                             neurona_padre=None,  table_legend =  table_legend)
     else:
         children = pu.get_fig_div_with_info(fig,'winners_map', 'Winning Neuron Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,neurona_padre=None)
-    print('\n Winning Neuron Map: Plotling complete! \n')
+    print('\n SOM Winning Neuron Map: Plotling complete! \n')
 
     return children, output_alert_too_categorical_targets
 

@@ -23,6 +23,7 @@ import pickle
 from  os.path import normpath 
 from re import search 
 import views.plot_utils as pu
+from logging import raiseExceptions
 
 
 
@@ -153,6 +154,22 @@ def get_winnersmaps_card_gsom():
                         is_open=True
 
                 ),
+
+                dbc.Alert(
+                        [
+                            html.H4("Too many different categorial targets !", className="alert-heading"),
+                            html.P(
+                                "Since there are more than 269(max. diferenciable discrete colors) unique targets, color representation will be ambiguous for some of them. "
+                            )
+                        ],
+                        color='danger',
+                        id='output_alert_too_categorical_targets_gsom',
+                        is_open=False
+
+                ),
+
+
+
 
                 dcc.Dropdown(id='dropdown_target_selection_gsom',
                            options=session_data.get_targets_options_dcc_dropdown_format() ,
@@ -443,26 +460,24 @@ def ver_estadisticas_gsom(n_clicks,data_portion_option):
 
 #Winners map
 @app.callback(Output('div_winners_map_gsom','children'),
+              Output('output_alert_too_categorical_targets_gsom','is_open'),
               Input('ver_winners_map_gsom_button','n_clicks'),
-              State('check_annotations_win_gsom','value'),
+              Input('check_annotations_win_gsom','value'),
               State('dataset_portion_radio_analyze_gsom','value'),
               prevent_initial_call=True 
               )
 def update_winner_map_gsom(click,check_annotations, data_portion_option):
 
-    params = session_data.get_gsom_model_info_dict()
- 
+
+    output_alert_too_categorical_targets_gsom = False
+
     data = session_data.get_data(data_portion_option)
-    #targets_col =  session_data.get_targets_col()
     targets_list = session_data.get_targets_list(data_portion_option)
-
-
 
     zero_unit = session_data.get_modelo()
     gsom = zero_unit.child_map
     tam_eje_vertical,tam_eje_horizontal=  gsom.map_shape()
 
-    
 
     #visualizacion
     data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
@@ -473,42 +488,84 @@ def update_winner_map_gsom(click,check_annotations, data_portion_option):
         winner_neuron = gsom.winner_neuron(d)[0][0]
         r, c = winner_neuron.position
         if((r,c) in positions):
-            #positions[(r,c)].append(dataset[i][-1]) 
-            #positions[(r,c)].append(targets_col[i]) 
             positions[(r,c)].append(targets_list[i]) 
 
 
         else:
             positions[(r,c)] = []
-            #positions[(r,c)].append(dataset[i][-1]) 
-            #positions[(r,c)].append(targets_col[i]) 
             positions[(r,c)].append(targets_list[i]) 
 
 
 
+    target_type,unique_targets = session_data.get_selected_target_type(data_portion_option)
+    values=None 
+    text = None
 
-   #Discrete data: most common class
-    if(session_data.get_discrete_data() ):     
-        for i in range(tam_eje_vertical):
-            for j in range(tam_eje_horizontal):
-                if((i,j) in positions):
-                        c = Counter(positions[(i,j)])
-                        data_to_plot[i][j] = c.most_common(1)[0][0]
-                else:
-                    data_to_plot[i][j] = np.nan
-    else:#continuos data: mean of the mapped values in each neuron
+
+    if(target_type == 'numerical' ): #numerical data: mean of the mapped values in each neuron
+        
+        data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=np.float64)
+        #labeled heatmap does not support nonetypes
+        data_to_plot[:] = np.nan
+
         for i in range(tam_eje_vertical):
             for j in range(tam_eje_horizontal):
                 if((i,j) in positions):
                         data_to_plot[i][j]  = np.mean(positions[(i,j)])
                 else:
                     data_to_plot[i][j] = np.nan
-        
 
-    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None)
-    children,_ = pu.get_fig_div_with_info(fig,'winners_map_gsom', 'Mapa de Neuronas Ganadoras',tam_eje_horizontal, tam_eje_vertical)
 
-    return children
+    elif(target_type == 'string'):
+
+        data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=np.float64)
+        #labeled heatmap does not support nonetypes
+        data_to_plot[:] = np.nan
+        text = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
+        #labeled heatmap does not support nonetypes
+        text[:] = np.nan
+
+
+        values = np.linspace(0, 1, len(unique_targets), endpoint=False).tolist()
+        targets_codification = dict(zip(unique_targets, values))
+
+        if(len(unique_targets) >= 270):
+            output_alert_too_categorical_targets = True
+
+
+        #showing the class more represented in each neuron
+        for i in range(tam_eje_vertical):
+            for j in range(tam_eje_horizontal):
+                if((i,j) in positions):
+                        c = Counter(positions[(i,j)])
+                        #data_to_plot[i][j] = c.most_common(1)[0][0]
+                        max_target= c.most_common(1)[0][0]
+                        data_to_plot[i][j] =  targets_codification[max_target]
+                        text[i][j] =max_target
+
+                else:
+                    data_to_plot[i][j] = np.nan
+
+                
+    else: #error
+        raiseExceptions('Unexpected error')
+        data_to_plot = np.empty([1 ,1],dtype= np.bool_)
+        #labeled heatmap does not support nonetypes
+        data_to_plot[:] = np.nan
+
+
+    fig,table_legend = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations,
+                                     text = text, discrete_values_range= values, unique_targets = unique_targets)
+    if(table_legend is not None):
+        children = pu.get_fig_div_with_info(fig,'winners_map_gsom', 'Winning Neuron Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,
+                                            neurona_padre=None,  table_legend =  table_legend)
+    else:
+        children = pu.get_fig_div_with_info(fig,'winners_map_gsom', 'Winning Neuron Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,neurona_padre=None)
+
+    print('\n GSOM Winning Neuron Map: Plotling complete! \n')
+    return children, output_alert_too_categorical_targets_gsom
+
+
    
 
 
