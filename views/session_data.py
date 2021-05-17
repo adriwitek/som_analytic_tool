@@ -347,13 +347,15 @@ class Sesion():
 
 
     #dont call fun if not selected target
-    def get_is_selected_target_numerical(self, option):
+    def get_selected_target_type(self, option):
 
         
         '''
             option = 1 --> Train Data
             option = 2 --> Test Data
             option = 3 --> Train + Test Data
+
+            returns none(raise exception, 'string', or 'numerical'), unique_diff_targets_if_not_nmerical_target
         '''
         
 
@@ -373,14 +375,26 @@ class Sesion():
             else:
                 t_column =  None
 
+
+        print('el tipo de la columna esssss:',t_column.dtype)
         if(t_column is None):
             raiseExceptions('Unexpedted error')
-        elif( pd.api.types.is_string_dtype(t_column) or pd.api.types.is_bool_dtype(t_column)):
-            #print('es string o bool el target')
-            return False
+            return None,_
+            '''
+            elif(  pd.api.types.is_bool_dtype(t_column)):
+            print('es  bool el target')
+            return 'boolean'
+            '''
+
+        elif( pd.api.types.is_string_dtype(t_column) or  pd.api.types.is_bool_dtype(t_column) ): #bool or string
+            print('es string  el target')
+            lista = list(pd.unique(t_column))
+            return 'string', lista
+        
+        
         else:
-            #print('el target es numerico')
-            return True
+            print('el target es numerico')
+            return 'numerical',_
 
 
 

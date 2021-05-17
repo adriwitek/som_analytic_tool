@@ -19,6 +19,8 @@ import pickle
 from  os.path import normpath 
 from re import search 
 import views.plot_utils as pu
+from logging import raiseExceptions
+
 
 
 
@@ -54,6 +56,19 @@ def get_mapaneuronasganadoras_som_card():
                         color='danger',
                         id='alert_target_not_selected_som',
                         is_open=True
+
+                    ),
+
+                    dbc.Alert(
+                        [
+                            html.H4("Too many different categorial targets !", className="alert-heading"),
+                            html.P(
+                                "Since there are more than 269(max. diferenciable discrete colors) unique targets, color representation will be ambiguous for some of them. "
+                            )
+                        ],
+                        color='danger',
+                        id='output_alert_too_categorical_targets',
+                        is_open=False
 
                     ),
 
@@ -458,6 +473,7 @@ def ver_estadisticas_som(n_clicks,data_portion_option):
     return children
 
 
+'''
 #Etiquetar Mapa neuonas ganadoras
 @app.callback(Output('winners_map', 'figure'),
               Input('check_annotations_winnersmap', 'value'),
@@ -476,18 +492,21 @@ def annotate_winners_map_som(check_annotations, fig,n_clicks):
 
     return fig_updated
 
-
+'''
     
 
 
 #Mapa neuonas ganadoras
 @app.callback(Output('div_mapa_neuronas_ganadoras', 'children'),
+              Output('output_alert_too_categorical_targets', 'is_open'),
               Input('ver', 'n_clicks'),
-              State('check_annotations_winnersmap', 'value'),
+              Input('check_annotations_winnersmap', 'value'),
               State('dataset_portion_radio_analyze_som','value'),
               prevent_initial_call=True )
 def update_som_fig(n_clicks, check_annotations, data_portion_option):
 
+
+    output_alert_too_categorical_targets = False
     params = session_data.get_som_model_info_dict()
     tam_eje_vertical = params['tam_eje_vertical']
     tam_eje_horizontal = params['tam_eje_horizontal']
@@ -496,37 +515,25 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option):
     som = session_data.get_modelo()
     data = session_data.get_data(data_portion_option)
 
-    #targets_list = [t[0] for t in targets.tolist()]
-    #TODO poner aqui .T en vez de to list
-    '''
-    targets = session_data.get_targets_col()
-    targets_list =  targets.tolist()
-    '''
+
     targets_list = session_data.get_targets_list(data_portion_option)
     #'data and labels must have the same length.
     labels_map = som.labels_map(data, targets_list)
     
 
-
     
-    '''
-    targets_freq = {}
-    for t in targets_list:
-        if (t in targets_freq):
-            targets_freq[t] += 1
-        else:
-            targets_freq[t] = 1
-    lista_targets_unicos = list(targets_freq.keys())
-    #print('lista de targets unicos', lista_targets_unicos)
-    '''
-    
+    target_type,unique_targets = session_data.get_selected_target_type(data_portion_option)
+
+    values=None 
+    text = None
 
 
-    if( session_data.get_is_selected_target_numerical(data_portion_option)): #numerical data: mean of the mapped values in each neuron
+    if(target_type == 'numerical' ): #numerical data: mean of the mapped values in each neuron
         
         data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=np.float64)
         #labeled heatmap does not support nonetypes
         data_to_plot[:] = np.nan
+        text = None
 
 
         for position in labels_map.keys():
@@ -553,32 +560,72 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option):
             data_to_plot[position[0]][position[1]] = mean
             '''
 
+            '''
+            elif(target_type == 'boolean'):
+            
+                data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype= np.intc)
+                #labeled heatmap does not support nonetypes
+                data_to_plot[:] = np.nan
+                text = None
 
-    else: #string or bool target
+
+                for position in labels_map.keys():
+                
+                    true_freqs = labels_map[position]['True']
+                    false_freqs = labels_map[position]['False']
+
+                    if(true_freqs >=false_freqs ):
+                        data_to_plot[position[0]][position[1]] = 1
+                    else:
+                        data_to_plot[position[0]][position[1]] = 0
+            '''
 
 
-        data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
+
+    elif(target_type == 'string'):
+
+        data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=np.float64)
         #labeled heatmap does not support nonetypes
         data_to_plot[:] = np.nan
+        text = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
+        #labeled heatmap does not support nonetypes
+        text[:] = np.nan
+        values = np.linspace(0, 1, len(unique_targets), endpoint=False).tolist()
+        targets_codification = dict(zip(unique_targets, values))
+        #print('targets codificados',targets_codification)
+
+        if(len(unique_targets) >= 270):
+            output_alert_too_categorical_targets = True
+
+
 
         #showing the class more represented in each neuron
         for position in labels_map.keys():
             max_target = max(labels_map[position], key=labels_map[position].get)
-            '''
-            label_fracs = [ labels_map[position][t] for t in lista_targets_unicos]
-            max_value= max(label_fracs)
-            winner_class_index = label_fracs.index(max_value)
-            data_to_plot[position[0]][position[1]] = lista_targets_unicos[winner_class_index]
-            '''       
-            data_to_plot[position[0]][position[1]] = max_target
+            data_to_plot[position[0]][position[1]] = targets_codification[max_target]
+            text[position[0]][position[1]] = max_target
 
-        
+            
 
-    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations)
+    else: #error
+        raiseExceptions('Unexpedted error')
+        data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype= np.bool_)
+        #labeled heatmap does not support nonetypes
+        data_to_plot[:] = np.nan
+        text = None
+
+
+
+
+
+    print('values son',values)
+
+    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations,
+                                     text = text, discrete_values_range= values, unique_targets = unique_targets)
     children = pu.get_fig_div_with_info(fig,'winners_map', 'Winning Neuron Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,neurona_padre=None)
     print('\n Winning Neuron Map: Plotling complete! \n')
 
-    return children
+    return children, output_alert_too_categorical_targets
 
 
     
