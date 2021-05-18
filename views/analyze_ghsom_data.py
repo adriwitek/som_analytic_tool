@@ -23,6 +23,8 @@ from re import search
 
 import networkx as nx
 import views.plot_utils as pu
+from logging import raiseExceptions
+
 
 
 
@@ -61,6 +63,23 @@ def get_winnersmap_card_ghsom():
                         is_open=True
 
                         ),
+
+                        dbc.Alert(
+                        [
+                            html.H4("Too many different categorial targets !", className="alert-heading"),
+                            html.P(
+                                "Since there are more than 269(max. diferenciable discrete colors) unique targets, color representation will be ambiguous for some of them. "
+                            )
+                        ],
+                        color='danger',
+                        id='output_alert_too_categorical_targets_ghsom',
+                        is_open=False
+
+                        ),
+
+
+
+
 
                         dcc.Dropdown(id='dropdown_target_selection_ghsom',
                            options=session_data.get_targets_options_dcc_dropdown_format() ,
@@ -689,16 +708,21 @@ def view_stats_map_by_selected_point(clickdata,figure,option):
 #Winners map del punto seleccionado del grafo
 @app.callback(Output('winners_map_ghsom','children'),
               Output('dcc_ghsom_graph_1','figure'),
+              Output('output_alert_too_categorical_targets_ghsom','is_open'),
+
               Input('dcc_ghsom_graph_1','clickData'),
               Input('check_annotations_winmap_ghsom','value'),
               State('dcc_ghsom_graph_1','figure'),
+              State('dataset_portion_radio_analyze_ghsom','value'),
               prevent_initial_call=True 
               )
-def view_winner_map_by_selected_point(clickdata,check_annotations,figure):
+def view_winner_map_by_selected_point(clickdata, check_annotations, figure, data_portion_option):
 
 
     if clickdata is  None:
         raise PreventUpdate
+
+    output_alert_too_categorical_targets_ghsom = False
 
     #print('clikedpoint:',clickdata)
     #{'points': [{'curveNumber': 0, 'x': 0, 'y': 0, 'z': 0}]}
@@ -737,17 +761,22 @@ def view_winner_map_by_selected_point(clickdata,check_annotations,figure):
             cord_ver,cord_hor = g.nodes[ghsom]['neurona_padre_pos']
             neurona_padre_string = '(' + str(cord_hor) + ','+ str(cord_ver) + ')'
 
-    # Obtener clases representativas de cada neurona
-    #Discrete data: most common class
-    if(session_data.get_discrete_data() ):     
-        for i in range(tam_eje_vertical):
-            for j in range(tam_eje_horizontal):
-                if((i,j) in neurons_mapped_targets):
-                        c = Counter(neurons_mapped_targets[(i,j)])
-                        data_to_plot[i][j] = c.most_common(1)[0][0]
-                else:
-                    data_to_plot[i][j] = np.nan
-    else:#continuos data: mean of the mapped values in each neuron
+
+
+
+
+
+    target_type,unique_targets = session_data.get_selected_target_type(data_portion_option)
+    values=None 
+    text = None
+
+
+    if(target_type == 'numerical' ): #numerical data: mean of the mapped values in each neuron
+        
+        data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=np.float64)
+        #labeled heatmap does not support nonetypes
+        data_to_plot[:] = np.nan
+
         for i in range(tam_eje_vertical):
             for j in range(tam_eje_horizontal):
                 if((i,j) in neurons_mapped_targets):
@@ -756,11 +785,57 @@ def view_winner_map_by_selected_point(clickdata,check_annotations,figure):
                     data_to_plot[i][j] = np.nan
 
 
-    fig =  pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None)
-    children,_ = pu.get_fig_div_with_info(fig,'winnersmap_fig_ghsom','Mapa de neuronas ganadoras',tam_eje_horizontal, tam_eje_vertical,level,neurona_padre_string)
+    elif(target_type == 'string'):
 
-    print('\nGHSOM Render finished\n')
-    return children,figure
+        data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=np.float64)
+        #labeled heatmap does not support nonetypes
+        data_to_plot[:] = np.nan
+        text = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
+        #labeled heatmap does not support nonetypes
+        text[:] = np.nan
+
+
+        values = np.linspace(0, 1, len(unique_targets), endpoint=False).tolist()
+        targets_codification = dict(zip(unique_targets, values))
+
+        if(len(unique_targets) >= 270):
+            output_alert_too_categorical_targets_ghsom = True
+
+
+        #showing the class more represented in each neuron
+        for i in range(tam_eje_vertical):
+            for j in range(tam_eje_horizontal):
+                if((i,j) in neurons_mapped_targets):
+                        c = Counter(neurons_mapped_targets[(i,j)])
+                        #data_to_plot[i][j] = c.most_common(1)[0][0]
+                        max_target= c.most_common(1)[0][0]
+                        data_to_plot[i][j] =  targets_codification[max_target]
+                        text[i][j] =max_target
+
+                else:
+                    data_to_plot[i][j] = np.nan
+
+                
+    else: #error
+        raiseExceptions('Unexpected error')
+        data_to_plot = np.empty([1 ,1],dtype= np.bool_)
+        #labeled heatmap does not support nonetypes
+        data_to_plot[:] = np.nan
+
+
+
+    fig,table_legend = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations,
+                                     text = text, discrete_values_range= values, unique_targets = unique_targets, title=None)
+
+    if(table_legend is not None):
+        children = pu.get_fig_div_with_info(fig,'winnersmap_fig_ghsom', 'Winners Target per Neuron Map',tam_eje_horizontal, tam_eje_vertical,level,neurona_padre_string,
+                                            table_legend =  table_legend)
+    else:
+        children = pu.get_fig_div_with_info(fig,'winnersmap_fig_ghsom', 'Winners Target per Neuron Map',tam_eje_horizontal, tam_eje_vertical,level,neurona_padre_string)
+
+
+    print('\nGHSOM Winners Map Render finished\n')
+    return children,figure, output_alert_too_categorical_targets_ghsom
 
 
 
@@ -824,8 +899,8 @@ def update_freq_map_ghsom(clickdata, figure):
 
 
     
-    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,True, title = None)
-    children, _ = pu.get_fig_div_with_info(fig,'freq_map_ghsom', 'Mapa de Frecuencias por Neurona',tam_eje_horizontal, tam_eje_vertical)
+    fig,_ = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,True, title = None)
+    children = pu.get_fig_div_with_info(fig,'freq_map_ghsom', 'Frequency Map',tam_eje_horizontal, tam_eje_vertical)
 
     return children,figure
 
@@ -928,7 +1003,7 @@ def update_mapa_componentes_ghsom_fig(clickdata,check_annotations,fig_grafo,name
                 data_to_plot[i][j] = weights_map[(i,j)][k]
         
 
-        figure =  pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = nombres_atributos[k])
+        figure,_ =  pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = nombres_atributos[k])
 
         id ='graph-{}'.format(k)
         traces.append(
@@ -1012,11 +1087,12 @@ def ver_umatrix_ghsom_fig(clickdata,check_annotations,fig_grafo):
                 data_to_plot[i][j] = sum(neuron_neighbords)/len(neuron_neighbords)
 
  
-    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None,
+    fig, _ = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None,
                                     colorscale = UMATRIX_HEATMAP_COLORSCALE,  reversescale=True)
-    children,_ = pu.get_fig_div_with_info(fig,'umatrix_fig_ghsom', 'Matriz de Distancias Unificadas',tam_eje_horizontal, tam_eje_vertical)
+    children= pu.get_fig_div_with_info(fig,'umatrix_fig_ghsom', 'U-Matrix',tam_eje_horizontal, tam_eje_vertical)
 
-    print('\nVISUALIZACION:gsom renderfinalizado\n')
+    print('\n GHSOM UMatrix: Plotling complete! \n')
+
 
     return children, fig_grafo
 
@@ -1062,7 +1138,7 @@ def save_ghsom_model(n_clicks,name,isvalid):
     with open(DIR_SAVED_MODELS + filename, 'wb') as handle:
         pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    return 'Modelo guardado correctamente. Nombre del fichero: ' + filename
+    return 'Model saved! Filename: ' + filename
 
 
 

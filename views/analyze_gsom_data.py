@@ -602,8 +602,8 @@ def update_freq_map_gsom(click, data_portion_option):
         data_to_plot[r][c] = data_to_plot[r][c] + 1
      
 
-    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,True, title = None)
-    children,_ = pu.get_fig_div_with_info(fig,'freq_map_gsom', 'Mapa de Frecuencias por Neurona',tam_eje_horizontal, tam_eje_vertical)
+    fig,_ = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,True, title = None)
+    children = pu.get_fig_div_with_info(fig,'freq_map_gsom', 'Frequency Map',tam_eje_horizontal, tam_eje_vertical)
 
     return children
 
@@ -664,8 +664,8 @@ def update_mapa_componentes_gsom_fig(click,names, check_annotations):
         
       
         id ='graph-{}'.format(k)
-        figure = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = nombres_atributos[k])
-        children,_ = pu.get_fig_div_with_info(figure,id, '',None, None,gsom_level= None,neurona_padre=None)
+        figure,_ = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = nombres_atributos[k])
+        children = pu.get_fig_div_with_info(figure,id, '',None, None,gsom_level= None,neurona_padre=None)
 
         
 
@@ -762,9 +762,9 @@ def ver_umatrix_gsom_fig(click, check_annotations):
     for item in saved_distances.items():
         print(item)
     '''
-    fig = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None,
+    fig,_ = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None,
                                     colorscale = UMATRIX_HEATMAP_COLORSCALE,  reversescale=True)
-    children,_ =  pu.get_fig_div_with_info(fig,'umatrix_fig_gsom', 'Matriz U',tam_eje_horizontal, tam_eje_vertical)
+    children =  pu.get_fig_div_with_info(fig,'umatrix_fig_gsom', 'Matriz U',tam_eje_horizontal, tam_eje_vertical)
 
     return children
 
@@ -813,4 +813,4 @@ def save_gsom_model(n_clicks,name,isvalid):
     with open(DIR_SAVED_MODELS + filename, 'wb') as handle:
         pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    return 'Modelo guardado correctamente. Nombre del fichero: ' + filename
+    return 'Model saved! Filename: ' + filename
