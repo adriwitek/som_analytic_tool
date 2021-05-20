@@ -21,6 +21,15 @@ from re import search
 import views.plot_utils as pu
 from logging import raiseExceptions
 
+from plotly.colors import validate_colors
+
+import matplotlib.pyplot as plt
+from matplotlib.patches import RegularPolygon, Ellipse
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib import cm, colorbar
+from matplotlib.lines import Line2D
+from matplotlib.colors import Normalize
+
 
 
 
@@ -289,6 +298,7 @@ def info_trained_params_som_table():
                         html.Th("Gaussian Sigma"),
                         html.Th("Max Iterations"),
                         html.Th("Weights Initialization"),
+                        html.Th("Topology"),
                         html.Th("Seed")
         ]))
     ]
@@ -307,6 +317,7 @@ def info_trained_params_som_table():
                      html.Td( info['sigma']) ,
                      html.Td( info['iteraciones'] ),
                      html.Td( info['inicialitacion_pesos']),
+                     html.Td( info['topology']),
                      html.Td( semilla)
 
     ]) 
@@ -518,107 +529,227 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option):
     #'data and labels must have the same length.
     labels_map = som.labels_map(data, targets_list)
     
-    target_type,unique_targets = session_data.get_selected_target_type(data_portion_option)
-    values=None 
-    text = None
+
+    if(params['topology']== 'rectangular'):    #RECTANGULAR TOPOLOGY    
+
+        target_type,unique_targets = session_data.get_selected_target_type(data_portion_option)
+        values=None 
+        text = None
 
 
-    if(target_type == 'numerical' ): #numerical data: mean of the mapped values in each neuron
-        
-        data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=np.float64)
-        #labeled heatmap does not support nonetypes
-        data_to_plot[:] = np.nan
-        #text = None
+        if(target_type == 'numerical' ): #numerical data: mean of the mapped values in each neuron
 
-        for position in labels_map.keys():
-          
-            label_fracs = labels_map[position]
-            #denom = sum(label_fracs.values())
-            numerador = 0.0
-            denom = 0.0
-            for k,it in label_fracs.items():
-                numerador = numerador + k*it
-                denom = denom + it
+            data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=np.float64)
+            #labeled heatmap does not support nonetypes
+            data_to_plot[:] = np.nan
+            #text = None
 
-            mean = numerador / denom
-            data_to_plot[position[0]][position[1]] = mean
-    
-
-            '''
-            #fractions
-            label_fracs = [ labels_map[position][t] for t in lista_targets_unicos]
-            #print('label_fracs', label_fracs)
-            mean_div = sum(label_fracs)
-            mean = sum([a*b for a,b in zip(lista_targets_unicos,label_fracs)])
-            mean = mean/ mean_div
-            data_to_plot[position[0]][position[1]] = mean
-            '''
-
-            '''
-            elif(target_type == 'boolean'):
+            for position in labels_map.keys():
             
-                data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype= np.intc)
-                #labeled heatmap does not support nonetypes
-                data_to_plot[:] = np.nan
-                text = None
+                label_fracs = labels_map[position]
+                #denom = sum(label_fracs.values())
+                numerador = 0.0
+                denom = 0.0
+                for k,it in label_fracs.items():
+                    numerador = numerador + k*it
+                    denom = denom + it
+
+                mean = numerador / denom
+                data_to_plot[position[0]][position[1]] = mean
 
 
-                for position in labels_map.keys():
+                '''
+                #fractions
+                label_fracs = [ labels_map[position][t] for t in lista_targets_unicos]
+                #print('label_fracs', label_fracs)
+                mean_div = sum(label_fracs)
+                mean = sum([a*b for a,b in zip(lista_targets_unicos,label_fracs)])
+                mean = mean/ mean_div
+                data_to_plot[position[0]][position[1]] = mean
+                '''
+
+                '''
+                elif(target_type == 'boolean'):
                 
-                    true_freqs = labels_map[position]['True']
-                    false_freqs = labels_map[position]['False']
-
-                    if(true_freqs >=false_freqs ):
-                        data_to_plot[position[0]][position[1]] = 1
-                    else:
-                        data_to_plot[position[0]][position[1]] = 0
-            '''
+                    data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype= np.intc)
+                    #labeled heatmap does not support nonetypes
+                    data_to_plot[:] = np.nan
+                    text = None
 
 
-    elif(target_type == 'string'):
+                    for position in labels_map.keys():
+                    
+                        true_freqs = labels_map[position]['True']
+                        false_freqs = labels_map[position]['False']
 
-        data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=np.float64)
-        #labeled heatmap does not support nonetypes
-        data_to_plot[:] = np.nan
-        text = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
-        #labeled heatmap does not support nonetypes
-        text[:] = np.nan
-        values = np.linspace(0, 1, len(unique_targets), endpoint=False).tolist()
-        targets_codification = dict(zip(unique_targets, values))
-        #print('targets codificados',targets_codification)
-
-        if(len(unique_targets) >= 270):
-            output_alert_too_categorical_targets = True
+                        if(true_freqs >=false_freqs ):
+                            data_to_plot[position[0]][position[1]] = 1
+                        else:
+                            data_to_plot[position[0]][position[1]] = 0
+                '''
 
 
+        elif(target_type == 'string'):
 
-        #showing the class more represented in each neuron
+            data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=np.float64)
+            #labeled heatmap does not support nonetypes
+            data_to_plot[:] = np.nan
+            text = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
+            #labeled heatmap does not support nonetypes
+            text[:] = np.nan
+            values = np.linspace(0, 1, len(unique_targets), endpoint=False).tolist()
+            targets_codification = dict(zip(unique_targets, values))
+            #print('targets codificados',targets_codification)
+
+            if(len(unique_targets) >= 270):
+                output_alert_too_categorical_targets = True
+
+
+
+            #showing the class more represented in each neuron
+            for position in labels_map.keys():
+                max_target = max(labels_map[position], key=labels_map[position].get)
+                data_to_plot[position[0]][position[1]] = targets_codification[max_target]
+                text[position[0]][position[1]] = max_target
+
+
+        else: #error
+            raiseExceptions('Unexpected error')
+            data_to_plot = np.empty([1 ,1],dtype= np.bool_)
+            #labeled heatmap does not support nonetypes
+            data_to_plot[:] = np.nan
+            #text = None
+
+
+
+        fig,table_legend = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations,
+                                         text = text, discrete_values_range= values, unique_targets = unique_targets)
+        if(table_legend is not None):
+            children = pu.get_fig_div_with_info(fig,'winners_map', 'Winners Target per Neuron Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,
+                                                neurona_padre=None,  table_legend =  table_legend)
+        else:
+            children = pu.get_fig_div_with_info(fig,'winners_map', 'Winners Target per Neuron Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,neurona_padre=None)
+        print('\n SOM Winning Neuron Map: Plotling complete! \n')
+
+
+
+    else: #HEXAGONAL TOPOLOGY
+
+        plt.figure(figsize=(0.05,0.05))
+        plt.axis('off')
+
+        print('MODO HEXAGONAL....',flush=True)
+
+        #xx, yy = som.get_euclidean_coordinates()
+        #data_to_plot_plt = np.empty(xx.shape)
+        x = []
+        y = []
+        z = []
+
         for position in labels_map.keys():
-            max_target = max(labels_map[position], key=labels_map[position].get)
-            data_to_plot[position[0]][position[1]] = targets_codification[max_target]
-            text[position[0]][position[1]] = max_target
-
             
-    else: #error
-        raiseExceptions('Unexpected error')
-        data_to_plot = np.empty([1 ,1],dtype= np.bool_)
-        #labeled heatmap does not support nonetypes
-        data_to_plot[:] = np.nan
-        #text = None
+                label_fracs = labels_map[position]
+                #denom = sum(label_fracs.values())
+                numerador = 0.0
+                denom = 0.0
+                mean = 0.0
+                for k,it in label_fracs.items():
+                    numerador = numerador + k*it
+                    denom = denom + it
+
+                mean = numerador / denom
+                x.append(position[0])
+                y.append(position[1])
+                z.append(mean)
 
 
 
+        #print('x',x)
+        #print('y',y)
+        #print('z',z)
+        #print('--------------')
 
-    #print('values son',values)
+        gridsize=max(tam_eje_vertical ,tam_eje_horizontal)
+        HB = plt.hexbin(np.array(x), np.array(y),np.array(z), gridsize=gridsize,cmap=cm.jet)# cmocean.cm.algae is a cmocean colormap
+        plt.gcf().canvas.draw()#fix the lazy  ploting in matplot
 
-    fig,table_legend = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations,
-                                     text = text, discrete_values_range= values, unique_targets = unique_targets)
-    if(table_legend is not None):
-        children = pu.get_fig_div_with_info(fig,'winners_map', 'Winners Target per Neuron Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,
-                                            neurona_padre=None,  table_legend =  table_legend)
-    else:
-        children = pu.get_fig_div_with_info(fig,'winners_map', 'Winners Target per Neuron Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,neurona_padre=None)
-    print('\n SOM Winning Neuron Map: Plotling complete! \n')
+
+        hexagon_vertices, offsets, mpl_facecolors, counts = pu.get_hexbin_attributes(HB)
+        cell_color = pu.pl_cell_color(mpl_facecolors)
+
+        #print('hexagon_vertices',len(hexagon_vertices))
+        print('offsets',len(offsets),offsets)
+        print('mpl_facecolors',len(mpl_facecolors), mpl_facecolors)
+        #print('counts',len(counts),counts)
+        #print('llong cell color',len(cell_color),flush=True) 
+
+
+        shapes = []
+        centers = []
+      
+
+        for k in range(len(offsets)):
+            #shape, center = pu.make_hexagon(hexagon_vertices, offsets[k], '#0000FF')
+            shape, center = pu.make_hexagon(hexagon_vertices, offsets[k], cell_color[k])
+            shapes.append(shape)
+            centers.append(center)
+
+
+        pl_jet_color = pu.mpl_to_plotly(cm.jet, len(counts))
+
+
+        X, Y = zip(*centers)
+        #define  text to be  displayed on hovering the mouse over the cells
+        text = [f'x: {round(X[k],2)}<br>y: {round(Y[k],2)}<br>Value: {int(counts[k])}' for k in range(len(counts))]
+
+
+        trace = go.Scatter(
+             x=list(X), 
+             y=list(Y), 
+             mode='markers',
+             marker=dict(size=0.5, 
+                         color=counts, 
+                         colorscale=pl_jet_color, 
+                         showscale=True,
+                         colorbar=dict(
+                                    thickness=20,  
+                                     ticklen=4
+                                     )
+                         ),             
+           text=text, 
+           hoverinfo='text'
+        )    
+
+
+        axis = dict(showgrid=False,
+           showline=False,
+           zeroline=False,
+           ticklen=4 
+           )
+
+        layout = go.Layout(title='Hexbin plot',
+                   width=530, height=550,
+                   xaxis=axis,
+                   yaxis=axis,
+                   hovermode='closest',
+                   shapes=shapes,
+                   plot_bgcolor=None)
+
+
+        #fig = go.FigureWidget(data=[trace], layout=layout)
+        data=[trace]
+        data.append({'type': 'scattergl',
+                    'mode': 'text'
+                })
+
+        fig = dict(data=data, layout=layout)
+
+
+        children = pu.get_fig_div_with_info(fig,'winners_map', 'PRUEBA HEXAGONAL MAPA',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,neurona_padre=None)
+        print('\n TESTTTTTTTTTSOM Winning Neuron Map: Plotling complete! \n')
+
+
+
 
     return children, output_alert_too_categorical_targets
 

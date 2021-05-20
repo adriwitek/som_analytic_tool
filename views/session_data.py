@@ -380,7 +380,7 @@ class Sesion():
         #print('-------es numerico??',pd.api.types.is_numeric_dtype(t_column)  )
         if(t_column is None):
             raiseExceptions('Unexpedted error')
-            return None,_
+            return None,None
             '''
             elif(  pd.api.types.is_bool_dtype(t_column)):
             print('es  bool el target')
@@ -448,7 +448,7 @@ class Sesion():
 
 
     def set_som_model_info_dict(self,tam_eje_vertical,tam_eje_horizontal,learning_rate,neigh_fun,distance_fun,
-                                sigma,iteraciones, inicialitacion_pesos,check_semilla, semilla):
+                                sigma,iteraciones, inicialitacion_pesos,topologia,check_semilla, semilla):
 
         #Only one model could be used at once
         self.som_params= {}
@@ -463,6 +463,7 @@ class Sesion():
         self.som_params['sigma'] = sigma
         self.som_params['iteraciones'] = iteraciones
         self.som_params['inicialitacion_pesos'] = inicialitacion_pesos
+        self.som_params['topology'] = topologia
         self.som_params['check_semilla'] = check_semilla
         self.som_params['seed'] = semilla
 
