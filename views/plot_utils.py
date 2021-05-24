@@ -8,14 +8,33 @@ from  config.config import DEFAULT_HEATMAP_COLORSCALE, DEFAULT_HEATMAP_PX_HEIGHT
 import dash_table
 
 
-
+'''
 import matplotlib.pyplot as plt
 from matplotlib.patches import RegularPolygon, Ellipse
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib import cm, colorbar
 from matplotlib.lines import Line2D
+'''
+import matplotlib as mpl
+import matplotlib.cm as cm
 
 
+import math
+
+#estos puntos no cuadran perfectamente las lineas,auqneu por el momento funciona
+raiz_d3 = math.sqrt(3)
+V0 = (0,   1/raiz_d3 )
+V1 = (0.5, 0.25  )
+V2 = (0.5, -0.25 )
+V3 = (0, - 1/raiz_d3  )
+V4 = (-0.5 , -0.25  )
+V5 = (-0.5 , 0.25    )
+
+def get_x_vertex_hexagon_svg():
+    return [V0[0], V1[0], V2[0],V3[0],V4[0],V5[0], V0[0]   ]
+
+def get_y_vertex_hexagon_svg():
+    return [V0[1], V1[1], V2[1],V3[1],V4[1],V5[1], V0[1]    ]
 
 
 def get_DISCRETE_COLORSCALE_269():
@@ -528,7 +547,7 @@ def pl_cell_color(mpl_facecolors):
      
     return [ f'rgb({int(R*255)}, {int(G*255)}, {int(B*255)})' for (R, G, B, A) in mpl_facecolors]
 
-
+'''
 def make_hexagon(prototypical_hex, offset, fillcolor, linecolor=None):
    
     new_hex_vertices = [vertex + offset for vertex in prototypical_hex]
@@ -548,6 +567,8 @@ def make_hexagon(prototypical_hex, offset, fillcolor, linecolor=None):
                  fillcolor=fillcolor, 
                 ), center 
 
+'''
+
 def mpl_to_plotly(cmap, N):
     h = 1.0/(N-1)
     pl_colorscale = []
@@ -555,3 +576,39 @@ def mpl_to_plotly(cmap, N):
         C = list(map(np.uint8, np.array(cmap(k*h)[:3])*255))
         pl_colorscale.append([round(k*h,2), f'rgb({C[0]}, {C[1]}, {C[2]})'])
     return pl_colorscale
+
+
+
+
+def create_hexagon(x_offset,y_offset, fillcolor, linecolor=None):
+    
+    x_v = get_x_vertex_hexagon_svg()
+    y_v = get_y_vertex_hexagon_svg()
+
+    new_x_hex_vertex = [v + x_offset for v in x_v]
+    new_y_hex_vertex = [v + y_offset for v in y_v]
+
+
+    if linecolor is None:
+        linecolor = fillcolor
+    #define the SVG-type path:    
+    path = 'M '
+    for vx,vy in zip(new_x_hex_vertex,new_y_hex_vertex):
+        path +=  f'{vx}, {vy} L' 
+
+    return  dict(type='path',
+                 line=dict(color=linecolor, 
+                           width=0.5
+                            ),
+                 path=  path[:-2],
+                 fillcolor=fillcolor, 
+                )
+
+
+'''
+def get_normalized_colormap(vmin,vmax):
+
+    norm = mpl.colors.Normalize(vmin, vmax)
+    cmap = cm.jet
+    m = cm.ScalarMappable(norm=norm, cmap=cmap)
+    return m'''

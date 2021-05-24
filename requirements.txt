@@ -7,7 +7,7 @@ progressbar2==3.37.1
 pandas==1.2.4
 networkx==2.5
 sklearn==0.24.1
-
+matplotlib==3.4.1
 
 
 

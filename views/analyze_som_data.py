@@ -23,15 +23,17 @@ from logging import raiseExceptions
 
 from plotly.colors import validate_colors
 
+'''
 import matplotlib.pyplot as plt
 from matplotlib.patches import RegularPolygon, Ellipse
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib import cm, colorbar
 from matplotlib.lines import Line2D
 from matplotlib.colors import Normalize
+'''
 
-
-
+import matplotlib as mpl
+import matplotlib.cm as cm
 
 #############################################################
 #	                  AUX LAYOUT FUNS	                    #
@@ -635,18 +637,19 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option):
 
     else: #HEXAGONAL TOPOLOGY
 
-        plt.figure(figsize=(0.05,0.05))
-        plt.axis('off')
-
+    
         print('MODO HEXAGONAL....',flush=True)
 
-        #xx, yy = som.get_euclidean_coordinates()
-        #data_to_plot_plt = np.empty(xx.shape)
-        x = []
-        y = []
-        z = []
+       
+        xx, yy = som.get_euclidean_coordinates()
+
+        xx_list = []
+        yy_list = []
+        zz_list = []
+
 
         for position in labels_map.keys():
+                print('Hit POSICION:',position)
             
                 label_fracs = labels_map[position]
                 #denom = sum(label_fracs.values())
@@ -658,54 +661,58 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option):
                     denom = denom + it
 
                 mean = numerador / denom
-                x.append(position[0])
-                y.append(position[1])
-                z.append(mean)
+              
+                wx = xx[position]
+                wy = yy[position]
+
+                xx_list.append(wx) 
+                yy_list.append(wy)
+                zz_list.append(mean)
 
 
-
-        #print('x',x)
-        #print('y',y)
-        #print('z',z)
-        #print('--------------')
-
-        gridsize=max(tam_eje_vertical ,tam_eje_horizontal)
-        HB = plt.hexbin(np.array(x), np.array(y),np.array(z), gridsize=gridsize,cmap=cm.jet)# cmocean.cm.algae is a cmocean colormap
-        plt.gcf().canvas.draw()#fix the lazy  ploting in matplot
-
-
-        hexagon_vertices, offsets, mpl_facecolors, counts = pu.get_hexbin_attributes(HB)
-        cell_color = pu.pl_cell_color(mpl_facecolors)
-
-        #print('hexagon_vertices',len(hexagon_vertices))
-        print('offsets',len(offsets),offsets)
-        print('mpl_facecolors',len(mpl_facecolors), mpl_facecolors)
-        #print('counts',len(counts),counts)
-        #print('llong cell color',len(cell_color),flush=True) 
-
+        #testing all cells
+        #xx_list = np.nditer(xx)
+        #yy_list = np.nditer(yy)
 
         shapes = []
-        centers = []
-      
+        centers_x = []
+        centers_y = []
+        counts = []
 
-        for k in range(len(offsets)):
-            #shape, center = pu.make_hexagon(hexagon_vertices, offsets[k], '#0000FF')
-            shape, center = pu.make_hexagon(hexagon_vertices, offsets[k], cell_color[k])
+
+        norm = mpl.colors.Normalize(vmin=min(zz_list), vmax= max(zz_list))
+        cmap = cm.jet
+        '''
+        cmap(norm(5))
+
+        colormap= pu.get_normalized_colormap(vmin=min(zz_list), vmax= max(zz_list))
+        color = matplotlib.colors.rgb2hex(colormap.to_rgba(0.5))
+        '''
+        print('cmap de 0.55', cmap(0.5),flush=True)
+    
+        for i,j,z in zip(xx_list, yy_list,zz_list):
+            rgb =  cmap(norm(z))[:3]
+            color = mpl.colors.rgb2hex(rgb)
+            shape = pu.create_hexagon(i,j,color   )
             shapes.append(shape)
-            centers.append(center)
+            centers_x.append(i)
+            centers_y.append(j)
+            counts.append(z)
 
 
+        #print('centers_x',centers_x)
+        #print('centers_y',centers_y)
+        #print('counts',counts)
+
+
+        #define  text to be  displayed on hovering the mouse over the cells
+        text = [f'x: {centers_x[k]}<br>y: {centers_y[k]}<br>Value: {counts[k]}' for k in range(len(centers_x))]
         pl_jet_color = pu.mpl_to_plotly(cm.jet, len(counts))
 
 
-        X, Y = zip(*centers)
-        #define  text to be  displayed on hovering the mouse over the cells
-        text = [f'x: {round(X[k],2)}<br>y: {round(Y[k],2)}<br>Value: {int(counts[k])}' for k in range(len(counts))]
-
-
         trace = go.Scatter(
-             x=list(X), 
-             y=list(Y), 
+             x=list(centers_x), 
+             y=list(centers_y), 
              mode='markers',
              marker=dict(size=0.5, 
                          color=counts, 
