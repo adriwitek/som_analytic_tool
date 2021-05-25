@@ -17,6 +17,7 @@ from matplotlib.lines import Line2D
 '''
 import matplotlib as mpl
 import matplotlib.cm as cm
+import plotly.graph_objects as go
 
 
 import math
@@ -535,39 +536,20 @@ def get_single_heatmap_css_style():
 ############ HEXAGONAL FUNS #################################
 
 
-
+'''
 def get_hexbin_attributes(hexbin):
     paths = hexbin.get_paths()
     points_codes = list(paths[0].iter_segments())#path[0].iter_segments() is a generator 
     prototypical_hexagon = [item[0] for item in points_codes]
     return prototypical_hexagon, hexbin.get_offsets(), hexbin.get_facecolors(), hexbin.get_array()
+'''
 
-
+'''
 def pl_cell_color(mpl_facecolors):
      
     return [ f'rgb({int(R*255)}, {int(G*255)}, {int(B*255)})' for (R, G, B, A) in mpl_facecolors]
-
 '''
-def make_hexagon(prototypical_hex, offset, fillcolor, linecolor=None):
-   
-    new_hex_vertices = [vertex + offset for vertex in prototypical_hex]
-    vertices = np.asarray(new_hex_vertices[:-1])
-    # hexagon center
-    center=np.mean(vertices, axis=0)
-    if linecolor is None:
-        linecolor = fillcolor
-    #define the SVG-type path:    
-    path = 'M '
-    for vert in new_hex_vertices:
-        path +=  f'{vert[0]}, {vert[1]} L' 
-    return  dict(type='path',
-                 line=dict(color=linecolor, 
-                           width=0.5),
-                 path=  path[:-2],
-                 fillcolor=fillcolor, 
-                ), center 
 
-'''
 
 def mpl_to_plotly(cmap, N):
     h = 1.0/(N-1)
@@ -605,10 +587,118 @@ def create_hexagon(x_offset,y_offset, fillcolor, linecolor=None):
                 )
 
 
-'''
-def get_normalized_colormap(vmin,vmax):
 
-    norm = mpl.colors.Normalize(vmin, vmax)
-    cmap = cm.jet
-    m = cm.ScalarMappable(norm=norm, cmap=cmap)
-    return m'''
+def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale = cm.jet,title =''):
+
+    
+        shapes = []
+        centers_x = []
+        centers_y = []
+        counts = []
+
+        norm = mpl.colors.Normalize(vmin=min(zz_list), vmax= max(zz_list))
+        cmap = colorscale
+        
+    
+        for i,j,z in zip(xx_list, yy_list,zz_list):
+            rgb =  cmap(norm(z))[:3]
+            color = mpl.colors.rgb2hex(rgb)
+            shape = create_hexagon(i,j,color   )
+            shapes.append(shape)
+            centers_x.append(i)
+            centers_y.append(j)
+            counts.append(z)
+
+
+        pl_jet_color = mpl_to_plotly(colorscale, len(counts))
+
+
+        if(hovertext):
+            #define  text to be  displayed on hovering the mouse over the cells
+            text = [f'x: {centers_x[k]}<br>y: {centers_y[k]}<br>Value: {counts[k]}' for k in range(len(centers_x))]
+        else:
+            text = []
+
+
+
+        trace = go.Scatter(
+             x=list(centers_x), 
+             y=list(centers_y), 
+             mode='markers',
+             marker=dict(size=0.5, 
+                         color=counts, 
+                         colorscale=pl_jet_color, 
+                         showscale=True,
+                         colorbar=dict(
+                                    thickness=20,  
+                                     ticklen=4
+                                     )
+                         ),             
+           text=text, 
+           hoverinfo='text'
+        )    
+
+
+        axis = dict(showgrid=False,
+           showline=False,
+           zeroline=False,
+           ticklen=4 
+           )
+
+        layout = go.Layout(title = title,
+                   width=530, height=550,
+                   xaxis=axis,
+                   yaxis=axis,
+                   hovermode='closest',
+                   shapes=shapes,
+                   plot_bgcolor=None)
+
+
+        data=[trace]
+        data.append({'type': 'scattergl',
+                    'mode': 'text'
+                })
+
+        fig = dict(data=data, layout=layout)
+
+        return fig
+
+
+
+
+def make_hexagonal_annotations(xx_list,yy_list,zz_list, reversescale= False):
+    """
+    Get annotations for each cell of the heatmap with graph_objs.Annotation
+    :rtype (list[dict]) annotations: list of annotations for each cell of
+        the heatmap
+    """
+    white = "#FFFFFF"
+    black = "#000000"
+    
+    if reversescale:
+        min_text_color =  black
+        max_text_color =  white   
+    else:
+        min_text_color = white
+        max_text_color = black
+
+    zmin = np.nanmin(zz_list)
+    zmax = np.nanmax(zz_list)
+    zmid = (zmax + zmin) / 2
+    annotations = []
+
+    for x,y,z in zip(xx_list,yy_list,zz_list):
+        
+        if(not np.isnan(z) ):
+            font_color = min_text_color if ( z < zmid ) else max_text_color
+            annotations.append(
+                graph_objs.layout.Annotation(
+                       text= str(z) ,
+                       x=x,
+                       y=y,
+                       font=dict(color=font_color),
+                       showarrow=False,
+                )
+            )
+
+    return annotations

@@ -635,18 +635,12 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option):
 
 
 
-    else: #HEXAGONAL TOPOLOGY
+    else: ###########  HEXAGONAL TOPOLOGY
 
-    
-        print('MODO HEXAGONAL....',flush=True)
-
-       
         xx, yy = som.get_euclidean_coordinates()
-
         xx_list = []
         yy_list = []
         zz_list = []
-
 
         for position in labels_map.keys():
                 print('Hit POSICION:',position)
@@ -674,86 +668,10 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option):
         #xx_list = np.nditer(xx)
         #yy_list = np.nditer(yy)
 
-        shapes = []
-        centers_x = []
-        centers_y = []
-        counts = []
 
-
-        norm = mpl.colors.Normalize(vmin=min(zz_list), vmax= max(zz_list))
-        cmap = cm.jet
-        '''
-        cmap(norm(5))
-
-        colormap= pu.get_normalized_colormap(vmin=min(zz_list), vmax= max(zz_list))
-        color = matplotlib.colors.rgb2hex(colormap.to_rgba(0.5))
-        '''
-        print('cmap de 0.55', cmap(0.5),flush=True)
-    
-        for i,j,z in zip(xx_list, yy_list,zz_list):
-            rgb =  cmap(norm(z))[:3]
-            color = mpl.colors.rgb2hex(rgb)
-            shape = pu.create_hexagon(i,j,color   )
-            shapes.append(shape)
-            centers_x.append(i)
-            centers_y.append(j)
-            counts.append(z)
-
-
-        #print('centers_x',centers_x)
-        #print('centers_y',centers_y)
-        #print('counts',counts)
-
-
-        #define  text to be  displayed on hovering the mouse over the cells
-        text = [f'x: {centers_x[k]}<br>y: {centers_y[k]}<br>Value: {counts[k]}' for k in range(len(centers_x))]
-        pl_jet_color = pu.mpl_to_plotly(cm.jet, len(counts))
-
-
-        trace = go.Scatter(
-             x=list(centers_x), 
-             y=list(centers_y), 
-             mode='markers',
-             marker=dict(size=0.5, 
-                         color=counts, 
-                         colorscale=pl_jet_color, 
-                         showscale=True,
-                         colorbar=dict(
-                                    thickness=20,  
-                                     ticklen=4
-                                     )
-                         ),             
-           text=text, 
-           hoverinfo='text'
-        )    
-
-
-        axis = dict(showgrid=False,
-           showline=False,
-           zeroline=False,
-           ticklen=4 
-           )
-
-        layout = go.Layout(title='Hexbin plot',
-                   width=530, height=550,
-                   xaxis=axis,
-                   yaxis=axis,
-                   hovermode='closest',
-                   shapes=shapes,
-                   plot_bgcolor=None)
-
-
-        #fig = go.FigureWidget(data=[trace], layout=layout)
-        data=[trace]
-        data.append({'type': 'scattergl',
-                    'mode': 'text'
-                })
-
-        fig = dict(data=data, layout=layout)
-
-
-        children = pu.get_fig_div_with_info(fig,'winners_map', 'PRUEBA HEXAGONAL MAPA',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,neurona_padre=None)
-        print('\n TESTTTTTTTTTSOM Winning Neuron Map: Plotling complete! \n')
+        fig = pu.create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True)
+        children = pu.get_fig_div_with_info(fig,'winners_map', 'Winners Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,neurona_padre=None)
+        print('\n SOM(hexagonal) Winning Neuron Map: Plotling complete! \n')
 
 
 
@@ -777,16 +695,27 @@ def annotate_freq_map_som(check_annotations, fig,n_clicks):
 
     layout = fig['layout']
     data = fig['data']
+    params = session_data.get_som_model_info_dict()
 
-    if(check_annotations  ): #fig already ploted
-        trace = data[0]
-        data_to_plot = trace['z'] 
-        #To replace None values with NaN values
-        data_to_plot_1 = np.array(data_to_plot, dtype=int)
-        annotations = pu.make_annotations(data_to_plot_1, colorscale = DEFAULT_HEATMAP_COLORSCALE, reversescale= False)
-        layout['annotations'] = annotations
-    else:   
-        layout['annotations'] = []
+    
+    if(params['topology']== 'rectangular'):    #RECTANGULAR TOPOLOGY   
+
+        if(check_annotations  ): #fig already ploted
+            trace = data[0]
+            data_to_plot = trace['z'] 
+            #To replace None values with NaN values
+            data_to_plot_1 = np.array(data_to_plot, dtype=int)
+            annotations = pu.make_annotations(data_to_plot_1, colorscale = DEFAULT_HEATMAP_COLORSCALE, reversescale= False)
+            layout['annotations'] = annotations
+        else:   
+            layout['annotations'] = []
+    
+    else:
+
+        print('longitud del data',len(data))
+        print(data)
+        print('---')
+        print('data[0]',data[0])
 
     fig_updated = dict(data=data, layout=layout)
     return fig_updated
@@ -812,8 +741,24 @@ def update_mapa_frecuencias_fig(click, check_annotations, data_portion_option):
 
     frequencies = som.activation_response(model_data)
     frequencies_list = frequencies.tolist()
+
+    params = session_data.get_som_model_info_dict()
+
+    if(params['topology']== 'rectangular'):    #RECTANGULAR TOPOLOGY   
     
-    figure = pu.create_heatmap_figure(frequencies_list,tam_eje_horizontal,tam_eje_vertical,check_annotations)
+        figure = pu.create_heatmap_figure(frequencies_list,tam_eje_horizontal,tam_eje_vertical,check_annotations)
+
+    else:#Hexagonal topology
+        xx, yy = som.get_euclidean_coordinates()
+        xx_list = xx.ravel()
+        yy_list = yy.ravel()
+        zz_list = frequencies.ravel()
+        figure = pu.create_hexagonal_figure(xx_list,yy_list, zz_list, hovertext= True)
+        if(check_annotations):
+            annotations = pu.make_hexagonal_annotations(xx_list,yy_list,zz_list)
+            figure['layout']['annotations'] = annotations
+
+
 
     children= pu.get_fig_div_with_info(figure,'frequency_map','Frequency Map',tam_eje_horizontal, tam_eje_vertical)
 
@@ -840,16 +785,32 @@ def update_mapa_componentes_fig(click,names,check_annotations):
 
     for n in names:
         lista_de_indices.append(nombres_atributos.index(n) )
-    
+
     pesos = som.get_weights()
     traces = []
-   
-       
-    for i in lista_de_indices:
 
-        figure = pu.create_heatmap_figure(pesos[:,:,i].tolist() ,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = nombres_atributos[i])
-        id ='graph-{}'.format(i)
-        traces.append(html.Div(children= dcc.Graph(id=id,figure=figure)) )
+
+    if(params['topology']== 'rectangular'):    #RECTANGULAR TOPOLOGY   
+
+    
+        for i in lista_de_indices:
+
+            figure = pu.create_heatmap_figure(pesos[:,:,i].tolist() ,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = nombres_atributos[i])
+            id ='graph-{}'.format(i)
+            traces.append(html.Div(children= dcc.Graph(id=id,figure=figure)) )
+
+    else: #Hexagonal topology
+
+        xx, yy = som.get_euclidean_coordinates()
+        xx_list = xx.ravel()
+        yy_list = yy.ravel()
+
+        for i in lista_de_indices:
+            zz_list = pesos[:,:,i].ravel()
+            figure = pu.create_hexagonal_figure(xx_list,yy_list, zz_list, hovertext= True, title = nombres_atributos[i])
+            id ='graph-{}'.format(i)
+            traces.append(html.Div(children= dcc.Graph(id=id,figure=figure)) )
+
 
     return traces
   
@@ -888,8 +849,23 @@ def update_umatrix(n_clicks,check_annotations):
     params = session_data.get_som_model_info_dict()
     tam_eje_horizontal = params['tam_eje_horizontal'] 
     tam_eje_vertical = params['tam_eje_vertical'] 
-    figure = pu.create_heatmap_figure(umatrix.tolist() ,tam_eje_horizontal,tam_eje_vertical, check_annotations, title ='Matriz U',
-                                         colorscale = UMATRIX_HEATMAP_COLORSCALE,  reversescale=True)
+
+    params = session_data.get_som_model_info_dict()
+
+    if(params['topology']== 'rectangular'):    #RECTANGULAR TOPOLOGY   
+        figure = pu.create_heatmap_figure(umatrix.tolist() ,tam_eje_horizontal,tam_eje_vertical, check_annotations, title ='Matriz U',
+                                             colorscale = UMATRIX_HEATMAP_COLORSCALE,  reversescale=True)
+    else:#HEXAGONAL TOPOLOGY
+
+        xx, yy = som.get_euclidean_coordinates()
+        xx_list = xx.ravel()
+        yy_list = yy.ravel()
+        zz_list = umatrix.ravel()
+        figure =  pu.create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale = cm.gray_r)
+        if(check_annotations):
+            annotations = pu.make_hexagonal_annotations(xx_list,yy_list,zz_list)
+            figure['layout']['annotations'] = annotations
+
     return  html.Div(children= dcc.Graph(id='graph_u_matrix',figure=figure))
 
 
