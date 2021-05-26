@@ -45,6 +45,19 @@ def train_som_view():
                                 dcc.Input(id="tasa_aprendizaje_som", type="number", value="0.5",step=0.0001,min=0,max=5),
 
 
+                                html.H5(children='Map Topology'),
+                                dcc.Dropdown(
+                                    id='dropdown_topology',
+                                    options=[
+                                        {'label': 'Rectangular', 'value': 'rectangular'},
+                                        {'label': 'Hexagonal', 'value': 'hexagonal'}
+                                    ],
+                                    value='rectangular',
+                                    searchable=False
+                                    #style={'width': '35%'}
+                                ),
+
+
                                 html.H5(children='Neighborhood Function'),
                                 dcc.Dropdown(
                                     id='dropdown_vecindad',
@@ -59,18 +72,6 @@ def train_som_view():
                                     #style={'width': '50%'}
                                 ),
 
-
-                                html.H5(children='Map Topology'),
-                                dcc.Dropdown(
-                                    id='dropdown_topology',
-                                    options=[
-                                        {'label': 'Rectangular', 'value': 'rectangular'},
-                                        {'label': 'Hexagonal', 'value': 'hexagonal'}
-                                    ],
-                                    value='rectangular',
-                                    searchable=False
-                                    #style={'width': '35%'}
-                                ),
 
 
                                 html.H5(children='Distance Function'),
@@ -198,7 +199,23 @@ def enable_train_som_button(tam_eje_vertical,tam_eje_horizontal,tasa_aprendizaje
         return True
 
 
+@app.callback(  Output('dropdown_vecindad', 'options'),
+                Output('dropdown_vecindad', 'value'),
+                Input('dropdown_topology', 'value'),
+                State('dropdown_vecindad', 'options'),
+                State('dropdown_vecindad', 'value'),
+                prevent_initial_call=True
+)
+def disable_triangular_with_hextopology(topology,options, valor_vecindad):
 
+    if(topology == 'hexagonal'):
+        options[3]['disabled']= True
+        if(valor_vecindad == 'triangle'):
+            valor_vecindad = 'gaussian'
+    else:
+        options[3]['disabled']= False
+    
+    return options,valor_vecindad
 
 
 @app.callback(Output('som_entrenado', 'children'),

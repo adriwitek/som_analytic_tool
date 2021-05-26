@@ -91,6 +91,21 @@ def get_mapaneuronasganadoras_som_card():
                     ),
                     html.Br(),    
 
+
+                    dbc.FormGroup(
+                        [
+                            dbc.RadioItems(
+                                options=[
+                                    {"label": "Linear Scale", "value": 1},
+                                    {"label": "Logarithmic Scale", "value": 2},
+                                ],
+                                value=1,
+                                id="radioscale_winners_som",
+                                inline=True,
+                            ),
+                        ]
+                    ),
+
                     dbc.Collapse(
                         id='collapse_winnersmap_som',
                         is_open=False,
