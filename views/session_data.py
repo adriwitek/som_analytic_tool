@@ -46,6 +46,8 @@ class Sesion():
         self.target_name = None
         self.df_targets_train = None
         self.df_targets_test = None
+        self.preselected_target_type = None
+
         #   joined data,only saved if it's used 
         self.joined_train_test_np_data = None
         self.joined_train_test_df_targets = None
@@ -101,6 +103,7 @@ class Sesion():
         self.target_name = None
         self.df_targets_train = None
         self.df_targets_test = None
+        self.preselected_target_type = None
         #   joined data,only saved if it's used 
         self.joined_train_test_np_data = None
         self.joined_train_test_df_targets = None
@@ -140,6 +143,14 @@ class Sesion():
     def get_target_name(self):
         return self.target_name
 
+    def is_preselected_target_numerical(self):
+        if(self.preselected_target_type is None or self.preselected_target_type == 'string'):
+            return  False
+        else:
+            return True
+
+
+
     '''
     def get_target_np_column(self):
         #IF target selected
@@ -162,6 +173,8 @@ class Sesion():
 
         if(split):
             self.df_features_train , self.df_features_test, self.df_targets_train, self.df_targets_test = train_test_split(df_features, df_targets, train_size=train_samples_number ,shuffle = True)
+            self.preselected_target_type,_ = self.get_selected_target_type( 2)
+
         else:
             self.df_features_train= df_features
             self.df_targets_train = df_targets
@@ -169,8 +182,9 @@ class Sesion():
             self.df_targets_test= None
             self.joined_train_test_np_data= None
             self.joined_train_test_df_targets = None
+            self.preselected_target_type,_ = self.get_selected_target_type( 1)
 
-
+        #print('DEBUG, el traget preselected es tipo', self.preselected_target_type)
 
     def convert_train_data_tonumpy(self):
         self.np_features_train = self.estandarizar_data(self.df_features_train, 'Train', self.data_splitted)
@@ -358,8 +372,9 @@ class Sesion():
             returns none(raise exception, 'string', or 'numerical'), unique_diff_targets_if_not_nmerical_target
         '''
         
-
-        if(option == 1 or  not self.data_splitted ):
+        if(self.get_target_name() is None):
+            return None,None
+        elif(option == 1 or  not self.data_splitted ):
             if(self.df_targets_train is not None):
                 t_column =  self.df_targets_train[self.get_target_name()]
             else:
@@ -379,7 +394,7 @@ class Sesion():
         #print('el tipo de la columna esssss:',t_column.dtype)
         #print('-------es numerico??',pd.api.types.is_numeric_dtype(t_column)  )
         if(t_column is None):
-            raiseExceptions('Unexpedted error')
+            #raiseExceptions('Unexpedted error')
             return None,None
             '''
             elif(  pd.api.types.is_bool_dtype(t_column)):

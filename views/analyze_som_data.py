@@ -92,19 +92,7 @@ def get_mapaneuronasganadoras_som_card():
                     html.Br(),    
 
 
-                    dbc.FormGroup(
-                        [
-                            dbc.RadioItems(
-                                options=[
-                                    {"label": "Linear Scale", "value": 1},
-                                    {"label": "Logarithmic Scale", "value": 2},
-                                ],
-                                value=1,
-                                id="radioscale_winners_som",
-                                inline=True,
-                            ),
-                        ]
-                    ),
+
 
                     dbc.Collapse(
                         id='collapse_winnersmap_som',
@@ -116,6 +104,28 @@ def get_mapaneuronasganadoras_som_card():
                                     dbc.Checklist(  options=[{"label": "Label Neurons", "value": 1}],
                                                     value=[],
                                                     id="check_annotations_winnersmap"),
+
+                                    dbc.Collapse(
+                                        id='collapse_logscale_winners_som',
+                                        is_open=session_data.is_preselected_target_numerical(),
+                                        children=[
+                                            dbc.FormGroup(
+                                                [
+                                                    dbc.RadioItems(
+                                                        options=[
+                                                            {"label": "Linear Scale", "value": 0},
+                                                            {"label": "Logarithmic Scale", "value": 1},
+                                                        ],
+                                                        value=0,
+                                                        id="radioscale_winners_som",
+                                                        inline=True,
+                                                    ),
+                                                ]
+                                            ),
+                                        ]
+                                    ),
+
+                                   
                                     dbc.Button("Plot", id="ver", className="mr-2", color="primary")],
                                     style={'textAlign': 'center'}
                                 )
@@ -356,37 +366,6 @@ def info_trained_params_som_table():
 #                       CALLBACKS
 ##################################################################
 
-'''
-
-#Show select splitted target part if it es splitted
-@app.callback(  Output('get_select_splitted_option_card_som', 'is_open'),
-                Input('info_table_som', 'children'), #udpate on load
-)
-def toggle_show_dataset_splitted_option(info_table):
-
-
-    dbc.CardBody(children=[
-                html.Div( id='div_frequency_map',children = '',style= pu.get_single_heatmap_css_style()),
-                html.Div([ 
-                    dbc.Checklist(options=[{"label": "Label Neurons", "value": 1}],
-                                    value=[],
-                                    id="check_annotations_freq"),
-                                
-                    dbc.Button("Plot", id="frequency_map_button", className="mr-2", color="primary") ],
-                    style={'textAlign': 'center'}
-                )
-                
-            ])
-
-    print('debugdsfa',flush=True)
-
-    if(session_data.data_splitted):
-
-        
-        return True
-    else:
-        return False
-'''
 
 #Toggle winners map if selected target
 @app.callback(
@@ -426,26 +405,6 @@ def toggle_winners_som(info_table,target_value):
 
     
 
-#TODO BORRAR
-'''
-@app.callback(
-                Output('dropdown_target_selection_som', 'options'),
-                Input('info_table_som', 'children'), #udpate on load
-                State('original_dataframe_storage','data')
-)
-def get_target_optins(info_table, origina_df):
-
-    df = pd.read_json(origina_df,orient='split',nrows = 1)
-    df = df[exclude = session_data.get_features_names()]
-    columnas = df.columns.tolist()
-
-    options = []  # must be a list of dicts per option
-
-    for n in columnas:
-        options.append({'label' : n, 'value': n})
-    return options
-'''
-
 
 
 
@@ -474,16 +433,6 @@ def ver_estadisticas_som(n_clicks,data_portion_option):
 
     qe,mqe = som.get_qe_and_mqe_errors(data)
 
-    """tp : computed by finding
-        the best-matching and second-best-matching neuron in the map
-        for each input and then evaluating the positions.
-
-        A sample for which these two nodes are not adjacent counts as
-        an error. The topographic error is given by the
-        the total number of errors divided by the total of samples.
-
-        If the topographic error is 0, no error occurred.
-        If 1, the topology was not preserved for any of the samples."""
     tp = som.topographic_error(data)
     
 
@@ -521,7 +470,28 @@ def annotate_winners_map_som(check_annotations, fig,n_clicks):
     return fig_updated
 
 '''
-    
+#Toggle log scale option in winners map
+@app.callback(
+            Output('collapse_logscale_winners_som', 'is_open'),
+            Output('radioscale_winners_som','radioscale_winners_som'),
+            Input('dropdown_target_selection_som', 'value'),
+
+            State('dataset_portion_radio_analyze_som','value'),
+            #prevent_initial_call=True 
+)  
+def toggle_select_logscale(target_value, option):
+
+    if(target_value is None or not target_value):
+        return False,0
+
+    target_type,_ = session_data.get_selected_target_type( option)
+
+    if(target_type is None or target_type == 'string'):
+        return False,0
+
+    else:
+        return True,dash.no_update
+
 
 
 #Mapa neuonas ganadoras
@@ -530,12 +500,14 @@ def annotate_winners_map_som(check_annotations, fig,n_clicks):
               Input('ver', 'n_clicks'),
               Input('check_annotations_winnersmap', 'value'),
               State('dataset_portion_radio_analyze_som','value'),
+              State('radioscale_winners_som','value'),
               prevent_initial_call=True )
-def update_som_fig(n_clicks, check_annotations, data_portion_option):
+def update_som_fig(n_clicks, check_annotations, data_portion_option,logscale):
 
 
     output_alert_too_categorical_targets = False
     params = session_data.get_som_model_info_dict()
+    log_scale = False
     tam_eje_vertical = params['tam_eje_vertical']
     tam_eje_horizontal = params['tam_eje_horizontal']
  
@@ -559,7 +531,7 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option):
             data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=np.float64)
             #labeled heatmap does not support nonetypes
             data_to_plot[:] = np.nan
-            #text = None
+            log_scale = logscale
 
             for position in labels_map.keys():
             
@@ -640,7 +612,7 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option):
 
 
         fig,table_legend = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations,
-                                         text = text, discrete_values_range= values, unique_targets = unique_targets)
+                                         text = text, discrete_values_range= values, unique_targets = unique_targets,log_scale = log_scale)
         if(table_legend is not None):
             children = pu.get_fig_div_with_info(fig,'winners_map', 'Winners Target per Neuron Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,
                                                 neurona_padre=None,  table_legend =  table_legend)

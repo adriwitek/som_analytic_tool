@@ -381,7 +381,7 @@ def get_color_table_legend(colores,unique_targets):
 
 def create_heatmap_figure(data,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None, 
                             colorscale =DEFAULT_HEATMAP_COLORSCALE, reversescale=False, text = None,
-                            discrete_values_range=None,unique_targets=None ):
+                            discrete_values_range=None,unique_targets=None ,log_scale = False):
 
     table_legend = None
 
@@ -403,13 +403,61 @@ def create_heatmap_figure(data,tam_eje_horizontal,tam_eje_vertical,check_annotat
         layout['title'] = title
 
  
-    if(text is None):
+
+    if(text is None and not log_scale):#NUMERICAL LINEAR TARGET
+
         if(check_annotations):
             annotations = make_annotations(data, colorscale = colorscale, reversescale= reversescale)
             layout['annotations'] = annotations
 
         trace = dict(type='heatmap', z=data, colorscale = colorscale,reversescale= reversescale)
-    else:
+
+
+    elif(text is None and  log_scale):#NUMERICAL LOG TARGET   
+
+        #Transformamos datos
+        logdata   = np.where(data>0,np.log(data+1),np.nan)
+
+        vmax = np.nanmax(data)
+        print('vmax is ',vmax)
+        d = vmax/8
+
+        #Ajustamos colorbar para que sea logaritmica, 9 TICKS
+        tickvals_aux =  [d*i for i in range(1,9)]
+        tickvals =  [np.log(i+1)   for i in tickvals_aux]    
+        ticktext = [np.exp(i)-1 for i  in tickvals]
+        tickvals.insert(0, 0.0)
+        ticktext.insert(0, 0.0)
+
+        if(vmax>10000):#mejor visualizacion
+            tickvals = [i  for i  in tickvals]
+            ticktext = [int(i) for i  in ticktext]
+            print('-------------------//**')
+            print(tickvals)
+            print(ticktext)
+        else:
+            tickvals = [round(i ,2) for i  in tickvals]
+            ticktext = [round(i ,2) for i  in ticktext]
+
+
+        if(check_annotations):
+            annotations = make_annotations(logdata, colorscale = colorscale, reversescale= reversescale, text=data)
+            layout['annotations'] = annotations
+
+        colorbar = {}
+        colorbar['tickmode'] = 'array'
+        colorbar['tickvals'] = tickvals
+        colorbar['ticktext'] = ticktext
+        colorbar['exponentformat'] = "SI"
+        trace = dict(type='heatmap', z=logdata, colorscale = colorscale,reversescale= reversescale,colorbar = colorbar,
+                        text=data,
+                        hovertemplate='x: %{x} , y: %{y}<br>' 
+                            +'Value: %{text}</b><br>'
+                            +"<extra></extra>"
+        )
+
+
+    else:   # CATEGORICAL TARGET
 
         if(check_annotations):
             annotations = make_annotations(data, colorscale = colorscale, reversescale= reversescale, text= text)
@@ -457,7 +505,6 @@ def create_heatmap_figure(data,tam_eje_horizontal,tam_eje_vertical,check_annotat
                             #name = text,
                             zmin=0.0,
                             zmax=1.0,
-                            #colorscale= [[0.0,'#0d0887'], [0.1,'#46039f'], [0.2,'#7201a8'], [0.3,'#9c179e'], [0.4,'#bd3786'], [0.5,'#d8576b'], [0.6,'#ed7953'], [0.7,'#fb9f3a'], [0.8,'#fdca26'], [1.0,'#f0f921']],
                             colorbar = dict(    thickness=25,
                                              tickvals=tickvals, 
                                              ticktext=unique_targets,             
