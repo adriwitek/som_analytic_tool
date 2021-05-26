@@ -18,6 +18,8 @@ from matplotlib.lines import Line2D
 import matplotlib as mpl
 import matplotlib.cm as cm
 import plotly.graph_objects as go
+from libs.si_prefix_master.si_prefix import si_format
+
 
 
 import math
@@ -439,6 +441,10 @@ def create_heatmap_figure(data,tam_eje_horizontal,tam_eje_vertical,check_annotat
             tickvals = [round(i ,2) for i  in tickvals]
             ticktext = [round(i ,2) for i  in ticktext]
 
+
+        ticktext = [si_format(i, precision=3) for i  in ticktext]
+
+        
 
         if(check_annotations):
             annotations = make_annotations(logdata, colorscale = colorscale, reversescale= reversescale, text=data)

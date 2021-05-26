@@ -24,6 +24,8 @@ from views.session_data import *
 
 from views import train_ghsom,train_gsom
 
+#from libs.si_prefix_master.si_prefix import si_format
+
 # Dynamic Layout
 def get_layout():
     return  html.Div([
