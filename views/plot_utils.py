@@ -197,39 +197,71 @@ def make_annotations(data, colorscale, reversescale= False, text=None):
                     font_color = min_text_color if ( val < zmid ) else max_text_color
                     annotations.append(
                         graph_objs.layout.Annotation(
-                               #text= '' if (np.isnan(val) ) else str(val) ,
                                text= str(val) ,
                                x=m,
                                y=n,
-                               #xref="x1",
-                               #yref="y1",
-                            font=dict(color=font_color),
-                            showarrow=False,
+                               font=dict(color=font_color),
+                               showarrow=False,
                         )
                     )
 
 
     else:#categorical data
-      
         for n, row in enumerate(data):
             for m, val in enumerate(row):
                 if(not np.isnan(val) ):
                     font_color = min_text_color if ( val < zmid ) else max_text_color
                     annotations.append(
                         graph_objs.layout.Annotation(
-                               #text= '' if (np.isnan(val) ) else str(val) ,
                                text= text[n][m] ,
                                x=m,
                                y=n,
-                               #xref="x1",
-                               #yref="y1",
-                            font=dict(color=font_color),
-                            showarrow=False,
+                               font=dict(color=font_color),
+                               showarrow=False,
                         )
                     )
         
 
     return annotations
+
+
+
+#used in hexagonal plot
+def make_annotations_fromlistdata(xx_list,yy_list,zz_list, reversescale= False):
+  
+    white = "#FFFFFF"
+    black = "#000000"
+    
+    if reversescale:
+        min_text_color =  black
+        max_text_color =  white   
+    else:
+        min_text_color = white
+        max_text_color = black
+
+    zmin = np.nanmin(zz_list)
+    zmax = np.nanmax(zz_list)
+    zmid = (zmax + zmin) / 2
+    annotations = []
+
+
+    for x,y,z in zip(xx_list, yy_list,zz_list):
+    
+        if(not np.isnan(z) ):
+            font_color = min_text_color if ( z < zmid ) else max_text_color
+            annotations.append(
+                graph_objs.layout.Annotation(
+                       text= str(z) ,
+                       x=x,
+                       y=y,
+                       font=dict(color=font_color),
+                       showarrow=False,
+                )
+            )
+
+    return annotations
+
+
 
 def fig_add_annotations(figure):
     data = figure['data']
@@ -494,10 +526,6 @@ def create_heatmap_figure(data,tam_eje_horizontal,tam_eje_vertical,check_annotat
                 )
 
 
-
-     
-
-
     data=[trace]
     data.append({'type': 'scattergl',
                     'mode': 'text'
@@ -505,42 +533,10 @@ def create_heatmap_figure(data,tam_eje_horizontal,tam_eje_vertical,check_annotat
 
     figure = dict(data=data, layout=layout)
 
-
-    
-
     return figure, table_legend
 
 
 
-
-
-
-    #TODO BORRAR ESTO SI LOS HEATMAPS VAN OK
-    '''
- 
-
-    ######################################
-    # ANNOTATED HEATMAPD LENTO
-    #colorscale=[[np.nan, 'rgb(255,255,255)']]
-    #fig = ff.create_annotated_heatmap(
-    '''
-    '''
-    fig = custom_heatmap(
-        #x= x_ticks,
-        #y= y_ticks,
-        z=data_to_plot,
-        zmin=np.nanmin(data_to_plot),
-        zmax=np.nanmax(data_to_plot),
-        #xgap=5,
-        #ygap=5,
-        colorscale='Viridis',
-        #colorscale=colorscale,
-        #font_colors=font_colors,
-        showscale=True #leyenda de colores
-        )
-    fig.update_layout(title_text='Clases ganadoras por neurona')
-    fig['layout'].update(plot_bgcolor='white')
-    '''
 
 
 
@@ -572,7 +568,7 @@ def pl_cell_color(mpl_facecolors):
     return [ f'rgb({int(R*255)}, {int(G*255)}, {int(B*255)})' for (R, G, B, A) in mpl_facecolors]
 '''
 
-
+'''
 def mpl_to_plotly(cmap, N):
     h = 1.0/(N-1)
     pl_colorscale = []
@@ -580,7 +576,7 @@ def mpl_to_plotly(cmap, N):
         C = list(map(np.uint8, np.array(cmap(k*h)[:3])*255))
         pl_colorscale.append([round(k*h,2), f'rgb({C[0]}, {C[1]}, {C[2]})'])
     return pl_colorscale
-
+'''
 
 
 
@@ -610,7 +606,7 @@ def create_hexagon(x_offset,y_offset, fillcolor, linecolor=None):
 
 
 
-def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale = cm.jet,title ='',log_scale = False):
+def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale = cm.jet,title ='',log_scale = False, check_annotations = False ):
 
     
         shapes = []
@@ -618,16 +614,17 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
         centers_y = []
         counts = []
         text_counts = []
+        annotations = []
         cmap = colorscale
 
 
         if(log_scale): #LOG SCALE
 
-            print('hexagonal log scale')
+            #print('hexagonal log scale')
             vmin = np.nanmin(zz_list)
             vmax = np.nanmax(zz_list)
             norm = mpl.colors.LogNorm(vmin = vmin , vmax=vmax )
-            print('vamx here is ',vmax)
+            #print('vamx here is ',vmax)
             colorbar = get_log_colorbar(vmax,n_ticks=9,precision=3)
             zz_list   = [i if i>0 else np.nan for i in zz_list]
 
@@ -649,9 +646,12 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
             else:
                 text = []
 
+            if(check_annotations):
+                annotations = make_annotations_fromlistdata(centers_x, centers_y,text_counts )
+
 
         else: #LINEAR SCALE
-            print('hexagonal linear scale')
+            #print('hexagonal linear scale')
             vmin = np.nanmin(zz_list)
             vmax = np.nanmax(zz_list)
             norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
@@ -673,6 +673,9 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
                 text = [f'x: {centers_x[k]}<br>y: {centers_y[k]}<br>Value: {counts[k]}' for k in range(len(centers_x))]
             else:
                 text = []
+
+            if(check_annotations):
+                annotations = make_annotations_fromlistdata(centers_x, centers_y,counts )
 
 
 
@@ -706,7 +709,8 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
                    yaxis=axis,
                    hovermode='closest',
                    shapes=shapes,
-                   plot_bgcolor=None)
+                   plot_bgcolor=None,
+                   annotations = annotations)
 
 
         data=[trace]
@@ -720,7 +724,8 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
 
 
 
-
+#METDO DUPLICADO BORRAR
+'''
 def make_hexagonal_annotations(xx_list,yy_list,zz_list, reversescale= False):
     """
     Get annotations for each cell of the heatmap with graph_objs.Annotation
@@ -757,7 +762,7 @@ def make_hexagonal_annotations(xx_list,yy_list,zz_list, reversescale= False):
             )
 
     return annotations
-
+'''
 
 
 def get_log_colorbar(vmax,n_ticks=9,precision=3):
@@ -775,9 +780,9 @@ def get_log_colorbar(vmax,n_ticks=9,precision=3):
     if(vmax>10000):#mejor visualizacion
         tickvals = [i  for i  in tickvals]
         ticktext = [int(i) for i  in ticktext]
-        print('tickvals y ticktext//**')
-        print(tickvals)
-        print(ticktext)
+        #print('tickvals y ticktext//**')
+        #print(tickvals)
+        #print(ticktext)
     else:
         tickvals = [round(i ,2) for i  in tickvals]
         ticktext = [round(i ,2) for i  in ticktext]

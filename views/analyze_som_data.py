@@ -451,6 +451,7 @@ def ver_estadisticas_som(n_clicks,data_portion_option):
 
 
 '''
+#deprecated
 #Etiquetar Mapa neuonas ganadoras
 @app.callback(Output('winners_map', 'figure'),
               Input('check_annotations_winnersmap', 'value'),
@@ -470,6 +471,7 @@ def annotate_winners_map_som(check_annotations, fig,n_clicks):
     return fig_updated
 
 '''
+
 #Toggle log scale option in winners map
 @app.callback(
             Output('collapse_logscale_winners_som', 'is_open'),
@@ -662,7 +664,7 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option,logscale):
         #yy_list = np.nditer(yy)
 
 
-        fig = pu.create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True,log_scale = log_scale)
+        fig = pu.create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True,log_scale = log_scale, check_annotations =check_annotations)
         children = pu.get_fig_div_with_info(fig,'winners_map', 'Winners Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,neurona_padre=None)
         print('\n SOM(hexagonal) Winning Neuron Map: Plotling complete! \n')
 
@@ -702,16 +704,15 @@ def annotate_freq_map_som(check_annotations, fig,n_clicks):
             layout['annotations'] = annotations
         else:   
             layout['annotations'] = []
+
+        fig_updated = dict(data=data, layout=layout)
+        return fig_updated
     
     else:
 
-        print('longitud del data',len(data))
-        print(data)
-        print('---')
-        print('data[0]',data[0])
+        return dash.no_update
 
-    fig_updated = dict(data=data, layout=layout)
-    return fig_updated
+    
 
 
 #Actualizar mapas de frecuencias
@@ -746,11 +747,8 @@ def update_mapa_frecuencias_fig(click, check_annotations, data_portion_option):
         xx_list = xx.ravel()
         yy_list = yy.ravel()
         zz_list = frequencies.ravel()
-        figure = pu.create_hexagonal_figure(xx_list,yy_list, zz_list, hovertext= True)
-        if(check_annotations):
-            annotations = pu.make_hexagonal_annotations(xx_list,yy_list,zz_list)
-            figure['layout']['annotations'] = annotations
-
+        figure = pu.create_hexagonal_figure(xx_list,yy_list, zz_list, hovertext= True, check_annotations =check_annotations )
+        
 
 
     children= pu.get_fig_div_with_info(figure,'frequency_map','Frequency Map',tam_eje_horizontal, tam_eje_vertical)
@@ -800,7 +798,7 @@ def update_mapa_componentes_fig(click,names,check_annotations):
 
         for i in lista_de_indices:
             zz_list = pesos[:,:,i].ravel()
-            figure = pu.create_hexagonal_figure(xx_list,yy_list, zz_list, hovertext= True, title = nombres_atributos[i])
+            figure = pu.create_hexagonal_figure(xx_list,yy_list, zz_list, hovertext= True, title = nombres_atributos[i], check_annotations= check_annotations)
             id ='graph-{}'.format(i)
             traces.append(html.Div(children= dcc.Graph(id=id,figure=figure)) )
 
@@ -854,10 +852,12 @@ def update_umatrix(n_clicks,check_annotations):
         xx_list = xx.ravel()
         yy_list = yy.ravel()
         zz_list = umatrix.ravel()
-        figure =  pu.create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale = cm.gray_r)
+        figure =  pu.create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale = cm.gray_r, check_annotations = check_annotations)
+        '''
         if(check_annotations):
             annotations = pu.make_hexagonal_annotations(xx_list,yy_list,zz_list)
             figure['layout']['annotations'] = annotations
+        '''
 
     return  html.Div(children= dcc.Graph(id='graph_u_matrix',figure=figure))
 
