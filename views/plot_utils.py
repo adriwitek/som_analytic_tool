@@ -554,31 +554,6 @@ def get_single_heatmap_css_style():
 ############ HEXAGONAL FUNS #################################
 
 
-'''
-def get_hexbin_attributes(hexbin):
-    paths = hexbin.get_paths()
-    points_codes = list(paths[0].iter_segments())#path[0].iter_segments() is a generator 
-    prototypical_hexagon = [item[0] for item in points_codes]
-    return prototypical_hexagon, hexbin.get_offsets(), hexbin.get_facecolors(), hexbin.get_array()
-'''
-
-'''
-def pl_cell_color(mpl_facecolors):
-     
-    return [ f'rgb({int(R*255)}, {int(G*255)}, {int(B*255)})' for (R, G, B, A) in mpl_facecolors]
-'''
-
-'''
-def mpl_to_plotly(cmap, N):
-    h = 1.0/(N-1)
-    pl_colorscale = []
-    for k in range(N):
-        C = list(map(np.uint8, np.array(cmap(k*h)[:3])*255))
-        pl_colorscale.append([round(k*h,2), f'rgb({C[0]}, {C[1]}, {C[2]})'])
-    return pl_colorscale
-'''
-
-
 
 def create_hexagon(x_offset,y_offset, fillcolor, linecolor=None):
     
@@ -606,7 +581,7 @@ def create_hexagon(x_offset,y_offset, fillcolor, linecolor=None):
 
 
 
-def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale = cm.jet,title ='',log_scale = False, check_annotations = False ):
+def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale = 'Jet',title ='',log_scale = False, check_annotations = False ):
 
     
         shapes = []
@@ -615,19 +590,26 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
         counts = []
         text_counts = []
         annotations = []
-        cmap = colorscale
+        cmap = get_cmap_from_plotly_scale(colorscale)
 
 
         if(log_scale): #LOG SCALE
 
-            #print('hexagonal log scale')
-            vmin = np.nanmin(zz_list)
-            vmax = np.nanmax(zz_list)
-            norm = mpl.colors.LogNorm(vmin = vmin , vmax=vmax )
-            #print('vamx here is ',vmax)
-            colorbar = get_log_colorbar(vmax,n_ticks=9,precision=3)
             zz_list   = [i if i>0 else np.nan for i in zz_list]
 
+            vmax = np.nanmax(zz_list)
+            cmax = np.log(vmax+1)
+            vmin = np.nanmin(zz_list)
+            cmin = vmin
+
+            if(vmin == vmax):
+                vmin = 0.1
+                cmin = 0
+            #print('vmin',vmin) 
+
+
+            norm = mpl.colors.LogNorm(vmin =vmin , vmax=vmax )
+            colorbar = get_log_colorbar(vmax,n_ticks=9,precision=3)
 
             for i,j,z in zip(xx_list, yy_list,zz_list):
                 rgb =  cmap(norm(z))[:3]
@@ -649,11 +631,30 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
             if(check_annotations):
                 annotations = make_annotations_fromlistdata(centers_x, centers_y,text_counts )
 
+            trace = go.Scatter(
+                 x=list(centers_x), 
+                 y=list(centers_y), 
+                 mode='markers',
+                 marker=dict(size=0.5, 
+                             color=counts, 
+                             colorscale=colorscale, 
+                             #showscale=True,
+                             colorbar=colorbar,
+                             cmax = cmax,
+                             cmin = cmin
+                             ),             
+               text=text, 
+               hoverinfo='text'
+            )   
+
+
+
 
         else: #LINEAR SCALE
-            #print('hexagonal linear scale')
+
             vmin = np.nanmin(zz_list)
             vmax = np.nanmax(zz_list)
+            cmax = vmax
             norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
             colorbar = dict(thickness=20,  ticklen=4)
         
@@ -677,23 +678,19 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
             if(check_annotations):
                 annotations = make_annotations_fromlistdata(centers_x, centers_y,counts )
 
-
-
-
-
-        trace = go.Scatter(
-             x=list(centers_x), 
-             y=list(centers_y), 
-             mode='markers',
-             marker=dict(size=0.5, 
-                         color=counts, 
-                         colorscale=DEFAULT_HEATMAP_COLORSCALE, 
-                         #showscale=True,
-                         colorbar=colorbar,
-                         ),             
-           text=text, 
-           hoverinfo='text'
-        )    
+            trace = go.Scatter(
+                 x=list(centers_x), 
+                 y=list(centers_y), 
+                 mode='markers',
+                 marker=dict(size=0.5, 
+                             color=counts, 
+                             colorscale=colorscale, 
+                             #showscale=True,
+                             colorbar=colorbar
+                             ),             
+               text=text, 
+               hoverinfo='text'
+            )    
 
 
         axis = dict(showgrid=False,
@@ -798,3 +795,14 @@ def get_log_colorbar(vmax,n_ticks=9,precision=3):
     #colorbar['exponentformat'] = "SI"
 
     return colorbar
+
+
+
+
+def get_cmap_from_plotly_scale(plotly_scale):
+
+    d= {'Jet': cm.jet,
+            'Greys': cm.gray_r
+    }
+
+    return d[plotly_scale]

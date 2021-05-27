@@ -20,7 +20,7 @@ import time
 
 # Formulario GHSOM
 formulario_ghsom =  dbc.ListGroupItem([
-                    html.H4('Elección de parámetros',className="card-title"  ),
+                    html.H4('Parameter Selection',className="card-title"  ),
 
                     html.Div(style={'textAlign': 'center'},children=[
                         html.Div(
@@ -38,7 +38,7 @@ formulario_ghsom =  dbc.ListGroupItem([
                                 html.H5(children='Learning Rate'),
                                 dcc.Input(id="tasa_aprendizaje", type="number", value="0.15",step=0.01,min=0,max=5),
 
-                                html.H5(children='Decadency:'),
+                                html.H5(children='Decadency'),
                                 dcc.Input(id="decadencia", type="number", value="0.95",step=0.01,min=0,max=1),   
 
                                 html.H5(children='Gaussian Sigma'),

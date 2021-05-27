@@ -143,6 +143,20 @@ def get_mapafrecuencias_som_card():
                     dbc.Checklist(options=[{"label": "Label Neurons", "value": 1}],
                                     value=[],
                                     id="check_annotations_freq"),
+
+                    dbc.FormGroup(
+                        [
+                            dbc.RadioItems(
+                                options=[
+                                    {"label": "Linear Scale", "value": 0},
+                                    {"label": "Logarithmic Scale", "value": 1},
+                                ],
+                                value=0,
+                                id="radioscale_freq_som",
+                                inline=True,
+                            ),
+                        ]
+                    ),
                                 
                     dbc.Button("Plot", id="frequency_map_button", className="mr-2", color="primary") ],
                     style={'textAlign': 'center'}
@@ -173,6 +187,20 @@ def get_componentplans_som_card():
                             dbc.Checklist(options=[{"label": "Label Neurons", "value": 1}],
                                        value=[],
                                        id="check_annotations_comp"),
+
+                            dbc.FormGroup(
+                                [
+                                    dbc.RadioItems(
+                                        options=[
+                                            {"label": "Linear Scale", "value": 0},
+                                            {"label": "Logarithmic Scale", "value": 1},
+                                        ],
+                                        value=0,
+                                        id="radioscale_cplans_som",
+                                        inline=True,
+                                    ),
+                                ]
+                            ),
                                         
                             dbc.Button("Plot Selected Components Map", id="ver_mapas_componentes_button", className="mr-2", color="primary")],
                             style={'textAlign': 'center'}
@@ -196,12 +224,29 @@ def get_umatrix_som_card():
                     html.Div(id='umatrix_figure_div', children=[''],style= pu.get_single_heatmap_css_style()
                     ),
 
-                    html.Div([dbc.Button("Plot", id="umatrix_button", className="mr-2", color="primary"),
+                    html.Div(
+                        [
                             dbc.Checklist(options=[{"label": "Label Neurons", "value": 1}],
                                        value=[],
-                                       id="check_annotations_umax")
-                            ],
-                            style={'textAlign': 'center'}
+                                       id="check_annotations_umax"),
+
+                            dbc.FormGroup(
+                                [
+                                    dbc.RadioItems(
+                                        options=[
+                                            {"label": "Linear Scale", "value": 0},
+                                            {"label": "Logarithmic Scale", "value": 1},
+                                        ],
+                                        value=0,
+                                        id="radioscale_umatrix_som",
+                                        inline=True,
+                                    ),
+                                ]
+                            ),
+                            dbc.Button("Plot", id="umatrix_button", className="mr-2", color="primary"),       
+
+                        ],
+                        style={'textAlign': 'center'}
                     )
 
                    
@@ -501,10 +546,10 @@ def toggle_select_logscale(target_value, option):
               Output('output_alert_too_categorical_targets', 'is_open'),
               Input('ver', 'n_clicks'),
               Input('check_annotations_winnersmap', 'value'),
+              Input('radioscale_winners_som','value'),
               State('dataset_portion_radio_analyze_som','value'),
-              State('radioscale_winners_som','value'),
               prevent_initial_call=True )
-def update_som_fig(n_clicks, check_annotations, data_portion_option,logscale):
+def update_som_fig(n_clicks, check_annotations ,logscale, data_portion_option):
 
 
     output_alert_too_categorical_targets = False
@@ -676,7 +721,7 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option,logscale):
 
 
     
-
+'''
 #Etiquetar freq map
 @app.callback(Output('frequency_map', 'figure'),
               Input('check_annotations_freq', 'value'),
@@ -712,20 +757,21 @@ def annotate_freq_map_som(check_annotations, fig,n_clicks):
 
         return dash.no_update
 
-    
+'''
 
 
 #Actualizar mapas de frecuencias
 @app.callback(  Output('div_frequency_map','children'),
                 Input('frequency_map_button','n_clicks'),
-                State('check_annotations_freq', 'value'),
+                Input('check_annotations_freq', 'value'),
+                Input('radioscale_freq_som','value'),
                 State('dataset_portion_radio_analyze_som','value'),
                 prevent_initial_call=True 
 )
-def update_mapa_frecuencias_fig(click, check_annotations, data_portion_option):
+def update_mapa_frecuencias_fig(click, check_annotations ,log_scale , data_portion_option):
+
 
     som = session_data.get_modelo() 
-   
     model_data =  session_data.get_data(data_portion_option)
 
     
@@ -735,19 +781,19 @@ def update_mapa_frecuencias_fig(click, check_annotations, data_portion_option):
 
     frequencies = som.activation_response(model_data)
     frequencies_list = frequencies.tolist()
-
     params = session_data.get_som_model_info_dict()
 
-    if(params['topology']== 'rectangular'):    #RECTANGULAR TOPOLOGY   
-    
-        figure = pu.create_heatmap_figure(frequencies_list,tam_eje_horizontal,tam_eje_vertical,check_annotations)
+    if(params['topology']== 'rectangular'):    #RECTANGULAR TOPOLOGY 
+        figure,_ = pu.create_heatmap_figure(frequencies_list,tam_eje_horizontal,tam_eje_vertical,
+                                            check_annotations,log_scale = log_scale)
 
     else:#Hexagonal topology
         xx, yy = som.get_euclidean_coordinates()
         xx_list = xx.ravel()
         yy_list = yy.ravel()
         zz_list = frequencies.ravel()
-        figure = pu.create_hexagonal_figure(xx_list,yy_list, zz_list, hovertext= True, check_annotations =check_annotations )
+        figure = pu.create_hexagonal_figure(xx_list,yy_list, zz_list, hovertext= True,
+                                             check_annotations =check_annotations,log_scale = log_scale )
         
 
 
@@ -762,9 +808,10 @@ def update_mapa_frecuencias_fig(click, check_annotations, data_portion_option):
               Input('ver_mapas_componentes_button','n_clicks'),
               State('dropdown_atrib_names','value'),
               State('check_annotations_comp', 'value'),
+              State('radioscale_cplans_som','value'),
               prevent_initial_call=True 
               )
-def update_mapa_componentes_fig(click,names,check_annotations):
+def update_mapa_componentes_fig(click,names,check_annotations, log_scale):
 
     som = session_data.get_modelo()
     params = session_data.get_som_model_info_dict()
@@ -786,7 +833,8 @@ def update_mapa_componentes_fig(click,names,check_annotations):
     
         for i in lista_de_indices:
 
-            figure = pu.create_heatmap_figure(pesos[:,:,i].tolist() ,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = nombres_atributos[i])
+            figure = pu.create_heatmap_figure(pesos[:,:,i].tolist() ,tam_eje_horizontal,tam_eje_vertical,check_annotations,
+                                                 title = nombres_atributos[i], log_scale = log_scale)
             id ='graph-{}'.format(i)
             traces.append(html.Div(children= dcc.Graph(id=id,figure=figure)) )
 
@@ -798,7 +846,8 @@ def update_mapa_componentes_fig(click,names,check_annotations):
 
         for i in lista_de_indices:
             zz_list = pesos[:,:,i].ravel()
-            figure = pu.create_hexagonal_figure(xx_list,yy_list, zz_list, hovertext= True, title = nombres_atributos[i], check_annotations= check_annotations)
+            figure = pu.create_hexagonal_figure(xx_list,yy_list, zz_list, hovertext= True, title = nombres_atributos[i],
+                                                 check_annotations= check_annotations, log_scale = log_scale)
             id ='graph-{}'.format(i)
             traces.append(html.Div(children= dcc.Graph(id=id,figure=figure)) )
 
@@ -828,9 +877,10 @@ def on_form_change(check):
 @app.callback(Output('umatrix_figure_div','children'),
               Input('umatrix_button','n_clicks'),
               Input('check_annotations_umax', 'value'),
+              Input('radioscale_umatrix_som','value'),
               prevent_initial_call=True 
               )
-def update_umatrix(n_clicks,check_annotations):
+def update_umatrix(n_clicks,check_annotations, log_scale):
 
     if(n_clicks is None):
         raise PreventUpdate
@@ -845,19 +895,16 @@ def update_umatrix(n_clicks,check_annotations):
 
     if(params['topology']== 'rectangular'):    #RECTANGULAR TOPOLOGY   
         figure = pu.create_heatmap_figure(umatrix.tolist() ,tam_eje_horizontal,tam_eje_vertical, check_annotations, title ='Matriz U',
-                                             colorscale = UMATRIX_HEATMAP_COLORSCALE,  reversescale=True)
+                                             colorscale = UMATRIX_HEATMAP_COLORSCALE,  reversescale=True, log_scale = log_scale)
     else:#HEXAGONAL TOPOLOGY
 
         xx, yy = som.get_euclidean_coordinates()
         xx_list = xx.ravel()
         yy_list = yy.ravel()
         zz_list = umatrix.ravel()
-        figure =  pu.create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale = cm.gray_r, check_annotations = check_annotations)
-        '''
-        if(check_annotations):
-            annotations = pu.make_hexagonal_annotations(xx_list,yy_list,zz_list)
-            figure['layout']['annotations'] = annotations
-        '''
+        figure =  pu.create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale = UMATRIX_HEATMAP_COLORSCALE,
+                                             check_annotations = check_annotations, log_scale = log_scale)
+      
 
     return  html.Div(children= dcc.Graph(id='graph_u_matrix',figure=figure))
 

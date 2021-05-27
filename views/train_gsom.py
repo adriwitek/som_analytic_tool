@@ -22,7 +22,7 @@ import time
 
 # Formulario GSOM
 formulario_gsom =  dbc.ListGroupItem([
-                    html.H4('Elección de parámetros',className="card-title"  ),
+                    html.H4('Parameter Selection',className="card-title"  ),
 
 
                     html.Div(style={'textAlign': 'center'},children=[
@@ -30,47 +30,47 @@ formulario_gsom =  dbc.ListGroupItem([
                             style={'display': 'inline-block', 'text-align': 'left'},
                             children=[
 
-                                html.H5(children='Tamaño inicial del mapa(Eje vertical):'),
+                                html.H5(children='Initial Vertical Grid Size'),
                                 dcc.Input(id="tam_eje_vertical_gsom", type="number", value=5,step=1,min=1),
 
-                                html.H5(children='Tamaño inicial del mapa(Eje horizontal):'),
+                                html.H5(children='Initial Horizontal Grid Size'),
                                 dcc.Input(id="tam_eje_horizontal_gsom", type="number", value=5,step=1,min=1),
 
-                                html.H5(children='Tau 1:'),
+                                html.H5(children='Tau 1'),
                                 dcc.Input(id="tau1_gsom", type="number",step=MIN_TAU_STEP ,min=0,max=1, value='0.0001'),
                                 dcc.Slider(id='tau1_slider_gsom', min=0,max=1,step=0.0001,value=0.0001),
 
-                                html.H5(children='Tasa de aprendizaje:'),
+                                html.H5(children='Learning Rate'),
                                 dcc.Input(id="tasa_aprendizaje_gsom", type="number", value="0.15",step=0.01,min=0,max=5),
 
-                                html.H5(children='Decadencia:'),
+                                html.H5(children='Decadency'),
                                 dcc.Input(id="decadencia_gsom", type="number", value="0.95",step=0.01,min=0,max=1),   
 
-                                html.H5(children='Sigma gaussiana:'),
+                                html.H5(children='Gaussian Sigma'),
                                 dcc.Input(id="sigma_gsom", type="number", value="1.5",step=0.01,min=0,max=10),
 
-                                html.H5(children='Número máximo de iteracciones:'),
+                                html.H5(children='Max. Iterations'),
                                 dcc.Input(id="max_iter_gsom", type="number", value="10",step=1),
 
-                                html.H5(children='Épocas:'),
+                                html.H5(children='Epochs'),
                                 dcc.Input(id="epocas_gsom", type="number", value="15",step=1,min=1),
 
-                                html.H5(children='Función de Desigualdad:'),
+                                html.H5(children='Dissimilarity Function'),
                                 dcc.Dropdown(
                                             id='dropdown_fun_desigualdad',
                                             options=[
-                                                {'label': 'Error de Cuantización', 'value': 'qe'},
-                                                {'label': 'Error de Cuantización Medio', 'value': 'mqe'}
+                                                {'label': 'Quantization Error', 'value': 'qe'},
+                                                {'label': 'Average Quantization Error', 'value': 'mqe'}
                                             ],
                                             value='qe',
                                             searchable=False
                                 ),
 
 
-                                html.H5(children='Semilla:'),
+                                html.H5(children='Seed:'),
                                 html.Div( 
                                         [dbc.Checklist(
-                                            options=[{"label": "Seleccionar semilla", "value": 1}],
+                                            options=[{"label": "Select Seed", "value": 1}],
                                             value=[],
                                             id="check_semilla")]
                                 ),
@@ -82,7 +82,7 @@ formulario_gsom =  dbc.ListGroupItem([
 
                                 html.Hr(),
                                 html.Div( 
-                                    [dbc.Button("Entrenar", id="train_button_gsom",href=URLS['TRAINING_MODEL'] ,disabled= True, className="mr-2", color="primary")],
+                                    [dbc.Button("Train", id="train_button_gsom",href=URLS['TRAINING_MODEL'] ,disabled= True, className="mr-2", color="primary")],
                                     style={'textAlign': 'center'}
                                 ),
 
