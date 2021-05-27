@@ -421,40 +421,9 @@ def create_heatmap_figure(data,tam_eje_horizontal,tam_eje_vertical,check_annotat
         logdata   = np.where(data>0,np.log(data+1),np.nan)
 
         vmax = np.nanmax(data)
-        print('vmax is ',vmax)
-        d = vmax/8
+      
+        colorbar = get_log_colorbar(vmax, n_ticks=9, precision=3)
 
-        #Ajustamos colorbar para que sea logaritmica, 9 TICKS
-        tickvals_aux =  [d*i for i in range(1,9)]
-        tickvals =  [np.log(i+1)   for i in tickvals_aux]    
-        ticktext = [np.exp(i)-1 for i  in tickvals]
-        tickvals.insert(0, 0.0)
-        ticktext.insert(0, 0.0)
-
-        if(vmax>10000):#mejor visualizacion
-            tickvals = [i  for i  in tickvals]
-            ticktext = [int(i) for i  in ticktext]
-            print('-------------------//**')
-            print(tickvals)
-            print(ticktext)
-        else:
-            tickvals = [round(i ,2) for i  in tickvals]
-            ticktext = [round(i ,2) for i  in ticktext]
-
-
-        ticktext = [si_format(i, precision=3) for i  in ticktext]
-
-        
-
-        if(check_annotations):
-            annotations = make_annotations(logdata, colorscale = colorscale, reversescale= reversescale, text=data)
-            layout['annotations'] = annotations
-
-        colorbar = {}
-        colorbar['tickmode'] = 'array'
-        colorbar['tickvals'] = tickvals
-        colorbar['ticktext'] = ticktext
-        colorbar['exponentformat'] = "SI"
         trace = dict(type='heatmap', z=logdata, colorscale = colorscale,reversescale= reversescale,colorbar = colorbar,
                         text=data,
                         hovertemplate='x: %{x} , y: %{y}<br>' 
@@ -641,36 +610,71 @@ def create_hexagon(x_offset,y_offset, fillcolor, linecolor=None):
 
 
 
-def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale = cm.jet,title =''):
+def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale = cm.jet,title ='',log_scale = False):
 
     
         shapes = []
         centers_x = []
         centers_y = []
         counts = []
-
-        norm = mpl.colors.Normalize(vmin=min(zz_list), vmax= max(zz_list))
+        text_counts = []
         cmap = colorscale
-        
-    
-        for i,j,z in zip(xx_list, yy_list,zz_list):
-            rgb =  cmap(norm(z))[:3]
-            color = mpl.colors.rgb2hex(rgb)
-            shape = create_hexagon(i,j,color   )
-            shapes.append(shape)
-            centers_x.append(i)
-            centers_y.append(j)
-            counts.append(z)
 
 
-        pl_jet_color = mpl_to_plotly(colorscale, len(counts))
+        if(log_scale): #LOG SCALE
+
+            print('hexagonal log scale')
+            vmin = np.nanmin(zz_list)
+            vmax = np.nanmax(zz_list)
+            norm = mpl.colors.LogNorm(vmin = vmin , vmax=vmax )
+            print('vamx here is ',vmax)
+            colorbar = get_log_colorbar(vmax,n_ticks=9,precision=3)
+            zz_list   = [i if i>0 else np.nan for i in zz_list]
 
 
-        if(hovertext):
+            for i,j,z in zip(xx_list, yy_list,zz_list):
+                rgb =  cmap(norm(z))[:3]
+                color = mpl.colors.rgb2hex(rgb)
+                shape = create_hexagon(i,j,color   )
+                shapes.append(shape)
+                centers_x.append(i)
+                centers_y.append(j)
+                counts.append(np.log(z+1))
+                text_counts.append(z)
+
+
+            if(hovertext):
             #define  text to be  displayed on hovering the mouse over the cells
-            text = [f'x: {centers_x[k]}<br>y: {centers_y[k]}<br>Value: {counts[k]}' for k in range(len(centers_x))]
-        else:
-            text = []
+                text = [f'x: {centers_x[k]}<br>y: {centers_y[k]}<br>Value: {text_counts[k]}' for k in range(len(centers_x))]
+            else:
+                text = []
+
+
+        else: #LINEAR SCALE
+            print('hexagonal linear scale')
+            vmin = np.nanmin(zz_list)
+            vmax = np.nanmax(zz_list)
+            norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+            colorbar = dict(thickness=20,  ticklen=4)
+        
+        
+            for i,j,z in zip(xx_list, yy_list,zz_list):
+                rgb =  cmap(norm(z))[:3]
+                color = mpl.colors.rgb2hex(rgb)
+                shape = create_hexagon(i,j,color   )
+                shapes.append(shape)
+                centers_x.append(i)
+                centers_y.append(j)
+                counts.append(z)
+
+
+            if(hovertext):
+            #define  text to be  displayed on hovering the mouse over the cells
+                text = [f'x: {centers_x[k]}<br>y: {centers_y[k]}<br>Value: {counts[k]}' for k in range(len(centers_x))]
+            else:
+                text = []
+
+
 
 
 
@@ -680,12 +684,9 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
              mode='markers',
              marker=dict(size=0.5, 
                          color=counts, 
-                         colorscale=pl_jet_color, 
-                         showscale=True,
-                         colorbar=dict(
-                                    thickness=20,  
-                                     ticklen=4
-                                     )
+                         colorscale=DEFAULT_HEATMAP_COLORSCALE, 
+                         #showscale=True,
+                         colorbar=colorbar,
                          ),             
            text=text, 
            hoverinfo='text'
@@ -699,7 +700,8 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
            )
 
         layout = go.Layout(title = title,
-                   width=530, height=550,
+                   width= (DEFAULT_HEATMAP_PX_WIDTH+30),
+                   height= (DEFAULT_HEATMAP_PX_WIDTH+50),
                    xaxis=axis,
                    yaxis=axis,
                    hovermode='closest',
@@ -755,3 +757,39 @@ def make_hexagonal_annotations(xx_list,yy_list,zz_list, reversescale= False):
             )
 
     return annotations
+
+
+
+def get_log_colorbar(vmax,n_ticks=9,precision=3):
+
+    d = vmax/8
+
+    #Ajustamos colorbar para que sea logaritmica, 9 TICKS
+    tickvals_aux =  [d*i for i in range(1,n_ticks)]
+    tickvals =  [np.log(i+1)   for i in tickvals_aux]    
+    ticktext = [np.exp(i)-1 for i  in tickvals]
+    tickvals.insert(0, 0.0)
+    ticktext.insert(0, 0.0)
+
+
+    if(vmax>10000):#mejor visualizacion
+        tickvals = [i  for i  in tickvals]
+        ticktext = [int(i) for i  in ticktext]
+        print('tickvals y ticktext//**')
+        print(tickvals)
+        print(ticktext)
+    else:
+        tickvals = [round(i ,2) for i  in tickvals]
+        ticktext = [round(i ,2) for i  in ticktext]
+
+
+    ticktext = [si_format(i, precision=precision) for i  in ticktext]
+
+
+    colorbar = {}
+    colorbar['tickmode'] = 'array'
+    colorbar['tickvals'] = tickvals
+    colorbar['ticktext'] = ticktext
+    #colorbar['exponentformat'] = "SI"
+
+    return colorbar

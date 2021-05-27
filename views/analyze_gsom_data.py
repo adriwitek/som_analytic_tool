@@ -60,7 +60,7 @@ def info_trained_params_gsom_table():
     if(info['check_semilla'] == 0):
         semilla = 'No'
     else:
-        semilla = 'Sí: ' + str(info['seed']) 
+        semilla = 'Yes: ' + str(info['seed']) 
    
     row_1 = html.Tr([html.Td( info['tam_eje_horizontal']),
                     html.Td( info['tam_eje_vertical']),

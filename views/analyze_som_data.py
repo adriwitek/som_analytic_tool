@@ -334,7 +334,7 @@ def info_trained_params_som_table():
     if(info['check_semilla'] == 0):
         semilla = 'No'
     else:
-        semilla = 'Sí: ' + str(info['seed']) 
+        semilla = 'Yes: ' + str(info['seed']) 
 
     row_1 = html.Tr([html.Td( info['tam_eje_horizontal']),
                     html.Td( info['tam_eje_vertical']),
@@ -518,10 +518,11 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option,logscale):
     #'data and labels must have the same length.
     labels_map = som.labels_map(data, targets_list)
     
+    target_type,unique_targets = session_data.get_selected_target_type(data_portion_option)
+
 
     if(params['topology']== 'rectangular'):    #RECTANGULAR TOPOLOGY    
 
-        target_type,unique_targets = session_data.get_selected_target_type(data_portion_option)
         values=None 
         text = None
 
@@ -612,17 +613,22 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option,logscale):
 
 
         fig,table_legend = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations,
-                                         text = text, discrete_values_range= values, unique_targets = unique_targets,log_scale = log_scale)
+                                                    text = text, discrete_values_range= values, unique_targets = unique_targets,
+                                                    log_scale = log_scale)
         if(table_legend is not None):
             children = pu.get_fig_div_with_info(fig,'winners_map', 'Winners Target per Neuron Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,
                                                 neurona_padre=None,  table_legend =  table_legend)
         else:
-            children = pu.get_fig_div_with_info(fig,'winners_map', 'Winners Target per Neuron Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,neurona_padre=None)
+            children = pu.get_fig_div_with_info(fig,'winners_map', 'Winners Target per Neuron Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,
+                                                neurona_padre=None)
         print('\n SOM Winning Neuron Map: Plotling complete! \n')
 
 
 
     else: ###########  HEXAGONAL TOPOLOGY
+
+        if(target_type == 'numerical' ): #numerical data: mean of the mapped values in each neuron
+            log_scale = logscale
 
         xx, yy = som.get_euclidean_coordinates()
         xx_list = []
@@ -630,7 +636,7 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option,logscale):
         zz_list = []
 
         for position in labels_map.keys():
-                print('Hit POSICION:',position)
+                #print('Hit POSICION:',position)
             
                 label_fracs = labels_map[position]
                 #denom = sum(label_fracs.values())
@@ -656,7 +662,7 @@ def update_som_fig(n_clicks, check_annotations, data_portion_option,logscale):
         #yy_list = np.nditer(yy)
 
 
-        fig = pu.create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True)
+        fig = pu.create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True,log_scale = log_scale)
         children = pu.get_fig_div_with_info(fig,'winners_map', 'Winners Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,neurona_padre=None)
         print('\n SOM(hexagonal) Winning Neuron Map: Plotling complete! \n')
 
