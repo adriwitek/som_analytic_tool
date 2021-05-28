@@ -381,8 +381,8 @@ def get_color_table_legend(colores,unique_targets):
 
     
     columns = [
-    		{'name':'Color', 'id': 'col1', 'editable':False},
-    		{'name':'Target', 'id': 'col2', 'editable':False}
+            {'name':'Color', 'id': 'col1', 'editable':False},
+            {'name':'Target', 'id': 'col2', 'editable':False}
 
     ]
     style_data_conditional=[]
@@ -391,31 +391,31 @@ def get_color_table_legend(colores,unique_targets):
 
 
     for color,target in zip(colores,unique_targets):
-
-
-    	row = {'col1':' ', 'col2':target}
+        
+        target = str(target).replace(' ', '_')
+        row = {'col1':' ', 'col2':target}
         #row = {'col1':color, 'col2':target}
 
-    	rows.append(row)
+        rows.append(row)
 
-    	diccionario = {	'if':	{	'filter_query': '{{col2}} = {}'.format(target), 
-    								'column_id': 'col1'
+        diccionario = {	'if':	{	'filter_query': '{{col2}} = {}'.format(target), 
+                                    'column_id': 'col1'
 
-    							},
-    					'backgroundColor': color,
-    	}
+                                },
+                        'backgroundColor': color,
+        }
 
 
     
-    	style_data_conditional.append(diccionario)
-    	i = i+1
+        style_data_conditional.append(diccionario)
+        i = i+1
     
     
     table =  dash_table.DataTable(	columns = columns,
-    								data = rows,
+                                    data = rows,
                                     page_size=CATEGORICAL_TABLE_LEGEND_ELEMENTS_PER_PAGE,
-    								style_data_conditional = style_data_conditional,
-    								editable=False,
+                                    style_data_conditional = style_data_conditional,
+                                    editable=False,
                                     style_cell={    
                                             'textAlign': 'center'
                                     },
@@ -558,9 +558,6 @@ def create_heatmap_figure(data,tam_eje_horizontal,tam_eje_vertical,check_annotat
 
 
 
-
-
-
 def get_single_heatmap_css_style():
     style={'margin': '0 auto','width': '100%', 'display': 'flex',
                                         'align-items': 'center', 'justify-content': 'center',
@@ -685,13 +682,6 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
                                 hoverinfo='text'
                 ) 
                 table_legend = get_color_table_legend(colores,unique_targets)
-
-
-
-            
-
-
-
 
 
 
