@@ -4,7 +4,7 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 from plotly.graph_objs import graph_objs
 import numpy as np
-from  config.config import DEFAULT_HEATMAP_COLORSCALE, DEFAULT_HEATMAP_PX_HEIGHT, DEFAULT_HEATMAP_PX_WIDTH, DISCRETE_COLORSCALE_269, DISCRETE_COLORSCALE_64
+from  config.config import DEFAULT_HEATMAP_COLORSCALE, DEFAULT_HEATMAP_PX_HEIGHT, DEFAULT_HEATMAP_PX_WIDTH,CATEGORICAL_TABLE_LEGEND_ELEMENTS_PER_PAGE
 import dash_table
 
 
@@ -19,7 +19,6 @@ import matplotlib as mpl
 import matplotlib.cm as cm
 import plotly.graph_objects as go
 from libs.si_prefix_master.si_prefix import si_format
-
 
 
 import math
@@ -382,14 +381,14 @@ def get_color_table_legend(colores,unique_targets):
 
     	rows.append(row)
 
-    	diccionario = {	'if':	{	'row_index': i, 
+    	diccionario = {	'if':	{	'filter_query': '{{col2}} = {}'.format(target), 
     								'column_id': 'col1'
 
     							},
-    
     					'backgroundColor': color,
-
     	}
+
+
     
     	style_data_conditional.append(diccionario)
     	i = i+1
@@ -397,6 +396,7 @@ def get_color_table_legend(colores,unique_targets):
     
     table =  dash_table.DataTable(	columns = columns,
     								data = rows,
+                                    page_size=CATEGORICAL_TABLE_LEGEND_ELEMENTS_PER_PAGE,
     								style_data_conditional = style_data_conditional,
     								editable=False,
                                     style_cell={    
@@ -412,7 +412,7 @@ def get_color_table_legend(colores,unique_targets):
     return table
 
 
-
+#data is list or np array
 def create_heatmap_figure(data,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None, 
                             colorscale =DEFAULT_HEATMAP_COLORSCALE, reversescale=False, text = None,
                             discrete_values_range=None,unique_targets=None ,log_scale = False):
@@ -450,14 +450,18 @@ def create_heatmap_figure(data,tam_eje_horizontal,tam_eje_vertical,check_annotat
     elif(text is None and  log_scale):#NUMERICAL LOG TARGET   
 
         #Transformamos datos
-        logdata   = np.where(data>0,np.log(data+1),np.nan)
-
+        if(isinstance(data,np.ndarray) ):#numpy array
+            logdata   = np.where(data>0,np.log(data+1),np.nan)
+        else:#list
+            logdata = [ np.log(i+1) if i>0 else np.nan for i in data]
+        
         vmax = np.nanmax(data)
-      
         colorbar = get_log_colorbar(vmax, n_ticks=9, precision=3)
 
         trace = dict(type='heatmap', z=logdata, colorscale = colorscale,reversescale= reversescale,colorbar = colorbar,
                         text=data,
+                        #zmin=cmin,
+                        #zmax=cmax,
                         hovertemplate='x: %{x} , y: %{y}<br>' 
                             +'Value: %{text}</b><br>'
                             +"<extra></extra>"
@@ -598,14 +602,15 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
             zz_list   = [i if i>0 else np.nan for i in zz_list]
 
             vmax = np.nanmax(zz_list)
-            cmax = np.log(vmax+1)
+            #cmax = np.log(vmax+1)
             vmin = np.nanmin(zz_list)
-            cmin = vmin
+            #cmin = vmin
+            #print('vmin',vmin) 
 
             if(vmin == vmax):
                 vmin = 0.1
-                cmin = 0
-            #print('vmin',vmin) 
+            #    cmin = 0
+            #print('vmin updated',vmin) 
 
 
             norm = mpl.colors.LogNorm(vmin =vmin , vmax=vmax )
@@ -640,8 +645,8 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
                              colorscale=colorscale, 
                              #showscale=True,
                              colorbar=colorbar,
-                             cmax = cmax,
-                             cmin = cmin
+                             #cmax = cmax,
+                             #cmin = cmin
                              ),             
                text=text, 
                hoverinfo='text'
@@ -721,47 +726,6 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
 
 
 
-#METDO DUPLICADO BORRAR
-'''
-def make_hexagonal_annotations(xx_list,yy_list,zz_list, reversescale= False):
-    """
-    Get annotations for each cell of the heatmap with graph_objs.Annotation
-    :rtype (list[dict]) annotations: list of annotations for each cell of
-        the heatmap
-    """
-    white = "#FFFFFF"
-    black = "#000000"
-    
-    if reversescale:
-        min_text_color =  black
-        max_text_color =  white   
-    else:
-        min_text_color = white
-        max_text_color = black
-
-    zmin = np.nanmin(zz_list)
-    zmax = np.nanmax(zz_list)
-    zmid = (zmax + zmin) / 2
-    annotations = []
-
-    for x,y,z in zip(xx_list,yy_list,zz_list):
-        
-        if(not np.isnan(z) ):
-            font_color = min_text_color if ( z < zmid ) else max_text_color
-            annotations.append(
-                graph_objs.layout.Annotation(
-                       text= str(z) ,
-                       x=x,
-                       y=y,
-                       font=dict(color=font_color),
-                       showarrow=False,
-                )
-            )
-
-    return annotations
-'''
-
-
 def get_log_colorbar(vmax,n_ticks=9,precision=3):
 
     d = vmax/8
@@ -777,13 +741,16 @@ def get_log_colorbar(vmax,n_ticks=9,precision=3):
     if(vmax>10000):#mejor visualizacion
         tickvals = [i  for i  in tickvals]
         ticktext = [int(i) for i  in ticktext]
-        #print('tickvals y ticktext//**')
-        #print(tickvals)
-        #print(ticktext)
+        
     else:
         tickvals = [round(i ,2) for i  in tickvals]
         ticktext = [round(i ,2) for i  in ticktext]
 
+    '''
+    print('tickvals y ticktext//**')
+    print(tickvals)
+    print(ticktext)    
+    '''
 
     ticktext = [si_format(i, precision=precision) for i  in ticktext]
 

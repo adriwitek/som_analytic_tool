@@ -315,7 +315,7 @@ def analyze_som_data():
 
         dbc.Tabs(
             id='tabs_som',
-            active_tab='components_plans_som',
+            active_tab='winners_map_som',
             style ={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
             children=[
                 dbc.Tab(get_select_splitted_option_card(),label = 'Select Dataset Splitted Part',tab_id='splitted_part',disabled= (not session_data.data_splitted )),
@@ -780,11 +780,12 @@ def update_mapa_frecuencias_fig(click, check_annotations ,log_scale , data_porti
     tam_eje_vertical = params['tam_eje_vertical']
 
     frequencies = som.activation_response(model_data)
-    frequencies_list = frequencies.tolist()
+    #frequencies_list = frequencies.tolist()
     params = session_data.get_som_model_info_dict()
 
+
     if(params['topology']== 'rectangular'):    #RECTANGULAR TOPOLOGY 
-        figure,_ = pu.create_heatmap_figure(frequencies_list,tam_eje_horizontal,tam_eje_vertical,
+        figure,_ = pu.create_heatmap_figure(frequencies,tam_eje_horizontal,tam_eje_vertical,
                                             check_annotations,log_scale = log_scale)
 
     else:#Hexagonal topology
@@ -832,8 +833,8 @@ def update_mapa_componentes_fig(click,names,check_annotations, log_scale):
 
     
         for i in lista_de_indices:
-
-            figure = pu.create_heatmap_figure(pesos[:,:,i].tolist() ,tam_eje_horizontal,tam_eje_vertical,check_annotations,
+            #pesos[:,:,i].tolist()
+            figure,_ = pu.create_heatmap_figure(pesos[:,:,i] ,tam_eje_horizontal,tam_eje_vertical,check_annotations,
                                                  title = nombres_atributos[i], log_scale = log_scale)
             id ='graph-{}'.format(i)
             traces.append(html.Div(children= dcc.Graph(id=id,figure=figure)) )
@@ -894,7 +895,7 @@ def update_umatrix(n_clicks,check_annotations, log_scale):
     params = session_data.get_som_model_info_dict()
 
     if(params['topology']== 'rectangular'):    #RECTANGULAR TOPOLOGY   
-        figure = pu.create_heatmap_figure(umatrix.tolist() ,tam_eje_horizontal,tam_eje_vertical, check_annotations, title ='Matriz U',
+        figure,_ = pu.create_heatmap_figure(umatrix ,tam_eje_horizontal,tam_eje_vertical, check_annotations, title ='Matriz U',
                                              colorscale = UMATRIX_HEATMAP_COLORSCALE,  reversescale=True, log_scale = log_scale)
     else:#HEXAGONAL TOPOLOGY
 
