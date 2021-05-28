@@ -226,7 +226,7 @@ def make_annotations(data, colorscale, reversescale= False, text=None):
 
 
 #used in hexagonal plot
-def make_annotations_fromlistdata(xx_list,yy_list,zz_list, reversescale= False):
+def make_annotations_fromlistdata(xx_list,yy_list,zz_list, reversescale= False, text_list=None):
   
     white = "#FFFFFF"
     black = "#000000"
@@ -243,20 +243,37 @@ def make_annotations_fromlistdata(xx_list,yy_list,zz_list, reversescale= False):
     zmid = (zmax + zmin) / 2
     annotations = []
 
-
-    for x,y,z in zip(xx_list, yy_list,zz_list):
-    
-        if(not np.isnan(z) ):
-            font_color = min_text_color if ( z < zmid ) else max_text_color
-            annotations.append(
-                graph_objs.layout.Annotation(
-                       text= str(z) ,
-                       x=x,
-                       y=y,
-                       font=dict(color=font_color),
-                       showarrow=False,
+    if(text_list is None):#numeric data
+        for x,y,z in zip(xx_list, yy_list,zz_list):
+        
+            if(not np.isnan(z) ):
+                font_color = min_text_color if ( z < zmid ) else max_text_color
+                annotations.append(
+                    graph_objs.layout.Annotation(
+                           text= str(z) ,
+                           x=x,
+                           y=y,
+                           font=dict(color=font_color),
+                           showarrow=False,
+                    )
                 )
-            )
+    else:
+
+        for x,y,z,t in zip(xx_list, yy_list,zz_list, text_list):
+        
+            if(not np.isnan(z) ):
+                #font_color = min_text_color if ( z < zmid ) else max_text_color
+                font_color = black
+                annotations.append(
+                    graph_objs.layout.Annotation(
+                           text= str(t) ,
+                           x=x,
+                           y=y,
+                           font=dict(color=font_color),
+                           showarrow=False,
+                    )
+                )
+
 
     return annotations
 
@@ -430,8 +447,7 @@ def create_heatmap_figure(data,tam_eje_horizontal,tam_eje_vertical,check_annotat
     layout['width'] = DEFAULT_HEATMAP_PX_WIDTH
     layout['height']= DEFAULT_HEATMAP_PX_HEIGHT
      
-    #condition_Nones = not(val is None)
-    #condition_nans= not(np.isnan(val))
+
 
     if(title is not None):
         layout['title'] = title
@@ -585,9 +601,11 @@ def create_hexagon(x_offset,y_offset, fillcolor, linecolor=None):
 
 
 
-def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale = 'Jet',title ='',log_scale = False, check_annotations = False ):
+def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale = 'Jet',title ='',
+                            log_scale = False, check_annotations = False,
+                            text_list = None,discrete_values_range=None,unique_targets=None ):
 
-    
+        table_legend = None
         shapes = []
         centers_x = []
         centers_y = []
@@ -597,21 +615,96 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
         cmap = get_cmap_from_plotly_scale(colorscale)
 
 
-        if(log_scale): #LOG SCALE
+
+        if(text_list is not  None):# CATEGORICAL TARGET
+
+        
+            if(len(discrete_values_range) >=270  ):#no colorbar,no custom colorsacle too much categorial unique targets
+
+                color_01_scale = np.linspace(0, 1, len(unique_targets), endpoint=True).tolist()
+                targets_codification = dict(zip(unique_targets, color_01_scale))
+                norm = mpl.colors.Normalize(vmin=0, vmax=1)
+
+
+                for i,j,z,t in zip(xx_list, yy_list,zz_list,text_list):
+                        ccolor = targets_codification[t]
+                        rgb =  cmap(norm(ccolor))[:3]
+                        color = mpl.colors.rgb2hex(rgb)
+                        shape = create_hexagon(i,j,color   )
+                        shapes.append(shape)
+                        centers_x.append(i)
+                        centers_y.append(j)
+                        counts.append(z)
+                        text_counts.append(t)
+
+                if(hovertext):
+                    text = [f'x: {centers_x[k]}<br>y: {centers_y[k]}<br>Value: {text_counts[k]}' for k in range(len(centers_x))]
+                else:
+                    text = []
+
+                if(check_annotations):
+                    annotations = make_annotations_fromlistdata(centers_x, centers_y,counts, text_list=text_counts )
+
+                trace = go.Scatter(
+                                x=list(centers_x), 
+                                y=list(centers_y), 
+                                showlegend=False,
+                                mode='markers',
+                                text=text, 
+                                hoverinfo='text'
+                ) 
+
+
+            else:# we can set a color per each different target
+
+                colores = get_DISCRETE_COLORSCALE_269()[0:( len(discrete_values_range) ) ]
+
+                for i,j,z,t in zip(xx_list, yy_list,zz_list,text_list):
+                        color = colores[z]
+                        shape = create_hexagon(i,j,color   )
+                        shapes.append(shape)
+                        centers_x.append(i)
+                        centers_y.append(j)
+                        counts.append(z)
+                        text_counts.append(t)
+
+                if(hovertext):
+                    text = [f'x: {centers_x[k]}<br>y: {centers_y[k]}<br>Value: {text_counts[k]}' for k in range(len(centers_x))]
+                else:
+                    text = []
+
+                if(check_annotations):
+                    annotations = make_annotations_fromlistdata(centers_x, centers_y,counts, text_list=text_counts )
+
+                trace = go.Scatter(
+                                x=list(centers_x), 
+                                y=list(centers_y), 
+                                showlegend=False,
+                                mode='markers',
+                                text=text, 
+                                hoverinfo='text'
+                ) 
+                table_legend = get_color_table_legend(colores,unique_targets)
+
+
+
+            
+
+
+
+
+
+
+        elif( log_scale): #NUMERICAL TARGET WITH LOG SCALE
 
             zz_list   = [i if i>0 else np.nan for i in zz_list]
 
             vmax = np.nanmax(zz_list)
-            #cmax = np.log(vmax+1)
             vmin = np.nanmin(zz_list)
-            #cmin = vmin
-            #print('vmin',vmin) 
+         
 
             if(vmin == vmax):
                 vmin = 0.1
-            #    cmin = 0
-            #print('vmin updated',vmin) 
-
 
             norm = mpl.colors.LogNorm(vmin =vmin , vmax=vmax )
             colorbar = get_log_colorbar(vmax,n_ticks=9,precision=3)
@@ -628,7 +721,6 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
 
 
             if(hovertext):
-            #define  text to be  displayed on hovering the mouse over the cells
                 text = [f'x: {centers_x[k]}<br>y: {centers_y[k]}<br>Value: {text_counts[k]}' for k in range(len(centers_x))]
             else:
                 text = []
@@ -643,7 +735,6 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
                  marker=dict(size=0.5, 
                              color=counts, 
                              colorscale=colorscale, 
-                             #showscale=True,
                              colorbar=colorbar,
                              #cmax = cmax,
                              #cmin = cmin
@@ -659,7 +750,6 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
 
             vmin = np.nanmin(zz_list)
             vmax = np.nanmax(zz_list)
-            cmax = vmax
             norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
             colorbar = dict(thickness=20,  ticklen=4)
         
@@ -675,7 +765,6 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
 
 
             if(hovertext):
-            #define  text to be  displayed on hovering the mouse over the cells
                 text = [f'x: {centers_x[k]}<br>y: {centers_y[k]}<br>Value: {counts[k]}' for k in range(len(centers_x))]
             else:
                 text = []
@@ -696,6 +785,10 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
                text=text, 
                hoverinfo='text'
             )    
+
+
+
+
 
 
         axis = dict(showgrid=False,
@@ -722,7 +815,7 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
 
         fig = dict(data=data, layout=layout)
 
-        return fig
+        return fig,table_legend
 
 
 

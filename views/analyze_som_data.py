@@ -541,7 +541,7 @@ def toggle_select_logscale(target_value, option):
 
 
 
-#Mapa neuonas ganadoras
+#Mapa neuronas ganadoras
 @app.callback(Output('div_mapa_neuronas_ganadoras', 'children'),
               Output('output_alert_too_categorical_targets', 'is_open'),
               Input('ver', 'n_clicks'),
@@ -566,14 +566,13 @@ def update_som_fig(n_clicks, check_annotations ,logscale, data_portion_option):
     labels_map = som.labels_map(data, targets_list)
     
     target_type,unique_targets = session_data.get_selected_target_type(data_portion_option)
+    discrete_values_range=None 
+    text = None
 
 
     if(params['topology']== 'rectangular'):    #RECTANGULAR TOPOLOGY    
 
-        values=None 
-        text = None
-
-
+    
         if(target_type == 'numerical' ): #numerical data: mean of the mapped values in each neuron
 
             data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=np.float64)
@@ -595,36 +594,6 @@ def update_som_fig(n_clicks, check_annotations ,logscale, data_portion_option):
                 data_to_plot[position[0]][position[1]] = mean
 
 
-                '''
-                #fractions
-                label_fracs = [ labels_map[position][t] for t in lista_targets_unicos]
-                #print('label_fracs', label_fracs)
-                mean_div = sum(label_fracs)
-                mean = sum([a*b for a,b in zip(lista_targets_unicos,label_fracs)])
-                mean = mean/ mean_div
-                data_to_plot[position[0]][position[1]] = mean
-                '''
-
-                '''
-                elif(target_type == 'boolean'):
-                
-                    data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype= np.intc)
-                    #labeled heatmap does not support nonetypes
-                    data_to_plot[:] = np.nan
-                    text = None
-
-
-                    for position in labels_map.keys():
-                    
-                        true_freqs = labels_map[position]['True']
-                        false_freqs = labels_map[position]['False']
-
-                        if(true_freqs >=false_freqs ):
-                            data_to_plot[position[0]][position[1]] = 1
-                        else:
-                            data_to_plot[position[0]][position[1]] = 0
-                '''
-
 
         elif(target_type == 'string'):
 
@@ -634,13 +603,12 @@ def update_som_fig(n_clicks, check_annotations ,logscale, data_portion_option):
             text = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
             #labeled heatmap does not support nonetypes
             text[:] = np.nan
-            values = np.linspace(0, 1, len(unique_targets), endpoint=False).tolist()
-            targets_codification = dict(zip(unique_targets, values))
+            discrete_values_range = np.linspace(0, 1, len(unique_targets), endpoint=False).tolist()
+            targets_codification = dict(zip(unique_targets, discrete_values_range))
             #print('targets codificados',targets_codification)
 
             if(len(unique_targets) >= 270):
                 output_alert_too_categorical_targets = True
-
 
 
             #showing the class more represented in each neuron
@@ -653,14 +621,13 @@ def update_som_fig(n_clicks, check_annotations ,logscale, data_portion_option):
         else: #error
             raiseExceptions('Unexpected error')
             data_to_plot = np.empty([1 ,1],dtype= np.bool_)
-            #labeled heatmap does not support nonetypes
             data_to_plot[:] = np.nan
-            #text = None
+            
 
 
 
         fig,table_legend = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations,
-                                                    text = text, discrete_values_range= values, unique_targets = unique_targets,
+                                                    text = text, discrete_values_range= discrete_values_range, unique_targets = unique_targets,
                                                     log_scale = log_scale)
         if(table_legend is not None):
             children = pu.get_fig_div_with_info(fig,'winners_map', 'Winners Target per Neuron Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,
@@ -674,43 +641,79 @@ def update_som_fig(n_clicks, check_annotations ,logscale, data_portion_option):
 
     else: ###########  HEXAGONAL TOPOLOGY
 
-        if(target_type == 'numerical' ): #numerical data: mean of the mapped values in each neuron
-            log_scale = logscale
-
         xx, yy = som.get_euclidean_coordinates()
         xx_list = []
         yy_list = []
         zz_list = []
+        text_list = None
 
-        for position in labels_map.keys():
-                #print('Hit POSICION:',position)
-            
-                label_fracs = labels_map[position]
-                #denom = sum(label_fracs.values())
-                numerador = 0.0
-                denom = 0.0
-                mean = 0.0
-                for k,it in label_fracs.items():
-                    numerador = numerador + k*it
-                    denom = denom + it
+        if(target_type == 'numerical' ): #numerical data: mean of the mapped values in each neuron
+            log_scale = logscale
 
-                mean = numerador / denom
-              
+            for position in labels_map.keys():
+                    #print('Hit POSICION:',position)
+
+                    label_fracs = labels_map[position]
+                    #denom = sum(label_fracs.values())
+                    numerador = 0.0
+                    denom = 0.0
+                    mean = 0.0
+                    for k,it in label_fracs.items():
+                        numerador = numerador + k*it
+                        denom = denom + it
+
+                    mean = numerador / denom
+
+                    wx = xx[position]
+                    wy = yy[position]
+                    xx_list.append(wx) 
+                    yy_list.append(wy)
+                    zz_list.append(mean)
+
+
+        elif(target_type == 'string'):
+
+            text_list = []
+    
+            #values = np.linspace(0, 1, len(unique_targets), endpoint=False).tolist()
+            discrete_values_range = range(0,len(unique_targets))
+            targets_codification = dict(zip(unique_targets, discrete_values_range))
+
+            if(len(unique_targets) >= 270):
+                output_alert_too_categorical_targets = True
+
+            #showing the class more represented in each neuron
+            for position in labels_map.keys():
+                max_target = max(labels_map[position], key=labels_map[position].get)
+
                 wx = xx[position]
                 wy = yy[position]
-
                 xx_list.append(wx) 
                 yy_list.append(wy)
-                zz_list.append(mean)
+                zz_list.append(targets_codification[max_target])
+                text_list.append(max_target)
 
 
-        #testing all cells
-        #xx_list = np.nditer(xx)
-        #yy_list = np.nditer(yy)
 
 
-        fig = pu.create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True,log_scale = log_scale, check_annotations =check_annotations)
-        children = pu.get_fig_div_with_info(fig,'winners_map', 'Winners Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,neurona_padre=None)
+        else: #error
+            raiseExceptions('Unexpected error')
+               
+
+
+
+        fig,table_legend = pu.create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True,log_scale = log_scale,
+                                                     check_annotations =check_annotations, text_list = text_list,
+                                                     discrete_values_range= discrete_values_range,
+                                                     unique_targets = unique_targets)
+        if(table_legend is not None):
+            children = pu.get_fig_div_with_info(fig,'winners_map', 'Winners Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,
+                                                neurona_padre=None,  table_legend =  table_legend)
+        else:
+            children = pu.get_fig_div_with_info(fig,'winners_map', 'Winners Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,
+                                                neurona_padre=None)
+        
+        #children = pu.get_fig_div_with_info(fig,'winners_map', 'Winners Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,neurona_padre=None)
         print('\n SOM(hexagonal) Winning Neuron Map: Plotling complete! \n')
 
 
@@ -793,7 +796,7 @@ def update_mapa_frecuencias_fig(click, check_annotations ,log_scale , data_porti
         xx_list = xx.ravel()
         yy_list = yy.ravel()
         zz_list = frequencies.ravel()
-        figure = pu.create_hexagonal_figure(xx_list,yy_list, zz_list, hovertext= True,
+        figure,_ = pu.create_hexagonal_figure(xx_list,yy_list, zz_list, hovertext= True,
                                              check_annotations =check_annotations,log_scale = log_scale )
         
 
@@ -847,7 +850,7 @@ def update_mapa_componentes_fig(click,names,check_annotations, log_scale):
 
         for i in lista_de_indices:
             zz_list = pesos[:,:,i].ravel()
-            figure = pu.create_hexagonal_figure(xx_list,yy_list, zz_list, hovertext= True, title = nombres_atributos[i],
+            figure,_ = pu.create_hexagonal_figure(xx_list,yy_list, zz_list, hovertext= True, title = nombres_atributos[i],
                                                  check_annotations= check_annotations, log_scale = log_scale)
             id ='graph-{}'.format(i)
             traces.append(html.Div(children= dcc.Graph(id=id,figure=figure)) )
@@ -903,7 +906,7 @@ def update_umatrix(n_clicks,check_annotations, log_scale):
         xx_list = xx.ravel()
         yy_list = yy.ravel()
         zz_list = umatrix.ravel()
-        figure =  pu.create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale = UMATRIX_HEATMAP_COLORSCALE,
+        figure, _ =  pu.create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale = UMATRIX_HEATMAP_COLORSCALE,
                                              check_annotations = check_annotations, log_scale = log_scale)
       
 
