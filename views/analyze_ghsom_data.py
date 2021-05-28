@@ -78,9 +78,6 @@ def get_winnersmap_card_ghsom():
                         ),
 
 
-
-
-
                         dcc.Dropdown(id='dropdown_target_selection_ghsom',
                            options=session_data.get_targets_options_dcc_dropdown_format() ,
                            multi=False,
@@ -107,6 +104,27 @@ def get_winnersmap_card_ghsom():
                                                     value=[],
                                                     id="check_annotations_winmap_ghsom"),
                                     style={'textAlign': 'center'}
+                                ),
+
+                                dbc.Collapse(
+                                        id='collapse_logscale_winners_ghsom',
+                                        is_open=session_data.is_preselected_target_numerical(),
+                                        children=[
+                                            dbc.FormGroup(
+                                                [
+                                                    dbc.RadioItems(
+                                                        options=[
+                                                            {"label": "Linear Scale", "value": 0},
+                                                            {"label": "Logarithmic Scale", "value": 1},
+                                                        ],
+                                                        value=0,
+                                                        id="radioscale_winners_ghsom",
+                                                        inline=True,
+                                                    ),
+                                                ],
+                                                style={'textAlign': 'center'}
+                                            ),
+                                        ]
                                 )
 
                         ])
@@ -128,7 +146,24 @@ def get_freqmap_card_ghsom():
                                 style={'margin': '0 auto','width': '100%', 'display': 'flex',
                                                     'align-items': 'center', 'justify-content': 'center',
                                                    'flex-wrap': 'wrap', 'flex-direction': 'column ' } 
-                        )
+                        ),
+
+                        html.Div(children = [ 
+                            dbc.FormGroup(
+                                [
+                                    dbc.RadioItems(
+                                        options=[
+                                            {"label": "Linear Scale", "value": 0},
+                                            {"label": "Logarithmic Scale", "value": 1},
+                                        ],
+                                        value=0,
+                                        id="radioscale_freq_ghsom",
+                                        inline=True,
+                                    ),
+                                ],
+                                style={'textAlign': 'center'}
+                            )
+                        ])
             ])
           
 
@@ -181,7 +216,22 @@ def get_componentplans_card_ghsom():
                                                             value=[],
                                                             id="check_annotations_comp_ghsom"),
                                                 style={'textAlign': 'center'}
-                                    )
+                                    ),
+
+                                    dbc.FormGroup(
+                                        [
+                                            dbc.RadioItems(
+                                                options=[
+                                                    {"label": "Linear Scale", "value": 0},
+                                                    {"label": "Logarithmic Scale", "value": 1},
+                                                ],
+                                                value=0,
+                                                id="radioscale_cplans_ghsom",
+                                                inline=True,
+                                            ),
+                                        ],
+                                        style={'textAlign': 'center'}
+                                    ),
 
 
                             ])
@@ -207,7 +257,22 @@ def get_umatrix_card_ghsom():
                                         value=[],
                                         id="check_annotations_um_ghsom"),
                     style={'textAlign': 'center'}
-            )
+            ),
+
+            dbc.FormGroup(
+                [
+                    dbc.RadioItems(
+                        options=[
+                            {"label": "Linear Scale", "value": 0},
+                            {"label": "Logarithmic Scale", "value": 1},
+                        ],
+                        value=0,
+                        id="radioscale_umatrix_ghsom",
+                        inline=True,
+                    ),
+                ],
+                style={'textAlign': 'center'}
+            ),
         
         ])
 
@@ -243,9 +308,9 @@ def analyze_ghsom_data():
 
     # Body
     body =  html.Div(children=[
-        html.H4('Análisis de los datos',className="card-title"  ),
+        html.H4('Data Analysis',className="card-title"  ),
 
-        html.H6('Parámetros de entrenamiento',className="card-title"  ),
+        html.H6('Train Parameters',className="card-title"  ),
         html.Div(id = 'info_table_ghsom',children=info_trained_params_ghsom_table(),style={'textAlign': 'center'} ),
 
 
@@ -351,30 +416,20 @@ def get_ghsom_graph_div(fig,dcc_graph_id):
 
 # Grafo de la estructura del ghsom
 def get_ghsom_fig(data, target_list):
+
     zero_unit = session_data.get_modelo()
     grafo = nx.Graph()
-    #dataset = session_data.get_dataset()
-    #g = zero_unit.child_map.get_structure_graph(grafo,dataset ,level=0)
-    #data= session_data.get_data()
-
-    #data= session_data.get_data_std()
-    #target_col = session_data.get_targets_col()
-
     g = zero_unit.child_map.get_structure_graph(grafo,data, target_list,level=0)
-
-
     session_data.set_ghsom_structure_graph(g)
   
     edge_x = []
     edge_y = []
-
 
     nodes_dict = {}
     counter = 0
     for node in g.nodes:
         nodes_dict[node] = counter
         counter +=  1
-
 
     for edge in g.edges:
         nodo1,nodo2 = edge
@@ -548,6 +603,30 @@ def toggle_winners_som(info_table,target_value):
         return False, True,dash.no_update
 
 
+
+#Toggle log scale option in winners map
+@app.callback(
+            Output('collapse_logscale_winners_ghsom', 'is_open'),
+            Output('radioscale_winners_ghsom','radioscale_winners_som'),
+            Input('dropdown_target_selection_ghsom', 'value'),
+            State('dataset_portion_radio_analyze_ghsom','value'),
+            #prevent_initial_call=True 
+)  
+def toggle_select_logscale_gsom(target_value, option):
+
+    if(target_value is None or not target_value):
+        return False,0
+
+    target_type,_ = session_data.get_selected_target_type( option)
+
+    if(target_type is None or target_type == 'string'):
+        return False,0
+
+    else:
+        return True,dash.no_update
+
+
+
 #load ghsom graph
 @app.callback(
     Output('grafo_ghsom_estadisticas','children'),
@@ -559,7 +638,7 @@ def toggle_winners_som(info_table,target_value):
     Input("tabs_ghsom", "active_tab"),
     Input('dataset_portion_radio_analyze_ghsom', 'value'),
     Input('dropdown_target_selection_ghsom', 'value'),
-    State('div_freq_map_ghsom', 'children'), #AQUIII PROBAR A PONER EL CHCILDREN A NONE EN LA CARGA INCIAL PARA QUE SEA MAS FACI OCMPARA
+    State('div_freq_map_ghsom', 'children'), 
 
     prevent_initial_call=True  
 )
@@ -590,48 +669,6 @@ def load_graph_ghsom(tabs, option,target_selection,div_f):
 
         return div_0, div_1, div_2, div_3, div_4
 
-
-'''
-#Control de pliegues y carga del grafo de la estructura del ghsom
-@app.callback(
-    [Output(f"collapse_ghsom_{i}", "is_open") for i in range(1, 7)],
-    Output('grafo_ghsom_estadisticas','children'),
-    Output('grafo_ghsom_winners','children'),
-    Output('grafo_ghsom_cplans','children'),
-    Output('grafo_ghsom_umatrix','children'),
-    Output('grafo_ghsom_freq','children'),
-    [Input(f"button_collapse_ghsom_{i}", "n_clicks") for i in range(1, 7)],
-    [State(f"collapse_ghsom_{i}", "is_open") for i in range(1, 7)],
-    prevent_initial_call=True)
-def toggle_accordion(n1, n2,n3,n4,n5,n6, is_open1, is_open2,is_open3,is_open4, is_open5, is_open6):
-    ctx = dash.callback_context
-
-    if not ctx.triggered:
-        return False, False, False,False,False,False, [],[],[],[],[]
-    else:
-        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-        fig=  get_ghsom_fig()
-        div_0 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_0')
-        div_1 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_1')
-        div_2 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_2')
-        div_3 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_3')
-        div_4 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_4')
-
-        
-    if button_id == "button_collapse_ghsom_1" and n1:
-        return not is_open1, is_open2, is_open3,is_open4,is_open5,is_open6,div_0, div_1,div_2,div_3,div_4
-    elif button_id == "button_collapse_ghsom_2" and n2:
-        return is_open1, not is_open2, is_open3,is_open4,is_open5,is_open6,div_0, div_1,div_2,div_3,div_4
-    elif button_id == "button_collapse_ghsom_3" and n3:
-        return is_open1, is_open2, not is_open3,is_open4,is_open5,is_open6,div_0, div_1,div_2,div_3,div_4
-    elif button_id == "button_collapse_ghsom_4" and n4:
-        return is_open1, is_open2, is_open3, not is_open4,is_open5,is_open6,div_0, div_1,div_2,div_3,div_4
-    elif button_id == "button_collapse_ghsom_5" and n5:
-        return is_open1, is_open2, is_open3, is_open4, not is_open5,is_open6,div_0, div_1,div_2,div_3,div_4
-    elif button_id == "button_collapse_ghsom_6" and n6:
-        return is_open1, is_open2, is_open3, is_open4, is_open5, not is_open6,div_0,div_1,div_2,div_3,div_4
-    return False, False, False,False,False,False,div_0, div_1,div_2,div_3,div_4
-'''
 
 
 
@@ -683,7 +720,7 @@ def view_stats_map_by_selected_point(clickdata,figure,option):
 
     #Table
     table_header = [
-        html.Thead(html.Tr([html.Th("Magnitud"), html.Th("Valor")]))
+        html.Thead(html.Tr([html.Th("Magnitude"), html.Th("Value")]))
     ]
     if(fun_disimilitud == 'qe'):
         row0 = html.Tr([html.Td("MAPA: Sumatorio de  Errores de Cuantización(neuronas)"), html.Td(qe)])
@@ -709,20 +746,22 @@ def view_stats_map_by_selected_point(clickdata,figure,option):
 @app.callback(Output('winners_map_ghsom','children'),
               Output('dcc_ghsom_graph_1','figure'),
               Output('output_alert_too_categorical_targets_ghsom','is_open'),
-
               Input('dcc_ghsom_graph_1','clickData'),
               Input('check_annotations_winmap_ghsom','value'),
+              Input('radioscale_winners_ghsom','value'),
               State('dcc_ghsom_graph_1','figure'),
               State('dataset_portion_radio_analyze_ghsom','value'),
               prevent_initial_call=True 
               )
-def view_winner_map_by_selected_point(clickdata, check_annotations, figure, data_portion_option):
+def view_winner_map_by_selected_point(clickdata, check_annotations,logscale, figure, data_portion_option):
 
 
     if clickdata is  None:
         raise PreventUpdate
 
     output_alert_too_categorical_targets_ghsom = False
+    log_scale = False
+
 
     #print('clikedpoint:',clickdata)
     #{'points': [{'curveNumber': 0, 'x': 0, 'y': 0, 'z': 0}]}
@@ -776,6 +815,8 @@ def view_winner_map_by_selected_point(clickdata, check_annotations, figure, data
         data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=np.float64)
         #labeled heatmap does not support nonetypes
         data_to_plot[:] = np.nan
+        log_scale = logscale
+
 
         for i in range(tam_eje_vertical):
             for j in range(tam_eje_horizontal):
@@ -825,7 +866,8 @@ def view_winner_map_by_selected_point(clickdata, check_annotations, figure, data
 
 
     fig,table_legend = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations,
-                                     text = text, discrete_values_range= values, unique_targets = unique_targets, title=None)
+                                                text = text, discrete_values_range= values, unique_targets = unique_targets,
+                                                title=None ,log_scale=log_scale)
 
     if(table_legend is not None):
         children = pu.get_fig_div_with_info(fig,'winnersmap_fig_ghsom', 'Winners Target per Neuron Map',tam_eje_horizontal, tam_eje_vertical,level,neurona_padre_string,
@@ -848,10 +890,11 @@ def view_winner_map_by_selected_point(clickdata, check_annotations, figure, data
 @app.callback(Output('div_freq_map_ghsom','children'),
               Output('dcc_ghsom_graph_4','figure'),
               Input('dcc_ghsom_graph_4','clickData'),
+              Input('radioscale_freq_ghsom','value'),
               State('dcc_ghsom_graph_4','figure'),
               prevent_initial_call=True 
               )
-def update_freq_map_ghsom(clickdata, figure):
+def update_freq_map_ghsom(clickdata,logscale, figure):
 
 
     if clickdata is  None:
@@ -898,8 +941,7 @@ def update_freq_map_ghsom(clickdata, figure):
                 data_to_plot[i][j] = 0
 
 
-    
-    fig,_ = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,True, title = None)
+    fig,_ = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,True, title = None, log_scale = logscale)
     children = pu.get_fig_div_with_info(fig,'freq_map_ghsom', 'Frequency Map',tam_eje_horizontal, tam_eje_vertical)
 
     return children,figure
@@ -946,11 +988,12 @@ def on_form_change(check):
               Output('dcc_ghsom_graph_2','figure'),
               Input('dcc_ghsom_graph_2','clickData'),
               Input('check_annotations_comp_ghsom','value'),
+              Input('radioscale_cplans_ghsom','value'),
               State('dcc_ghsom_graph_2','figure'),
               State('dropdown_atrib_names_ghsom','value'),
               prevent_initial_call=True 
               )
-def update_mapa_componentes_ghsom_fig(clickdata,check_annotations,fig_grafo,names):
+def update_mapa_componentes_ghsom_fig(clickdata,check_annotations,log_scale,fig_grafo,names):
 
 
     if(clickdata is None or names is None or len(names) == 0):
@@ -997,14 +1040,14 @@ def update_mapa_componentes_ghsom_fig(clickdata,check_annotations,fig_grafo,name
     
 
     for k in lista_de_indices:
-        data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
+        data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=np.float64)
         for i in range(tam_eje_vertical):
             for j in range(tam_eje_horizontal):
                 data_to_plot[i][j] = weights_map[(i,j)][k]
         
 
-        figure,_ =  pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = nombres_atributos[k])
-
+        figure,_ =  pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, 
+                                                title = nombres_atributos[k],log_scale = log_scale)
         id ='graph-{}'.format(k)
         traces.append(
             html.Div(children= dcc.Graph(id=id,figure=figure)
@@ -1022,10 +1065,11 @@ def update_mapa_componentes_ghsom_fig(clickdata,check_annotations,fig_grafo,name
               Output('dcc_ghsom_graph_3','figure'),
               Input('dcc_ghsom_graph_3','clickData'),
               Input('check_annotations_um_ghsom','value'),
+              Input('radioscale_umatrix_ghsom','value'),
               State('dcc_ghsom_graph_3','figure'),
               prevent_initial_call=True 
               )
-def ver_umatrix_ghsom_fig(clickdata,check_annotations,fig_grafo):
+def ver_umatrix_ghsom_fig(clickdata,check_annotations,log_scale, fig_grafo):
 
 
     if(clickdata is None):
@@ -1057,7 +1101,7 @@ def ver_umatrix_ghsom_fig(clickdata,check_annotations,fig_grafo):
     gsom = nodes_dict[(cord_vertical_punto_clickeado,cord_horizontal_punto_clickeado)]
     tam_eje_vertical,tam_eje_horizontal=  gsom.map_shape()
     weights_map= gsom.get_weights_map()
-    data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
+    data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=np.float64)
     saved_distances= {} #for saving distances
     # saved_distances[i,j,a,b] with (i,j) and (a,b) neuron cords
 
@@ -1088,11 +1132,9 @@ def ver_umatrix_ghsom_fig(clickdata,check_annotations,fig_grafo):
 
  
     fig, _ = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None,
-                                    colorscale = UMATRIX_HEATMAP_COLORSCALE,  reversescale=True)
+                                    colorscale = UMATRIX_HEATMAP_COLORSCALE,  reversescale=True,  log_scale = log_scale)
     children= pu.get_fig_div_with_info(fig,'umatrix_fig_ghsom', 'U-Matrix',tam_eje_horizontal, tam_eje_vertical)
-
     print('\n GHSOM UMatrix: Plotling complete! \n')
-
 
     return children, fig_grafo
 

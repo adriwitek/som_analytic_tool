@@ -212,7 +212,7 @@ def make_annotations(data, colorscale, reversescale= False, text=None):
                     font_color = min_text_color if ( val < zmid ) else max_text_color
                     annotations.append(
                         graph_objs.layout.Annotation(
-                               text= text[n][m] ,
+                               text= str(text[n][m]) ,
                                x=m,
                                y=n,
                                font=dict(color=font_color),
@@ -473,6 +473,10 @@ def create_heatmap_figure(data,tam_eje_horizontal,tam_eje_vertical,check_annotat
         
         vmax = np.nanmax(data)
         colorbar = get_log_colorbar(vmax, n_ticks=9, precision=3)
+
+        if(check_annotations):
+            annotations = make_annotations(logdata, colorscale = colorscale, reversescale= reversescale, text=data)
+            layout['annotations'] = annotations
 
         trace = dict(type='heatmap', z=logdata, colorscale = colorscale,reversescale= reversescale,colorbar = colorbar,
                         text=data,

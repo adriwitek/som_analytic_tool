@@ -169,8 +169,6 @@ def get_winnersmaps_card_gsom():
                 ),
 
 
-
-
                 dcc.Dropdown(id='dropdown_target_selection_gsom',
                            options=session_data.get_targets_options_dcc_dropdown_format() ,
                            multi=False,
@@ -190,6 +188,28 @@ def get_winnersmaps_card_gsom():
                                     dbc.Checklist(options=[{"label": "Label Neurons", "value": 1}],
                                                 value=[],
                                                 id="check_annotations_win_gsom"),
+
+                                    dbc.Collapse(
+                                        id='collapse_logscale_winners_gsom',
+                                        is_open=session_data.is_preselected_target_numerical(),
+                                        children=[
+                                            dbc.FormGroup(
+                                                [
+                                                    dbc.RadioItems(
+                                                        options=[
+                                                            {"label": "Linear Scale", "value": 0},
+                                                            {"label": "Logarithmic Scale", "value": 1},
+                                                        ],
+                                                        value=0,
+                                                        id="radioscale_winners_gsom",
+                                                        inline=True,
+                                                    ),
+                                                ]
+                                            ),
+                                        ]
+                                    ),
+
+
                                     dbc.Button("Plot", id="ver_winners_map_gsom_button", className="mr-2", color="primary")],
                                 style={'textAlign': 'center'}
                             )
@@ -206,6 +226,22 @@ def get_freqmap_card_gsom():
                 html.Div(id = 'div_freq_map_gsom',children='',
                         style= pu.get_single_heatmap_css_style()
                 ),
+
+                dbc.FormGroup(
+                    [
+                        dbc.RadioItems(
+                            options=[
+                                {"label": "Linear Scale", "value": 0},
+                                {"label": "Logarithmic Scale", "value": 1},
+                            ],
+                            value=0,
+                            id="radioscale_freq_gsom",
+                            inline=True,
+                        ),
+                    ],
+                    style={'textAlign': 'center'}
+                ),
+
                 html.Div([  
                         dbc.Button("Plot", id="ver_freq_map_gsom_button", className="mr-2", color="primary")],
                     style={'textAlign': 'center'}
@@ -221,7 +257,7 @@ def get_componentplans_card_gsom():
 #Card: Component plans
             
     return  dbc.CardBody(children=[
-                    html.H5("Seleccionar atributos para mostar:"),
+                    html.H5("Select Features"),
                     dcc.Dropdown(
                         id='dropdown_atrib_names_gsom',
                         options=session_data.get_data_features_names_dcc_dropdown_format(),
@@ -229,13 +265,28 @@ def get_componentplans_card_gsom():
                     ),
                     html.Div( 
                         [dbc.Checklist(
-                            options=[{"label": "Seleccionar todos", "value": 1}],
+                            options=[{"label": "Select All", "value": 1}],
                             value=[],
                             id="check_seleccionar_todos_mapas_gsom"),
+
                         dbc.Checklist(  options=[{"label": "Label Neurons", "value": 1}],
                                         value=[],
                                         id="check_annotations_comp_gsom"),
-                        dbc.Button("Ver Mapas de Componentes", id="ver_mapas_componentes_button_gsom", className="mr-2", color="primary")],
+                        dbc.FormGroup(
+                            [
+                                dbc.RadioItems(
+                                    options=[
+                                        {"label": "Linear Scale", "value": 0},
+                                        {"label": "Logarithmic Scale", "value": 1},
+                                    ],
+                                    value=0,
+                                    id="radioscale_cplans_gsom",
+                                    inline=True,
+                                ),
+                            ]
+                        ),
+
+                        dbc.Button("Plot Selected Components Map", id="ver_mapas_componentes_button_gsom", className="mr-2", color="primary")],
                         style={'textAlign': 'center'}
                     ),
                     html.Div(id='component_plans_figures_gsom_div', children=[''],
@@ -256,6 +307,20 @@ def get_umatrix_card_gsom():
                         [dbc.Checklist(  options=[{"label": "Label Neurons", "value": 1}],
                                             value=[],
                                             id="check_annotations_umax_gsom"),
+                        dbc.FormGroup(
+                            [
+                                dbc.RadioItems(
+                                    options=[
+                                        {"label": "Linear Scale", "value": 0},
+                                        {"label": "Logarithmic Scale", "value": 1},
+                                    ],
+                                    value=0,
+                                    id="radioscale_umatrix_gsom",
+                                    inline=True,
+                                ),
+                            ]
+                        ),
+                            
                         dbc.Button("Plot", id="ver_umatrix_gsom_button", className="mr-2", color="primary")],
                         style={'textAlign': 'center'}
                     )
@@ -295,9 +360,9 @@ def analyze_gsom_data():
 
     # Body
     body =  html.Div(children=[
-        html.H4('Análisis de los datos',className="card-title"  ),
+        html.H4('Data Analysis',className="card-title"  ),
 
-        html.H6('Parámetros de entrenamiento',className="card-title"  ),
+        html.H6('Train Parameters',className="card-title"  ),
         html.Div(id = 'info_table_gsom',children=info_trained_params_gsom_table(),style={'textAlign': 'center'} ),
 
         html.Div(children=[ 
@@ -349,37 +414,6 @@ def analyze_gsom_data():
 #                       CALLBACKS
 ##################################################################
 
-'''
-@app.callback(
-    [Output(f"collapse_gsom_{i}", "is_open") for i in range(1, 7)],
-    [Input(f"button_collapse_gsom_{i}", "n_clicks") for i in range(1, 7)],
-    [State(f"collapse_gsom_{i}", "is_open") for i in range(1, 7)],
-    prevent_initial_call=True)
-def toggle_accordion(n1, n2,n3,n4,n5,n6, is_open1, is_open2,is_open3,is_open4,is_open5,is_open6):
-    ctx = dash.callback_context
-
-    if not ctx.triggered:
-        return False, False, False
-    else:
-        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-
-    if button_id == "button_collapse_gsom_1" and n1:
-        return not is_open1, is_open2, is_open3,is_open4, is_open5, is_open6
-    elif button_id == "button_collapse_gsom_2" and n2:
-        return is_open1, not is_open2, is_open3,is_open4, is_open5, is_open6
-    elif button_id == "button_collapse_gsom_3" and n3:
-        return is_open1, is_open2, not is_open3,is_open4,is_open5, is_open6
-    elif button_id == "button_collapse_gsom_4" and n4:
-        return is_open1, is_open2, is_open3, not is_open4, is_open5, is_open6
-    elif button_id == "button_collapse_gsom_5" and n5:
-        return is_open1, is_open2, is_open3,is_open4, not is_open5, is_open6
-    elif button_id == "button_collapse_gsom_6" and n6:
-        return is_open1, is_open2, is_open3,is_open4, is_open5, not is_open6
-    return False, False, False,False,False,False
-'''
-
-
-
 
 #Toggle winners map if selected target
 @app.callback(
@@ -419,6 +453,29 @@ def toggle_winners_som(info_table,target_value):
 
 
 
+#Toggle log scale option in winners map
+@app.callback(
+            Output('collapse_logscale_winners_gsom', 'is_open'),
+            Output('radioscale_winners_gsom','radioscale_winners_gsom'),
+            Input('dropdown_target_selection_gsom', 'value'),
+            State('dataset_portion_radio_analyze_gsom','value'),
+            #prevent_initial_call=True 
+)  
+def toggle_select_logscale_gsom(target_value, option):
+
+    if(target_value is None or not target_value):
+        return False,0
+
+    target_type,_ = session_data.get_selected_target_type( option)
+
+    if(target_type is None or target_type == 'string'):
+        return False,0
+
+    else:
+        return True,dash.no_update
+
+
+
 #Estadisticas
 @app.callback(Output('div_estadisticas_gsom', 'children'),
               Input('ver_estadisticas_gsom_button', 'n_clicks'),
@@ -440,7 +497,7 @@ def ver_estadisticas_gsom(n_clicks,data_portion_option):
   
     #Table
     table_header = [
-        html.Thead(html.Tr([html.Th("Magnitud"), html.Th("Valor")]))
+        html.Thead(html.Tr([html.Th("Magnitude"), html.Th("Value")]))
     ]
     
     if(fun_disimilitud == 'qe'):
@@ -463,13 +520,16 @@ def ver_estadisticas_gsom(n_clicks,data_portion_option):
               Output('output_alert_too_categorical_targets_gsom','is_open'),
               Input('ver_winners_map_gsom_button','n_clicks'),
               Input('check_annotations_win_gsom','value'),
+              Input('radioscale_winners_gsom','value'),
               State('dataset_portion_radio_analyze_gsom','value'),
               prevent_initial_call=True 
               )
-def update_winner_map_gsom(click,check_annotations, data_portion_option):
+def update_winner_map_gsom(click,check_annotations,logscale, data_portion_option):
 
 
     output_alert_too_categorical_targets_gsom = False
+    log_scale = False
+
 
     data = session_data.get_data(data_portion_option)
     targets_list = session_data.get_targets_list(data_portion_option)
@@ -507,6 +567,8 @@ def update_winner_map_gsom(click,check_annotations, data_portion_option):
         data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=np.float64)
         #labeled heatmap does not support nonetypes
         data_to_plot[:] = np.nan
+        log_scale = logscale
+
 
         for i in range(tam_eje_vertical):
             for j in range(tam_eje_horizontal):
@@ -555,7 +617,7 @@ def update_winner_map_gsom(click,check_annotations, data_portion_option):
 
 
     fig,table_legend = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations,
-                                     text = text, discrete_values_range= values, unique_targets = unique_targets)
+                                     text = text, discrete_values_range= values, unique_targets = unique_targets,log_scale=log_scale)
     if(table_legend is not None):
         children = pu.get_fig_div_with_info(fig,'winners_map_gsom', 'Winning Neuron Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,
                                             neurona_padre=None,  table_legend =  table_legend)
@@ -574,23 +636,18 @@ def update_winner_map_gsom(click,check_annotations, data_portion_option):
 #Frequency map
 @app.callback(Output('div_freq_map_gsom','children'),
               Input('ver_freq_map_gsom_button','n_clicks'),
+              Input('radioscale_freq_gsom','value'),
               State('dataset_portion_radio_analyze_gsom','value'),
               prevent_initial_call=True 
               )
-def update_freq_map_gsom(click, data_portion_option):
+def update_freq_map_gsom(click,logscale, data_portion_option):
 
-    params = session_data.get_gsom_model_info_dict()
-    
-    #tam_eje_vertical = params['tam_eje_vertical']
-    #tam_eje_horizontal = params['tam_eje_horizontal']
-    #data = session_data.get_data()
+    #params = session_data.get_gsom_model_info_dict()
     data = session_data.get_data(data_portion_option)
 
     zero_unit = session_data.get_modelo()
     gsom = zero_unit.child_map
     tam_eje_vertical,tam_eje_horizontal=  gsom.map_shape()
-
-    
 
     #visualizacion
     data_to_plot = np.zeros([tam_eje_vertical ,tam_eje_horizontal],dtype=int)
@@ -602,7 +659,8 @@ def update_freq_map_gsom(click, data_portion_option):
         data_to_plot[r][c] = data_to_plot[r][c] + 1
      
 
-    fig,_ = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,True, title = None)
+    fig,_ = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,True, 
+                                     title = None,log_scale = logscale)
     children = pu.get_fig_div_with_info(fig,'freq_map_gsom', 'Frequency Map',tam_eje_horizontal, tam_eje_vertical)
 
     return children
@@ -629,21 +687,17 @@ def enable_ver_mapas_componentes_button(values):
               Input('ver_mapas_componentes_button_gsom','n_clicks'),
               State('dropdown_atrib_names_gsom','value'),
               State('check_annotations_comp_gsom','value'),
+              State('radioscale_cplans_gsom','value'),
               prevent_initial_call=True 
               )
-def update_mapa_componentes_gsom_fig(click,names, check_annotations):
+def update_mapa_componentes_gsom_fig(click,names, check_annotations, log_scale):
 
 
-    params = session_data.get_gsom_model_info_dict()
-    #tam_eje_vertical = params['tam_eje_vertical']
-    #tam_eje_horizontal = params['tam_eje_horizontal']
- 
+    #params = session_data.get_gsom_model_info_dict()
     zero_unit = session_data.get_modelo()
     gsom = zero_unit.child_map
     tam_eje_vertical,tam_eje_horizontal=  gsom.map_shape()
 
-    
-    #Weights MAP
     weights_map= gsom.get_weights_map()
     # weights_map[(row,col)] = np vector whith shape=n_feauters, dtype=np.float32
 
@@ -653,22 +707,20 @@ def update_mapa_componentes_gsom_fig(click,names, check_annotations):
     for n in names:
         lista_de_indices.append(nombres_atributos.index(n) )
     
-
     traces = []
 
     for k in lista_de_indices:
-        data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
+        data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=np.float64)
         for i in range(tam_eje_vertical):
             for j in range(tam_eje_horizontal):
                 data_to_plot[i][j] = weights_map[(i,j)][k]
         
-      
         id ='graph-{}'.format(k)
-        figure,_ = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = nombres_atributos[k])
+        figure,_ = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations,
+                                             title = nombres_atributos[k], log_scale = log_scale)
         children = pu.get_fig_div_with_info(figure,id, '',None, None,gsom_level= None,neurona_padre=None)
 
         
-
         traces.append(
             html.Div(children= children
             ) 
@@ -701,35 +753,25 @@ def on_form_change(check):
 #Ver UMatrix GSOM
 @app.callback(Output('umatrix_div_fig_gsom','children'),
               Input('ver_umatrix_gsom_button','n_clicks'),
-              State('check_annotations_umax_gsom','value'),
+              Input('check_annotations_umax_gsom','value'),
+              Input('radioscale_umatrix_gsom','value'),
               prevent_initial_call=True 
               )
-def ver_umatrix_gsom_fig(click, check_annotations):
+def ver_umatrix_gsom_fig(click, check_annotations, log_scale):
 
-    print('Button clicked, calculating umatrix')
-
-    params = session_data.get_gsom_model_info_dict()
-    #tam_eje_vertical = params['tam_eje_vertical']
-    #tam_eje_horizontal = params['tam_eje_horizontal']
-
-
+    #print('Button clicked, calculating umatrix')
+    #params = session_data.get_gsom_model_info_dict()
+  
     zero_unit = session_data.get_modelo()
     gsom = zero_unit.child_map
     tam_eje_vertical,tam_eje_horizontal=  gsom.map_shape()
 
-    
-
-    #Weights MAP
     weights_map= gsom.get_weights_map()
     # weights_map[(row,col)] = np vector whith shape=n_feauters, dtype=np.float32
 
-
-
-    data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=object)
-
+    data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=np.float64)
     saved_distances= {} #for saving distances
     # saved_distances[i,j,a,b] with (i,j) and (a,b) neuron cords
-
     '''
     debugg
     for i in range(tam_eje_vertical):
@@ -743,7 +785,6 @@ def ver_umatrix_gsom_fig(click, check_annotations):
 
             neuron_neighbords = []
            
-            
             if(j-1 >= 0): #bottom   neighbor
                 neuron_neighbords.append( get_distances(weights_map, saved_distances, i,j,i,j-1))
             if(j+1 < tam_eje_horizontal):#top  neighbor
@@ -763,8 +804,8 @@ def ver_umatrix_gsom_fig(click, check_annotations):
         print(item)
     '''
     fig,_ = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, title = None,
-                                    colorscale = UMATRIX_HEATMAP_COLORSCALE,  reversescale=True)
-    children =  pu.get_fig_div_with_info(fig,'umatrix_fig_gsom', 'Matriz U',tam_eje_horizontal, tam_eje_vertical)
+                                    colorscale = UMATRIX_HEATMAP_COLORSCALE,  reversescale=True,  log_scale = log_scale)
+    children =  pu.get_fig_div_with_info(fig,'umatrix_fig_gsom', 'U-Matrix',tam_eje_horizontal, tam_eje_vertical)
 
     return children
 

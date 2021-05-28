@@ -28,8 +28,8 @@ formulario_ghsom =  dbc.ListGroupItem([
                             children=[
 
                                 html.H5(children='Tau 1'),
-                                dcc.Slider(id='tau1_slider', min=0,max=1,step=0.0001,value=0.1),
                                 dcc.Input(id="tau1", type="number", value="0.1",step=MIN_TAU_STEP,min=0,max=1),
+                                dcc.Slider(id='tau1_slider', min=0,max=1,step=0.0001,value=0.1),
 
                                 html.H5(children='Tau 2'),
                                 dcc.Input(id="tau2", type="number", value="0.0001",step=MIN_TAU_STEP,min=0,max=1),

@@ -473,7 +473,6 @@ def enable_ver_mapas_componentes_button(values):
 def ver_estadisticas_som(n_clicks,data_portion_option):
 
     som = session_data.get_modelo()
-    #data = session_data.get_data_std()
     data = session_data.get_data(data_portion_option)
 
     qe,mqe = som.get_qe_and_mqe_errors(data)
@@ -522,7 +521,6 @@ def annotate_winners_map_som(check_annotations, fig,n_clicks):
             Output('collapse_logscale_winners_som', 'is_open'),
             Output('radioscale_winners_som','radioscale_winners_som'),
             Input('dropdown_target_selection_som', 'value'),
-
             State('dataset_portion_radio_analyze_som','value'),
             #prevent_initial_call=True 
 )  
@@ -695,11 +693,9 @@ def update_som_fig(n_clicks, check_annotations ,logscale, data_portion_option):
 
 
 
-
         else: #error
             raiseExceptions('Unexpected error')
                
-
 
 
         fig,table_legend = pu.create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True,log_scale = log_scale,
