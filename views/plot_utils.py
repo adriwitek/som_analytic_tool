@@ -382,7 +382,8 @@ def get_color_table_legend(colores,unique_targets):
     
     columns = [
             {'name':'Color', 'id': 'col1', 'editable':False},
-            {'name':'Target', 'id': 'col2', 'editable':False}
+            {'name':'Target', 'id': 'col2', 'editable':False},
+            {'name':'col3', 'id': 'col3', 'editable':False, 'hideable': True}
 
     ]
     style_data_conditional=[]
@@ -392,13 +393,13 @@ def get_color_table_legend(colores,unique_targets):
 
     for color,target in zip(colores,unique_targets):
         
-        target = str(target).replace(' ', '_')
-        row = {'col1':' ', 'col2':target}
+        #target = str(target).replace(' ', '_')
+        row = {'col1':' ', 'col2':target, 'col3': i}
         #row = {'col1':color, 'col2':target}
 
         rows.append(row)
 
-        diccionario = {	'if':	{	'filter_query': '{{col2}} = {}'.format(target), 
+        diccionario = {	'if':	{	'filter_query': '{{col3}} = {}'.format(i), 
                                     'column_id': 'col1'
 
                                 },
@@ -410,6 +411,10 @@ def get_color_table_legend(colores,unique_targets):
         style_data_conditional.append(diccionario)
         i = i+1
     
+
+    style_cell_conditional=[
+            {'if': {'column_id': 'col3',},
+                'display': 'None',}]
     
     table =  dash_table.DataTable(	columns = columns,
                                     data = rows,
@@ -419,6 +424,8 @@ def get_color_table_legend(colores,unique_targets):
                                     style_cell={    
                                             'textAlign': 'center'
                                     },
+                                    style_cell_conditional=style_cell_conditional,
+                                    css=[{"selector": ".show-hide", "rule": "display: none"}],
                                     style_as_list_view=True,
                                     style_header={
                                             'backgroundColor': 'white',
