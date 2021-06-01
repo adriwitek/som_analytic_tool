@@ -620,7 +620,9 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
         counts = []
         text_counts = []
         annotations = []
-        cmap = get_cmap_from_plotly_scale(colorscale)
+        cmap_o = get_cmap_from_plotly_scale(colorscale)
+        cmap = cmap_o.copy() 
+        cmap.set_bad('white')
 
 
 
@@ -751,6 +753,9 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
 
             vmin = np.nanmin(zz_list)
             vmax = np.nanmax(zz_list)
+            if(vmin == vmax):
+                vmin = 0.1
+
             norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
             colorbar = dict(thickness=20,  ticklen=4)
         
