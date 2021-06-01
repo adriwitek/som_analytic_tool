@@ -12,6 +12,7 @@ from math import ceil
 import numpy as np
 from collections import Counter
 from datetime import datetime
+import numpy.ma as ma
 
 
 from  views.session_data import session_data
@@ -242,6 +243,15 @@ def get_freqmap_card_gsom():
                     style={'textAlign': 'center'}
                 ),
 
+
+                html.Div(style=pu.get_css_style_inline_flex(),
+                        children = [
+                            html.H6( dbc.Badge( 'Minimum hits to plot a neuron   ' ,  pill=True, color="light", className="mr-1")   ),
+                            html.H6( dbc.Badge( '0',  pill=True, color="warning", className="mr-1",id ='badge_min_hits_slider_gsom')   ),
+                        ]
+                    ),            
+                dcc.Slider(id='min_hits_slider_gsom', min=0,max=0,value=0,step =1 ),
+
                 html.Div([  
                         dbc.Button("Plot", id="ver_freq_map_gsom_button", className="mr-2", color="primary")],
                     style={'textAlign': 'center'}
@@ -295,6 +305,16 @@ def get_componentplans_card_gsom():
                     
             ])
                
+
+# Card freq + cplans
+def get_freq_and_cplans_cards_gsom():
+    children = []
+    children.append(get_freqmap_card_gsom())
+    children.append(html.Hr())
+    children.append(get_componentplans_card_gsom())
+    return html.Div(children)
+
+
           
 #Card: U Matrix
 def get_umatrix_card_gsom():
@@ -376,8 +396,9 @@ def analyze_gsom_data():
                     dbc.Tab(get_select_splitted_option_card(),label = 'Select Dataset Splitted Part',tab_id='splitted_part',disabled= (not session_data.data_splitted )),
                     dbc.Tab( get_statistics_card_gsom() ,label = 'Statistics',tab_id='statistics'),
                     dbc.Tab( get_winnersmaps_card_gsom() ,label = 'Winners Map',tab_id='winners_map'),
-                    dbc.Tab( get_freqmap_card_gsom() ,label = 'Freq Map',tab_id='freq_map'),
-                    dbc.Tab( get_componentplans_card_gsom() ,label = 'Component Plans',tab_id='component_plans'),
+                    #dbc.Tab( get_freqmap_card_gsom() ,label = 'Freq Map',tab_id='freq_map'),
+                    #dbc.Tab( get_componentplans_card_gsom() ,label = 'Component Plans',tab_id='component_plans'),
+                    dbc.Tab( get_freq_and_cplans_cards_gsom(), label=' Freq. Map + Component Plans',tab_id='freq_and_cplans_gsom'),
                     dbc.Tab( get_umatrix_card_gsom() ,label = ' U Matrix',tab_id='umatrix'),
                     dbc.Tab(  get_savemodel_card_gsom() ,label = 'Save Model',tab_id='save_model'),
                 ]
@@ -423,7 +444,7 @@ def analyze_gsom_data():
     Input('info_table_gsom', 'children'), #udpate on load
     Input('dropdown_target_selection_gsom', 'value'),
 )
-def toggle_winners_som(info_table,target_value):
+def toggle_winners_gsom(info_table,target_value):
 
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
@@ -439,16 +460,11 @@ def toggle_winners_som(info_table,target_value):
 
     elif(target_value is None or not target_value):
         session_data.set_target_name(None)
-        #session_data.targets_col = []
         return True,False, None
 
 
     else:
         session_data.set_target_name(target_value)
-        #df = pd.read_json(origina_df,orient='split')
-        #df = df[target_value]
-        #session_data.targets_col = df_target.to_numpy()
-        
         return False, True,dash.no_update
 
 
@@ -630,40 +646,74 @@ def update_winner_map_gsom(click,check_annotations,logscale, data_portion_option
 
    
 
+#update_selected_min_hit_rate_badge_gsom
+@app.callback(  Output('badge_min_hits_slider_gsom','children'),
+                Input('min_hits_slider_gsom','value'),
+                prevent_initial_call=True 
+)
+def update_selected_min_hit_rate_badge_gsom(value):
+    return int(value)
 
 
 
 #Frequency map
-@app.callback(Output('div_freq_map_gsom','children'),
-              Input('ver_freq_map_gsom_button','n_clicks'),
-              Input('radioscale_freq_gsom','value'),
-              State('dataset_portion_radio_analyze_gsom','value'),
-              prevent_initial_call=True 
-              )
-def update_freq_map_gsom(click,logscale, data_portion_option):
+@app.callback(  Output('div_freq_map_gsom','children'),
+                Output('min_hits_slider_gsom','max'),
+                Output('min_hits_slider_gsom','marks'),
+                Input('ver_freq_map_gsom_button','n_clicks'),
+                Input('radioscale_freq_gsom','value'),
+                Input('min_hits_slider_gsom','value'),
+                State('dataset_portion_radio_analyze_gsom','value'),
+                prevent_initial_call=True 
+)
+def update_freq_map_gsom(click,logscale,slider_value, data_portion_option):
 
-    #params = session_data.get_gsom_model_info_dict()
     data = session_data.get_data(data_portion_option)
-
     zero_unit = session_data.get_modelo()
     gsom = zero_unit.child_map
     tam_eje_vertical,tam_eje_horizontal=  gsom.map_shape()
+    pre_calc_freq = session_data.get_calculated_freq_map()
 
-    #visualizacion
-    data_to_plot = np.zeros([tam_eje_vertical ,tam_eje_horizontal],dtype=int)
 
-    # Getting winnig neurons for each data element
-    for i,d in enumerate(data):
-        winner_neuron = gsom.winner_neuron(d)[0][0]
-        r, c = winner_neuron.position
-        data_to_plot[r][c] = data_to_plot[r][c] + 1
+    if( pre_calc_freq is None or (pre_calc_freq is not None and pre_calc_freq[1] != data_portion_option) ): #recalculate freq map
+        
+        data_to_plot = np.zeros([tam_eje_vertical ,tam_eje_horizontal],dtype=int)
+        # Getting winnig neurons for each data element
+        for i,d in enumerate(data):
+            winner_neuron = gsom.winner_neuron(d)[0][0]
+            r, c = winner_neuron.position
+            data_to_plot[r][c] = data_to_plot[r][c] + 1
+
+
+        session_data.set_calculated_freq_map(data_to_plot,data_portion_option )
+
+    else:#load last calculated map
+        data_to_plot,_ = session_data.get_calculated_freq_map()
+
+    max_freq = np.nanmax(data_to_plot)
+    if(max_freq > 0):
+        marks={
+            0: '0 hits',
+            int(max_freq): '{} hits'.format(int(max_freq))
+        }
+    else:
+        marks = dash.no_update
+
      
+    if(slider_value != 0):#filter minimum hit rate per neuron
+        #frequencies = np.where(frequencies< slider_value,np.nan,frequencies)
+        data_to_plot = ma.masked_less(data_to_plot, slider_value)
+        session_data.set_freq_hitrate_mask(ma.getmask(data_to_plot))
+    else:
+        session_data.set_freq_hitrate_mask(None)
+
+
 
     fig,_ = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,True, 
                                      title = None,log_scale = logscale)
     children = pu.get_fig_div_with_info(fig,'freq_map_gsom', 'Frequency Map',tam_eje_horizontal, tam_eje_vertical)
 
-    return children
+    return children, max_freq,marks
 
 
 
@@ -685,12 +735,20 @@ def enable_ver_mapas_componentes_button(values):
 #Actualizar mapas de componentes
 @app.callback(Output('component_plans_figures_gsom_div','children'),
               Input('ver_mapas_componentes_button_gsom','n_clicks'),
+              Input('min_hits_slider_gsom','value'),
               State('dropdown_atrib_names_gsom','value'),
               State('check_annotations_comp_gsom','value'),
               State('radioscale_cplans_gsom','value'),
               prevent_initial_call=True 
               )
-def update_mapa_componentes_gsom_fig(click,names, check_annotations, log_scale):
+def update_mapa_componentes_gsom_fig(n_cliks,slider_value ,names, check_annotations, log_scale):
+
+    ctx = dash.callback_context
+    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if(n_cliks == 0 and trigger_id == 'min_hits_slider_gsom' ):
+        raise PreventUpdate
+    elif(trigger_id == 'min_hits_slider_gsom' and ( names is None or  len(names)==0)):
+        return dash.no_update
 
 
     #params = session_data.get_gsom_model_info_dict()
@@ -714,7 +772,10 @@ def update_mapa_componentes_gsom_fig(click,names, check_annotations, log_scale):
         for i in range(tam_eje_vertical):
             for j in range(tam_eje_horizontal):
                 data_to_plot[i][j] = weights_map[(i,j)][k]
-        
+
+        if(slider_value != 0 and session_data.get_freq_hitrate_mask() is not None):
+            data_to_plot = ma.masked_array(data_to_plot, mask=session_data.get_freq_hitrate_mask() ).filled(np.nan)
+            
         id ='graph-{}'.format(k)
         figure,_ = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations,
                                              title = nombres_atributos[k], log_scale = log_scale)

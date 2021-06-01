@@ -165,8 +165,8 @@ def get_mapafrecuencias_som_card():
                             html.H6( dbc.Badge( '0',  pill=True, color="warning", className="mr-1",id ='badge_min_hits_slider_som')   ),
                         ]
                     ),            
-                    
                     dcc.Slider(id='min_hits_slider_som', min=0,max=0,value=0,step =1 ),
+                    
                     dbc.Button("Plot Freq. Map", id="frequency_map_button", className="mr-2", color="primary") ],
                     style={'textAlign': 'center'}
                 )
@@ -923,9 +923,7 @@ def update_mapa_componentes_fig(n_cliks,slider_value,names,check_annotations, lo
 
             if(slider_value != 0 and session_data.get_freq_hitrate_mask() is not None):
                 cplan = ma.masked_array(cplan, mask=session_data.get_freq_hitrate_mask() )
-                zz_list = cplan.filled(np.nan).ravel() #error in colorscale
-                #zz_list = cplan.filled(-999).ravel()
-                #zz_list   = [i if  else np.nan for i in zz_list] #CAMBIAR CONDICION PQ LOS CPLANS SIII PUEDEN SER NEGATIVOS OHOO
+                zz_list = cplan.filled(np.nan).ravel() 
             else:
                 zz_list = cplan.ravel()
             figure,_ = pu.create_hexagonal_figure(xx_list,yy_list, zz_list, hovertext= True, title = nombres_atributos[i],
