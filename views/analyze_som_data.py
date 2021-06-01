@@ -816,7 +816,7 @@ def update_mapa_frecuencias_fig(click, check_annotations ,log_scale ,slider_valu
         #frequencies_list = frequencies.tolist()
 
     else:#load last calculated map
-        frequencies,_ = session_data.get_calculated_freq_map()
+        frequencies,_, _ = pre_calc_freq
   
 
     max_freq = np.nanmax(frequencies)

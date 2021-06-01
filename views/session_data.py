@@ -423,8 +423,8 @@ class Sesion():
     
 
 
-    def set_calculated_freq_map(self, freq_map, dataset_portion_option):
-        self.calculated_freq_map = (freq_map,dataset_portion_option)
+    def set_calculated_freq_map(self, freq_map, dataset_portion_option,ghsom_node_coords = None):
+        self.calculated_freq_map = (freq_map,dataset_portion_option, ghsom_node_coords)
 
     def get_calculated_freq_map(self):
         return self.calculated_freq_map 

@@ -881,3 +881,11 @@ def get_cmap_from_plotly_scale(plotly_scale):
 #CSS STYLES
 def get_css_style_inline_flex():
     return {'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+
+
+#{'textAlign': 'center'}
+'''
+{'margin': '0 auto','width': '100%', 'display': 'flex',
+                                                    'align-items': 'center', 'justify-content': 'center',
+                                                   'flex-wrap': 'wrap', 'flex-direction': 'column ' } 
+'''

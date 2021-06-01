@@ -688,7 +688,7 @@ def update_freq_map_gsom(click,logscale,slider_value, data_portion_option):
         session_data.set_calculated_freq_map(data_to_plot,data_portion_option )
 
     else:#load last calculated map
-        data_to_plot,_ = session_data.get_calculated_freq_map()
+        data_to_plot,_, _ = pre_calc_freq
 
     max_freq = np.nanmax(data_to_plot)
     if(max_freq > 0):

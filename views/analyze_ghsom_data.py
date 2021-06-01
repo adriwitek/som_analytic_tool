@@ -11,11 +11,12 @@ from math import ceil
 import numpy as np
 from collections import Counter
 from datetime import datetime
+import numpy.ma as ma
 
 import plotly.graph_objects as go
 
 from  views.session_data import session_data
-from  config.config import DEFAULT_HEATMAP_PX_HEIGHT, DEFAULT_HEATMAP_PX_WIDTH,DEFAULT_HEATMAP_COLORSCALE, DIR_SAVED_MODELS,UMATRIX_HEATMAP_COLORSCALE
+from  config.config import DIR_SAVED_MODELS,UMATRIX_HEATMAP_COLORSCALE
 import pickle
 
 from  os.path import normpath 
@@ -138,15 +139,17 @@ def get_winnersmap_card_ghsom():
 def get_freqmap_card_ghsom():
     return  dbc.CardBody(children=[ 
 
-                         html.Div(id = 'grafo_ghsom_freq',children = '',
-                                style=pu.get_css_style_inline_flex()
+                        html.Div(children = [
+                                html.Div(id = 'grafo_ghsom_freq',children = '',
+                                        style={'textAlign': 'center'}
+                                ),
+
+                                html.Div(id = 'div_freq_map_ghsom',children=None
+                                        #,style={'margin': '0 auto','width': '100%', 'display': 'flex','align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap', 'flex-direction': 'column ' } 
+                                ),
+                            ],style = pu.get_css_style_inline_flex()
                         ),
 
-                        html.Div(id = 'div_freq_map_ghsom',children=None,
-                                style={'margin': '0 auto','width': '100%', 'display': 'flex',
-                                                    'align-items': 'center', 'justify-content': 'center',
-                                                   'flex-wrap': 'wrap', 'flex-direction': 'column ' } 
-                        ),
 
                         html.Div(children = [ 
                             dbc.FormGroup(
@@ -163,7 +166,15 @@ def get_freqmap_card_ghsom():
                                 ],
                                 style={'textAlign': 'center'}
                             )
-                        ])
+                        ]),
+
+                        html.Div(style=pu.get_css_style_inline_flex(),
+                            children = [
+                                html.H6( dbc.Badge( 'Minimum hits to plot a neuron   ' ,  pill=True, color="light", className="mr-1")   ),
+                                html.H6( dbc.Badge( '0',  pill=True, color="warning", className="mr-1",id ='badge_min_hits_slider_ghsom')   ),
+                            ]
+                        ),            
+                        dcc.Slider(id='min_hits_slider_ghsom', min=0,max=0,value=0,step =1 ),
             ])
           
 
@@ -204,9 +215,10 @@ def get_componentplans_card_ghsom():
                                 id='collapse_cplan_ghsom',
                                 is_open=False,
                                 children=[
-                                    html.Div(id = 'grafo_ghsom_cplans',children = '',
-                                        style=pu.get_css_style_inline_flex()
-                                    ),
+
+                                    #html.Div(id = 'grafo_ghsom_cplans',children = '',
+                                    #    style=pu.get_css_style_inline_flex()
+                                    #),
 
                                     html.Div(id='component_plans_figures_ghsom_div', children=[''],
                                             style= pu.get_single_heatmap_css_style()
@@ -238,7 +250,13 @@ def get_componentplans_card_ghsom():
 
             ])
                     
-         
+# Card freq + cplans
+def get_freq_and_cplans_cards_ghsom():
+    children = []
+    children.append(get_freqmap_card_ghsom())
+    children.append(html.Hr())
+    children.append(get_componentplans_card_ghsom())
+    return html.Div(children)
 
 
 #Card UMatrix
@@ -323,8 +341,9 @@ def analyze_ghsom_data():
                     dbc.Tab(get_select_splitted_option_card(),label = 'Select Dataset Splitted Part',tab_id='splitted_part',disabled= (not session_data.data_splitted )),
                     dbc.Tab(get_statistics_card_ghsom() ,label = 'Statistics',tab_id='statistics_card'),
                     dbc.Tab( get_winnersmap_card_ghsom() ,label = 'Winners Map',tab_id='winners_card'),
-                    dbc.Tab( get_freqmap_card_ghsom() ,label = 'Freq. Map',tab_id='freq_card'),
-                    dbc.Tab( get_componentplans_card_ghsom() ,label = 'Component Plans',tab_id='componentplans_card'),
+                    #dbc.Tab( get_freqmap_card_ghsom() ,label = 'Freq. Map',tab_id='freq_card'),
+                    #dbc.Tab( get_componentplans_card_ghsom() ,label = 'Component Plans',tab_id='componentplans_card'),
+                    dbc.Tab( get_freq_and_cplans_cards_ghsom(), label=' Freq. Map + Component Plans',tab_id='freq_and_cplans_ghsom'),
                     dbc.Tab( get_umatrix_card_ghsom() ,label = 'U Matrix',tab_id='umatrix_card'),
                     dbc.Tab( get_savemodel_card_ghsom() ,label = 'Save Model',tab_id='save_model_card'),
                     
@@ -612,7 +631,7 @@ def toggle_winners_som(info_table,target_value):
             State('dataset_portion_radio_analyze_ghsom','value'),
             #prevent_initial_call=True 
 )  
-def toggle_select_logscale_gsom(target_value, option):
+def toggle_select_logscale_ghsom(target_value, option):
 
     if(target_value is None or not target_value):
         return False,0
@@ -631,7 +650,7 @@ def toggle_select_logscale_gsom(target_value, option):
 @app.callback(
     Output('grafo_ghsom_estadisticas','children'),
     Output('grafo_ghsom_winners','children'),
-    Output('grafo_ghsom_cplans','children'),
+    #Output('grafo_ghsom_cplans','children'),
     Output('grafo_ghsom_umatrix','children'),
     Output('grafo_ghsom_freq','children'),
     #Input('tabs_ghsom', 'children'), #udpate on load
@@ -664,10 +683,13 @@ def load_graph_ghsom(tabs, option,target_selection,div_f):
         div_1 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_1')
         div_2 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_2')
         div_3 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_3')
-        div_4 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_4')
+        #div_4 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_4')
         print('\tLoading Complete.', flush=True)
 
-        return div_0, div_1, div_2, div_3, div_4
+        #return div_0, div_1, div_2, div_3, div_2
+        return div_0, div_1, div_3, div_2
+
+        
 
 
 
@@ -802,9 +824,6 @@ def view_winner_map_by_selected_point(clickdata, check_annotations,logscale, fig
 
 
 
-
-
-
     target_type,unique_targets = session_data.get_selected_target_type(data_portion_option)
     values=None 
     text = None
@@ -882,25 +901,40 @@ def view_winner_map_by_selected_point(clickdata, check_annotations,logscale, fig
 
 
 
+#update_selected_min_hit_rate_badge_ghsom
+@app.callback(  Output('badge_min_hits_slider_ghsom','children'),
+                Input('min_hits_slider_ghsom','value'),
+                prevent_initial_call=True 
+)
+def update_selected_min_hit_rate_badge_ghsom(value):
+    return int(value)
 
 
 
 
 #Frequency map
-@app.callback(Output('div_freq_map_ghsom','children'),
-              Output('dcc_ghsom_graph_4','figure'),
-              Input('dcc_ghsom_graph_4','clickData'),
-              Input('radioscale_freq_ghsom','value'),
-              State('dcc_ghsom_graph_4','figure'),
-              prevent_initial_call=True 
-              )
-def update_freq_map_ghsom(clickdata,logscale, figure):
+@app.callback(  Output('div_freq_map_ghsom','children'),
+                #Output('dcc_ghsom_graph_4','figure'),
+                Output('dcc_ghsom_graph_2','figure'),
+                Output('min_hits_slider_ghsom','max'),
+                Output('min_hits_slider_ghsom','marks'),
+                Output('min_hits_slider_ghsom','value'),
+                #Input('dcc_ghsom_graph_4','clickData'),
+                Input('dcc_ghsom_graph_2','clickData'),
+                Input('radioscale_freq_ghsom','value'),
+                Input('min_hits_slider_ghsom','value'),
+                #State('dcc_ghsom_graph_4','figure'),
+                State('dcc_ghsom_graph_2','figure'),
+                State('dataset_portion_radio_analyze_ghsom','value'),
+                prevent_initial_call=True 
+)
+def update_freq_map_ghsom(clickdata, logscale, slider_value, figure, data_portion_option ):
 
 
     if clickdata is  None:
         raise PreventUpdate
 
-  
+    slider_update = dash.no_update
     points = clickdata['points']
     punto_clickeado = points[0]
     cord_horizontal_punto_clickeado = punto_clickeado['x']
@@ -925,26 +959,62 @@ def update_freq_map_ghsom(clickdata,logscale, figure):
        
     #Mapa Freq  del gsom seleccionado en el grafo
     nodes_dict = session_data.get_ghsom_nodes_by_coord_dict()
-    gsom = nodes_dict[(cord_vertical_punto_clickeado,cord_horizontal_punto_clickeado)]
+    coords_nodes_dict = (cord_vertical_punto_clickeado,cord_horizontal_punto_clickeado)
+    gsom = nodes_dict[coords_nodes_dict]
     tam_eje_vertical,tam_eje_horizontal=  gsom.map_shape()
+    pre_calc_freq = session_data.get_calculated_freq_map()
 
-    g = session_data.get_ghsom_structure_graph()
-    neurons_mapped_targets = g.nodes[gsom]['neurons_mapped_targets']
-    data_to_plot = np.zeros([tam_eje_vertical ,tam_eje_horizontal],dtype=int)
+    if( pre_calc_freq is None or (pre_calc_freq is not None and 
+            (pre_calc_freq[1] != data_portion_option) or
+            (pre_calc_freq[2] != coords_nodes_dict )
+            ) ): #recalculate freq map
+        
+        g = session_data.get_ghsom_structure_graph()
+        neurons_mapped_targets = g.nodes[gsom]['neurons_mapped_targets']
+        data_to_plot = np.zeros([tam_eje_vertical ,tam_eje_horizontal],dtype=int)
+    
+        for i in range(tam_eje_vertical):
+            for j in range(tam_eje_horizontal):
+                if((i,j) in neurons_mapped_targets):
+                    c = len(neurons_mapped_targets[(i,j)])
+                    data_to_plot[i][j] = c
+                else:
+                    data_to_plot[i][j] = 0
 
-    for i in range(tam_eje_vertical):
-        for j in range(tam_eje_horizontal):
-            if((i,j) in neurons_mapped_targets):
-                c = len(neurons_mapped_targets[(i,j)])
-                data_to_plot[i][j] = c
-            else:
-                data_to_plot[i][j] = 0
+
+        session_data.set_calculated_freq_map(data_to_plot,data_portion_option,
+                         coords_nodes_dict )
+
+        slider_update = 0
+
+    else:#load last calculated map
+        data_to_plot,_,_ = pre_calc_freq
+
+    
+    max_freq = np.nanmax(data_to_plot)
+    if(max_freq > 0):
+        marks={
+            0: '0 hits',
+            int(max_freq): '{} hits'.format(int(max_freq))
+        }
+    else:
+        marks = dash.no_update
+
+    ctx = dash.callback_context
+    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+
+    if(slider_value != 0 and trigger_id == 'min_hits_slider_ghsom'):#filter minimum hit rate per neuron
+        #frequencies = np.where(frequencies< slider_value,np.nan,frequencies)
+        data_to_plot = ma.masked_less(data_to_plot, slider_value)
+        session_data.set_freq_hitrate_mask(ma.getmask(data_to_plot))
+    else:
+        session_data.set_freq_hitrate_mask(None)
 
 
     fig,_ = pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,True, title = None, log_scale = logscale)
     children = pu.get_fig_div_with_info(fig,'freq_map_ghsom', 'Frequency Map',tam_eje_horizontal, tam_eje_vertical)
 
-    return children,figure
+    return children,figure,  max_freq,marks, slider_update
 
 
 
@@ -984,20 +1054,24 @@ def on_form_change(check):
 
 
 #Actualizar mapas de componentes
-@app.callback(Output('component_plans_figures_ghsom_div','children'),
-              Output('dcc_ghsom_graph_2','figure'),
-              Input('dcc_ghsom_graph_2','clickData'),
-              Input('check_annotations_comp_ghsom','value'),
-              Input('radioscale_cplans_ghsom','value'),
-              State('dcc_ghsom_graph_2','figure'),
-              State('dropdown_atrib_names_ghsom','value'),
-              prevent_initial_call=True 
-              )
-def update_mapa_componentes_ghsom_fig(clickdata,check_annotations,log_scale,fig_grafo,names):
+@app.callback(  Output('component_plans_figures_ghsom_div','children'),
+                #Output('dcc_ghsom_graph_2','figure'),
+                Input('div_freq_map_ghsom','children'),
+                Input('check_annotations_comp_ghsom','value'),
+                Input('radioscale_cplans_ghsom','value'),
+                Input('min_hits_slider_ghsom','value'),
+                Input('dropdown_atrib_names_ghsom','value'),
+                State('dcc_ghsom_graph_2','figure'),
+                State('dcc_ghsom_graph_2','clickData'),
+                prevent_initial_call=True 
+)
+def update_mapa_componentes_ghsom_fig(input_freq_map,check_annotations,log_scale,slider_value,
+                                        names, fig_grafo, clickdata ):
 
 
     if(clickdata is None or names is None or len(names) == 0):
         raise PreventUpdate
+
 
     #{'points': [{'curveNumber': 0, 'x': 0, 'y': 0, 'z': 0}]}
     points = clickdata['points']
@@ -1046,6 +1120,9 @@ def update_mapa_componentes_ghsom_fig(clickdata,check_annotations,log_scale,fig_
                 data_to_plot[i][j] = weights_map[(i,j)][k]
         
 
+        if(slider_value != 0 and session_data.get_freq_hitrate_mask() is not None):
+            data_to_plot = ma.masked_array(data_to_plot, mask=session_data.get_freq_hitrate_mask() ).filled(np.nan)
+
         figure,_ =  pu.create_heatmap_figure(data_to_plot,tam_eje_horizontal,tam_eje_vertical,check_annotations, 
                                                 title = nombres_atributos[k],log_scale = log_scale)
         id ='graph-{}'.format(k)
@@ -1055,7 +1132,9 @@ def update_mapa_componentes_ghsom_fig(clickdata,check_annotations,log_scale,fig_
         )
 
 
-    return traces, fig_grafo
+    #return traces, fig_grafo
+    return traces
+
 
 
 
