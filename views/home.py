@@ -22,6 +22,7 @@ import numpy as np
 from  views.session_data import session_data
 from  config.config import *
 from  config.config import DEFAULT_DATASET_ROWS_PREVIEW
+import views.plot_utils as pu
 
 
 import plotly.graph_objects as go
@@ -52,7 +53,7 @@ def Training_selection():
 
             #elements.navigation_bar,
             html.Div(   id='select_button', 
-                        style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
+                        style=pu.get_css_style_inline_flex(),
                         children=[
                             dbc.Button("Train New Model", id="train_new_model_button", className="mr-2", color="primary", outline=True ),
                             dbc.Button("Load Pre-Trained Model", id="load_saved_model_button", className="mr-2", color="primary", outline=True  )
@@ -327,7 +328,7 @@ def get_app_saved_models():
  
 def div_info_loaded_file(filename,fecha_modificacion, n_samples, n_features):
     return      html.Div(    id = 'div_info_loaded_file',
-                            style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
+                            style=pu.get_css_style_inline_flex(),
                             children =[
                                 html.H6( dbc.Badge( 'Filename:' ,  pill=True, color="light", className="mr-1")   ),
                                 html.H6( dbc.Badge(filename, pill=True, color="info", className="mr-1")   ),
@@ -352,7 +353,7 @@ def get_split_menu(n_samples):
         html.P('To let 100% of rows be train or test data, It\'s not necessary to split dataset',className="text-secondary",  style={'textAlign': 'center'}  ),
 
         #Train/Test percentage badge
-        html.Div(style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
+        html.Div(style=pu.get_css_style_inline_flex(),
                 children = [
                     html.H6(children='Train percentage  '),
                     html.H6( dbc.Badge( '50 %',  pill=True, color="warning", className="mr-1",id ='badge_info_percentage_train_slider')   ),
@@ -376,7 +377,7 @@ def get_split_menu(n_samples):
 
 
         #Number of samples train/test
-        html.Div(style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
+        html.Div(style=pu.get_css_style_inline_flex(),
                 children = [
                     html.H6(children='Train Samples\t'),
                     dcc.Input(id="train_samples_input", type="number", value=ceil(n_samples/2),step=1,min=0, max = n_samples),
@@ -403,7 +404,7 @@ def get_dataset_size_card(n_samples):
                                 html.Div(children=[
 
                                         #Dataset percentage
-                                        html.Div(style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
+                                        html.Div(style=pu.get_css_style_inline_flex(),
                                                 children = [
                                                     html.H6(children='Dataset percentage\t'),
                                                     html.H6( dbc.Badge( '100 %',  pill=True, color="warning", className="mr-1",id ='badge_info_percentagedataset_slider')   )
@@ -423,7 +424,7 @@ def get_dataset_size_card(n_samples):
                                         ),
 
                                         #Number of samples
-                                        html.Div(style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
+                                        html.Div(style=pu.get_css_style_inline_flex(),
                                                 children = [
                                                     html.H6(children='Number of samples\t'),
                                                     dcc.Input(id="dataset_nsamples_input", type="number", value=n_samples,step=1,min=1, max = n_samples),
@@ -546,7 +547,7 @@ def div_info_dataset( df, n_samples):
                 dbc.Tabs(
                     id='tabs_edit_dataset_home',
                     active_tab='target_size_tab',
-                    style ={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
+                    style =pu.get_css_style_inline_flex(),
                     children=[
                         dbc.Tab(get_dataset_size_card(n_samples), label = 'Dataset Size',tab_id='target_size_tab' ),
                         dbc.Tab(get_select_target_card() ,label = 'Target Selection',tab_id='target_select_tab'),
@@ -1185,7 +1186,7 @@ def enable_load_saved_model_button(filename):
                 dbc.Badge('Model Trained With Features:', pill=True, color="light", className="mr-1"),
 
 
-                html.Div(children= col_names_badges, style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}),
+                html.Div(children= col_names_badges, style=pu.get_css_style_inline_flex()),
                 html.Br(),
                 html.Br()
 

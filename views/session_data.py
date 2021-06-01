@@ -51,14 +51,6 @@ class Sesion():
         #   joined data,only saved if it's used 
         self.joined_train_test_np_data = None
         self.joined_train_test_df_targets = None
-
-
-
-
-        #self.data= None     # numpy array
-        #self.data_std= None # numpy array
-        #self.targets_col =None# numpy array
-
     
 
         #tipo de modelo
@@ -68,6 +60,9 @@ class Sesion():
         self.ghsom_params=None
         self.ghsom_structure_graph = {}
         self.ghsom_nodes_by_coord_dict = {}
+
+        self.calculated_freq_map = None
+        self.freq_hitrate_mask = None
 
         #Progress bar ghsom porcentaje
         self.start_time = 0.0
@@ -120,6 +115,9 @@ class Sesion():
         self.ghsom_structure_graph = {}
         self.ghsom_nodes_by_coord_dict = {}
 
+        self.calculated_freq_map = None
+        self.freq_hitrate_mask = None
+
 
 
     
@@ -149,16 +147,6 @@ class Sesion():
         else:
             return True
 
-
-
-    '''
-    def get_target_np_column(self):
-        #IF target selected
-        if(self.get_target_name() is not None):
-            self.targets_col
-        else:
-            return None
-    '''
 
     
 
@@ -433,6 +421,21 @@ class Sesion():
     def get_discrete_data(self):
         return self.discrete_data
     
+
+
+    def set_calculated_freq_map(self, freq_map, dataset_portion_option):
+        self.calculated_freq_map = (freq_map,dataset_portion_option)
+
+    def get_calculated_freq_map(self):
+        return self.calculated_freq_map 
+
+
+    def set_freq_hitrate_mask(self, mask):
+        self.freq_hitrate_mask = mask
+
+    def get_freq_hitrate_mask(self):
+        return self.freq_hitrate_mask
+
 
     #TODO BORRAR SI NO LA USO
     def get_current_model_type(self):

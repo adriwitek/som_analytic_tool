@@ -331,7 +331,7 @@ def get_fig_div_with_info(fig,fig_id, title,tam_eje_horizontal, tam_eje_vertical
                 dbc.Badge('x', pill=True, color="light", className="mr-1"),
                 dbc.Badge(tam_eje_vertical, pill=True, color="info", className="mr-1"),
                 dbc.Badge('neurons.', pill=True, color="light", className="mr-1")
-            ], style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'})
+            ], style=get_css_style_inline_flex())
 
 
 
@@ -356,7 +356,7 @@ def get_fig_div_with_info(fig,fig_id, title,tam_eje_horizontal, tam_eje_vertical
                             dcc.Graph(id=fig_id,figure=fig),
                             table_legend
 
-                        ], style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+                        ], style=get_css_style_inline_flex()
                     )
 
         children =[ div_inf_grid, div_mapa  ]
@@ -867,3 +867,12 @@ def get_cmap_from_plotly_scale(plotly_scale):
     }
 
     return d[plotly_scale]
+
+
+
+
+
+
+#CSS STYLES
+def get_css_style_inline_flex():
+    return {'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}

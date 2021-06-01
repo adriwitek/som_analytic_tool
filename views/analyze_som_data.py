@@ -10,6 +10,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from math import ceil
 import numpy as np
+import numpy.ma as ma
 
 
 from  views.session_data import session_data
@@ -158,7 +159,15 @@ def get_mapafrecuencias_som_card():
                         ]
                     ),
                                 
-                    dbc.Button("Plot", id="frequency_map_button", className="mr-2", color="primary") ],
+                    html.Div(style=pu.get_css_style_inline_flex(),
+                        children = [
+                            html.H6( dbc.Badge( 'Minimum hits to plot a neuron   ' ,  pill=True, color="light", className="mr-1")   ),
+                            html.H6( dbc.Badge( '0',  pill=True, color="warning", className="mr-1",id ='badge_min_hits_slider_som')   ),
+                        ]
+                    ),            
+                    
+                    dcc.Slider(id='min_hits_slider_som', min=0,max=0,value=0,step =1 ),
+                    dbc.Button("Plot Freq. Map", id="frequency_map_button", className="mr-2", color="primary") ],
                     style={'textAlign': 'center'}
                 )
                 
@@ -206,10 +215,19 @@ def get_componentplans_som_card():
                             style={'textAlign': 'center'}
                         ),
                         html.Div(id='component_plans_figures_div', children=[''],
-                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+                                style=pu.get_css_style_inline_flex()
                         )
 
                 ])
+
+# Card freq + cplans
+def get_freq_and_cplans_cards():
+    children = []
+    children.append(get_mapafrecuencias_som_card())
+    children.append(html.Hr())
+    children.append(get_componentplans_som_card())
+    return html.Div(children)
+
 
 
 
@@ -316,13 +334,14 @@ def analyze_som_data():
         dbc.Tabs(
             id='tabs_som',
             active_tab='winners_map_som',
-            style ={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
+            style =pu.get_css_style_inline_flex(),
             children=[
                 dbc.Tab(get_select_splitted_option_card(),label = 'Select Dataset Splitted Part',tab_id='splitted_part',disabled= (not session_data.data_splitted )),
                 dbc.Tab(get_estadisticas_som_card(),label = 'Statistics',tab_id='statistics_som' ),
                 dbc.Tab(get_mapaneuronasganadoras_som_card(),label = 'Winners Target Map',tab_id='winners_map_som'),
-                dbc.Tab( get_mapafrecuencias_som_card() ,label = 'Freq',tab_id='freq_som'),
-                dbc.Tab( get_componentplans_som_card(), label='Component Plans',tab_id='components_plans_som'),
+                #dbc.Tab( get_mapafrecuencias_som_card() ,label = 'Freq',tab_id='freq_som'),
+                #dbc.Tab( get_componentplans_som_card(), label='Component Plans',tab_id='components_plans_som'),
+                dbc.Tab( get_freq_and_cplans_cards(), label=' Freq. Map + Component Plans',tab_id='freq_and_cplans_som'),
                 dbc.Tab(get_umatrix_som_card()  , label='U-Matrix',tab_id='umatrix_som'),
                 dbc.Tab(get_savemodel_som_card() ,label = 'Save Model',tab_id='save_model_som'),
             ]
@@ -649,7 +668,6 @@ def update_som_fig(n_clicks, check_annotations ,logscale, data_portion_option):
             log_scale = logscale
 
             for position in labels_map.keys():
-                    #print('Hit POSICION:',position)
 
                     label_fracs = labels_map[position]
                     #denom = sum(label_fracs.values())
@@ -759,15 +777,27 @@ def annotate_freq_map_som(check_annotations, fig,n_clicks):
 '''
 
 
+#update_selected_min_hit_rate_badge_som
+@app.callback(  Output('badge_min_hits_slider_som','children'),
+                Input('min_hits_slider_som','value'),
+                prevent_initial_call=True 
+)
+def update_selected_min_hit_rate_badge_som(value):
+    return int(value)
+
+
 #Actualizar mapas de frecuencias
 @app.callback(  Output('div_frequency_map','children'),
+                Output('min_hits_slider_som','max'),
+                Output('min_hits_slider_som','marks'),
                 Input('frequency_map_button','n_clicks'),
                 Input('check_annotations_freq', 'value'),
                 Input('radioscale_freq_som','value'),
+                Input('min_hits_slider_som','value'),
                 State('dataset_portion_radio_analyze_som','value'),
                 prevent_initial_call=True 
 )
-def update_mapa_frecuencias_fig(click, check_annotations ,log_scale , data_portion_option):
+def update_mapa_frecuencias_fig(click, check_annotations ,log_scale ,slider_value, data_portion_option):
 
 
     som = session_data.get_modelo() 
@@ -777,10 +807,34 @@ def update_mapa_frecuencias_fig(click, check_annotations ,log_scale , data_porti
     params = session_data.get_som_model_info_dict()
     tam_eje_horizontal = params['tam_eje_horizontal'] 
     tam_eje_vertical = params['tam_eje_vertical']
+    pre_calc_freq = session_data.get_calculated_freq_map()
 
-    frequencies = som.activation_response(model_data)
-    #frequencies_list = frequencies.tolist()
-    params = session_data.get_som_model_info_dict()
+
+    if( pre_calc_freq is None or (pre_calc_freq is not None and pre_calc_freq[1] != data_portion_option) ): #recalculate freq map
+        frequencies = som.activation_response(model_data)
+        session_data.set_calculated_freq_map(frequencies,data_portion_option )
+        #frequencies_list = frequencies.tolist()
+
+    else:#load last calculated map
+        frequencies,_ = session_data.get_calculated_freq_map()
+  
+
+    max_freq = np.nanmax(frequencies)
+    if(max_freq > 0):
+        marks={
+            0: '0 hits',
+            int(max_freq): '{} hits'.format(int(max_freq))
+        }
+    else:
+        marks = dash.no_update
+
+    if(slider_value != 0):#filter minimum hit rate per neuron
+        #frequencies = np.where(frequencies< slider_value,np.nan,frequencies)
+        frequencies = ma.masked_less(frequencies, slider_value)
+        session_data.set_freq_hitrate_mask(ma.getmask(frequencies))
+    else:
+        session_data.set_freq_hitrate_mask(None)
+
 
 
     if(params['topology']== 'rectangular'):    #RECTANGULAR TOPOLOGY 
@@ -799,19 +853,28 @@ def update_mapa_frecuencias_fig(click, check_annotations ,log_scale , data_porti
 
     children= pu.get_fig_div_with_info(figure,'frequency_map','Frequency Map',tam_eje_horizontal, tam_eje_vertical)
 
-    return children
+
+    return children, max_freq,marks
   
 
 
 #Actualizar mapas de componentes
 @app.callback(Output('component_plans_figures_div','children'),
               Input('ver_mapas_componentes_button','n_clicks'),
+              Input('min_hits_slider_som','value'),
               State('dropdown_atrib_names','value'),
               State('check_annotations_comp', 'value'),
               State('radioscale_cplans_som','value'),
               prevent_initial_call=True 
               )
-def update_mapa_componentes_fig(click,names,check_annotations, log_scale):
+def update_mapa_componentes_fig(n_cliks,slider_value,names,check_annotations, log_scale):
+
+    ctx = dash.callback_context
+    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if(n_cliks == 0 and trigger_id == 'min_hits_slider_som' ):
+        raise PreventUpdate
+    elif(trigger_id == 'min_hits_slider_som' and ( names is None or  len(names)==0)):
+        return dash.no_update
 
     som = session_data.get_modelo()
     params = session_data.get_som_model_info_dict()
@@ -833,7 +896,11 @@ def update_mapa_componentes_fig(click,names,check_annotations, log_scale):
     
         for i in lista_de_indices:
             #pesos[:,:,i].tolist()
-            figure,_ = pu.create_heatmap_figure(pesos[:,:,i] ,tam_eje_horizontal,tam_eje_vertical,check_annotations,
+            cplan = pesos[:,:,i]
+            if(slider_value != 0 and session_data.get_freq_hitrate_mask() is not None):
+                cplan = ma.masked_array(cplan, mask=session_data.get_freq_hitrate_mask() )
+
+            figure,_ = pu.create_heatmap_figure(cplan ,tam_eje_horizontal,tam_eje_vertical,check_annotations,
                                                  title = nombres_atributos[i], log_scale = log_scale)
             id ='graph-{}'.format(i)
             traces.append(html.Div(children= dcc.Graph(id=id,figure=figure)) )
@@ -845,7 +912,12 @@ def update_mapa_componentes_fig(click,names,check_annotations, log_scale):
         yy_list = yy.ravel()
 
         for i in lista_de_indices:
-            zz_list = pesos[:,:,i].ravel()
+            cplan = pesos[:,:,i]
+
+            if(slider_value != 0 and session_data.get_freq_hitrate_mask() is not None):
+                cplan = ma.masked_array(cplan, mask=session_data.get_freq_hitrate_mask() )
+
+            zz_list = cplan.ravel()
             figure,_ = pu.create_hexagonal_figure(xx_list,yy_list, zz_list, hovertext= True, title = nombres_atributos[i],
                                                  check_annotations= check_annotations, log_scale = log_scale)
             id ='graph-{}'.format(i)

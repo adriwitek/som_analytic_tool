@@ -290,7 +290,7 @@ def get_componentplans_card_gsom():
                         style={'textAlign': 'center'}
                     ),
                     html.Div(id='component_plans_figures_gsom_div', children=[''],
-                            style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+                            style=pu.get_css_style_inline_flex()
                     )
                     
             ])
@@ -371,7 +371,7 @@ def analyze_gsom_data():
             dbc.Tabs(
                 id='tabs_gsom',
                 active_tab='statistics',
-                style ={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
+                style =pu.get_css_style_inline_flex(),
                 children=[
                     dbc.Tab(get_select_splitted_option_card(),label = 'Select Dataset Splitted Part',tab_id='splitted_part',disabled= (not session_data.data_splitted )),
                     dbc.Tab( get_statistics_card_gsom() ,label = 'Statistics',tab_id='statistics'),

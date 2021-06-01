@@ -38,7 +38,7 @@ def get_statistics_card_ghsom():
     return  dbc.CardBody(children=[ 
 
                         html.Div(id = 'grafo_ghsom_estadisticas',children = '',
-                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+                                style=pu.get_css_style_inline_flex()
                         ),
                         html.Div( id='div_estadisticas_ghsom',children = '', style={'textAlign': 'center'}) 
             ])
@@ -92,7 +92,7 @@ def get_winnersmap_card_ghsom():
                             children=[
 
                                 html.Div(id = 'grafo_ghsom_winners',children = '',
-                                        style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+                                        style=pu.get_css_style_inline_flex()
                                 ),
         
                                 html.Div(   id = 'winners_map_ghsom',children = '',
@@ -139,7 +139,7 @@ def get_freqmap_card_ghsom():
     return  dbc.CardBody(children=[ 
 
                          html.Div(id = 'grafo_ghsom_freq',children = '',
-                                style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+                                style=pu.get_css_style_inline_flex()
                         ),
 
                         html.Div(id = 'div_freq_map_ghsom',children=None,
@@ -205,7 +205,7 @@ def get_componentplans_card_ghsom():
                                 is_open=False,
                                 children=[
                                     html.Div(id = 'grafo_ghsom_cplans',children = '',
-                                        style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+                                        style=pu.get_css_style_inline_flex()
                                     ),
 
                                     html.Div(id='component_plans_figures_ghsom_div', children=[''],
@@ -246,7 +246,7 @@ def get_umatrix_card_ghsom():
        
     return dbc.CardBody(children=[
             html.Div(id = 'grafo_ghsom_umatrix',children = '',
-                    style={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+                    style=pu.get_css_style_inline_flex()
             ),
             
             html.Div(id = 'umatrix_div_fig_ghsom',children = '',
@@ -318,7 +318,7 @@ def analyze_ghsom_data():
         dbc.Tabs(
                 id='tabs_ghsom',
                 active_tab='',
-                style ={'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'},
+                style =pu.get_css_style_inline_flex(),
                 children=[
                     dbc.Tab(get_select_splitted_option_card(),label = 'Select Dataset Splitted Part',tab_id='splitted_part',disabled= (not session_data.data_splitted )),
                     dbc.Tab(get_statistics_card_ghsom() ,label = 'Statistics',tab_id='statistics_card'),
