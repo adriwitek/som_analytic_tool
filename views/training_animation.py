@@ -9,6 +9,8 @@ from dash.exceptions import PreventUpdate
 import  views.elements as elements
 from  views.session_data import session_data
 from math import trunc
+import views.plot_utils as pu
+import plotly.graph_objects as go
 
 import time
 
@@ -17,6 +19,28 @@ import time
 #############################################################
 #	                       LAYOUT	                        #
 #############################################################
+
+
+#Card QE evolution Plot
+def get_plot_qe_evolution():
+    
+    if(session_data.get_show_error_evolution() ):
+        fig = pu.create_qe_progress_figure([],[], session_data.get_total_iterations() )
+        open = True
+
+    else:
+        fig = {}
+        open = False
+
+    children = [
+                    #html.H3('Map qe Error Evolution'),
+                    dcc.Graph(id='qe_evolution_figure',figure=fig) 
+    ]
+    collapse = dbc.Collapse(id='collapse_plot_qe_evolution',children = children, is_open = open)
+
+    return collapse
+    
+
 
 
 def Training_animation(): 
@@ -37,13 +61,13 @@ def Training_animation():
 
                     # Modelos guardados en la app
                     dbc.ListGroupItem([
-                        html.H4('Training...', id = 'status_string', className="card-title" , style={'textAlign': 'center'} ),
+                        html.H4('Training...', id = 'status_string', className="card-title" , style= pu.get_css_style_center()),
                         html.Div(children =dbc.Badge("Elapsed Time:", id ='badge_t_transcurrido', color="warning", className="mr-1"),
                                 style={'textAlign': 'center'}  
                         ),
                         html.P(id='timer_training',children="00 h 00 m 00 s", className="text-muted",  style= {'font-family': 'Courier New',  'font-size':'2vw', 'textAlign': 'center' }),
 
-
+                        html.Div(children =get_plot_qe_evolution(), style= {'textAlign': 'center' } ),
 
                         dcc.Interval(id="progress_interval", n_intervals=0, interval=1000, disabled = False),
                         dbc.Progress(id="progressbar" ,value = 0),
@@ -53,12 +77,7 @@ def Training_animation():
                             [dbc.Button("Analyze Model", id="analyze_model_button",href='',disabled= True, className="mr-2", color="primary")],
                             style={'textAlign': 'center'}
                         ),
-                       
 
-
-
-
-                
                     ]),
                 ],flush=True,),
 
@@ -103,3 +122,16 @@ def update_progress(n):
         return progress, f"{round(progress,2)} %" if progress >= 5 else "",False, True,'', t_formatedo, 'Training...','warning'
 
 
+@app.callback(  Output("qe_evolution_figure", "figure"), 
+                Output("collapse_plot_qe_evolution", "is_open"), 
+                Input("progress_interval", "n_intervals"),
+)
+def update_error_evolution(figure):
+    cond = session_data.get_show_error_evolution()
+    if(cond):
+        x, y = session_data.get_error_evolution()
+        fig = pu.create_qe_progress_figure(x ,y , session_data.get_total_iterations() )
+        return fig,True
+    else:
+        return {},False
+    #return dcc.Graph(id='qe_evolution_figure',figure=fig) 

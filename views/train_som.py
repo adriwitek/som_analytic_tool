@@ -16,6 +16,9 @@ from math import sqrt,ceil
 from  views.session_data import session_data
 from  config.config import *
 import time
+import views.plot_utils as pu
+import math
+
 
 def train_som_view():
 
@@ -100,7 +103,7 @@ def train_som_view():
                                 dcc.Dropdown(
                                     id='dropdown_inicializacion_pesos',
                                     options=[
-                                        {'label': 'PCA: Análisis de Componentes Principales ', 'value': 'pca'},
+                                        {'label': 'PCA: Principal Component Analysis ', 'value': 'pca'},
                                         {'label': 'Random', 'value': 'random'},
                                         {'label': 'No Weight Initialization ', 'value': 'no_init'}
                                     ],
@@ -110,20 +113,48 @@ def train_som_view():
                                 ),
 
 
-                                    html.H5(children='Seed'),
-                                    html.Div( 
-                                            [dbc.Checklist(
-                                                options=[{"label": "Select Seed", "value": 1}],
-                                                value=[],
-                                                id="check_semilla_som")]
-                                    ),
-                                    html.Div( id= 'div_semilla_som',
-                                                children = [dcc.Input(id="seed_som", type="number", value="0",step=1,min=0, max=(2**32 - 1))],
-                                                style={ "visibility": "hidden",'display':'none'}
-                                    ),   
+                                html.H5(children='Seed'),
+                                html.Div( 
+                                        [dbc.Checklist(
+                                            options=[{"label": "Select Seed", "value": 1}],
+                                            value=[],
+                                            switch=True,
+                                            id="check_semilla_som")]
+                                ),
+                                html.Div( id= 'div_semilla_som',
+                                            children = [dcc.Input(id="seed_som", type="number", value="0",step=1,min=0, max=(2**32 - 1))],
+                                            style= pu.get_css_style_hidden_visibility()
+                                ),   
 
 
                                 html.Hr(),
+                                html.H5(children='Show Map qe Error evolution while training'),
+                                html.Div( 
+                                        [dbc.Checklist(
+                                            options=[{"label": "Plot Evolution", "value": 1}],
+                                            value=[],
+                                            switch=True,
+                                            id="check_qe_evolution_som")
+                                        ]
+                                ),
+
+                                dbc.Collapse(   id = 'collapse_qe_evolution_som',
+                                                is_open= False,
+                                                children = [
+                                                    dbc.Label(children='Plot evolution every  '),
+                                                    dcc.Input(  id="input_qe_evolution_som", type="number",
+                                                                #value= math.ceil(0.1 * session_data.get_train_data_n_samples()),
+                                                                value= 100,
+                                                                step=1,min=1,
+                                                                max = session_data.get_train_data_n_samples()-1),
+                                                    dbc.Label(children='   iterations'),
+                                                ],
+                                                style =pu.get_css_style_inline_flex_no_display()
+                                ),
+
+
+                                html.Hr(),
+
 
                                 html.Div(children=[
                                     dbc.Button("Train", id="train_button_som",href=URLS['TRAINING_MODEL'],disabled= True, className="mr-2", color="primary")]
@@ -168,24 +199,40 @@ def select_seed(check):
         return { "visibility": "hidden",'display':'none'}
 
 
+# Checklist select plot qe evolution
+@app.callback(
+    Output('collapse_qe_evolution_som','is_open'),
+    Input("check_qe_evolution_som", "value"),
+    prevent_initial_call=True
+    )
+def plot_qe_evolution(check):
+
+    if(check):
+        return True
+    else:
+        return False
+
 
 
 #Habilitar boton train som
-@app.callback(Output('train_button_som','disabled'),
-              Input('tam_eje_vertical', 'value'),
-              Input('tam_eje_horizontal', 'value'),
-              Input('tasa_aprendizaje_som', 'value'),
-              Input('dropdown_vecindad', 'value'),
-              Input('dropdown_topology', 'value'),
-              Input('dropdown_distance', 'value'),
-              Input('sigma', 'value'),
-              Input('iteracciones', 'value'),
-              Input('dropdown_inicializacion_pesos','value'),
-              Input('seed_som','value'),
-              Input("check_semilla_som", "value"),
-            )
+@app.callback(  Output('train_button_som','disabled'),
+                Input('tam_eje_vertical', 'value'),
+                Input('tam_eje_horizontal', 'value'),
+                Input('tasa_aprendizaje_som', 'value'),
+                Input('dropdown_vecindad', 'value'),
+                Input('dropdown_topology', 'value'),
+                Input('dropdown_distance', 'value'),
+                Input('sigma', 'value'),
+                Input('iteracciones', 'value'),
+                Input('dropdown_inicializacion_pesos','value'),
+                Input('seed_som','value'),
+                Input("check_semilla_som", "value"),
+                Input("check_qe_evolution_som", "value"),
+                Input("input_qe_evolution_som", "value")
+)
 def enable_train_som_button(tam_eje_vertical,tam_eje_horizontal,tasa_aprendizaje,vecindad, topology, distance,
-                            sigma,iteracciones,dropdown_inicializacion_pesos,  seed, check_semilla):
+                            sigma,iteracciones,dropdown_inicializacion_pesos,  seed, check_semilla,
+                            check_qe_evolution_som, input_qe_evolution_som):
 
     params  = [tam_eje_vertical,tam_eje_horizontal,tasa_aprendizaje,vecindad, topology, distance,
                                     sigma,iteracciones,dropdown_inicializacion_pesos]
@@ -193,7 +240,9 @@ def enable_train_som_button(tam_eje_vertical,tam_eje_horizontal,tasa_aprendizaje
     if(check_semilla):
         params.append(seed)
 
-    if all(i is not None for i in params):
+    if( all(i is not None for i in params) and 
+            (not check_qe_evolution_som or (check_qe_evolution_som and input_qe_evolution_som is not None) )    ):
+        
         return False
     else:
         return True
@@ -218,21 +267,25 @@ def disable_triangular_with_hextopology(topology,options, valor_vecindad):
     return options,valor_vecindad
 
 
-@app.callback(Output('som_entrenado', 'children'),
-              Input('train_button_som', 'n_clicks'),
-              State('tam_eje_vertical', 'value'),
-              State('tam_eje_horizontal', 'value'),
-              State('tasa_aprendizaje_som', 'value'),
-              State('dropdown_vecindad', 'value'),
-              State('dropdown_topology', 'value'),
-              State('dropdown_distance', 'value'),
-              State('sigma', 'value'),
-              State('iteracciones', 'value'),
-              State('dropdown_inicializacion_pesos','value'),
-              State('seed_som','value'),
-              State("check_semilla_som", "value"),
-              prevent_initial_call=True )
-def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, topology, distance,sigma,iteracciones,pesos_init, semilla, check_semilla):
+@app.callback(  Output('som_entrenado', 'children'),
+                Input('train_button_som', 'n_clicks'),
+                State('tam_eje_vertical', 'value'),
+                State('tam_eje_horizontal', 'value'),
+                State('tasa_aprendizaje_som', 'value'),
+                State('dropdown_vecindad', 'value'),
+                State('dropdown_topology', 'value'),
+                State('dropdown_distance', 'value'),
+                State('sigma', 'value'),
+                State('iteracciones', 'value'),
+                State('dropdown_inicializacion_pesos','value'),
+                State('seed_som','value'),
+                State("check_semilla_som", "value"),
+                State("check_qe_evolution_som", "value"),
+                State("input_qe_evolution_som", "value"),
+                prevent_initial_call=True
+)
+def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, topology, distance,sigma,iteracciones,
+                pesos_init, semilla, check_semilla, check_qe_evolution_som, input_qe_evolution_som):
 
 
     tasa_aprendizaje=float(tasa_aprendizaje)
@@ -266,8 +319,15 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
     elif(pesos_init == 'random'):   
         som.random_weights_init(data)
 
-    print('Training som...')
-    som.train(data, iteracciones, random_order=False, verbose=True)  
+
+    #print('Training som...')
+    if(any(check_qe_evolution_som)):
+        #print('dentrooooo')
+        session_data.set_show_error_evolution(True)
+        som.train(data, iteracciones, random_order=False, verbose=True,plot_qe_at_n_it = input_qe_evolution_som)  
+    else:
+        session_data.set_show_error_evolution(False)
+        som.train(data, iteracciones, random_order=False, verbose=True)  
     session_data.set_modelo(som)                                                   
 
     print('Training Complete!')

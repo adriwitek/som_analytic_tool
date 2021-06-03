@@ -25,7 +25,7 @@ from  config.config import DEFAULT_DATASET_ROWS_PREVIEW
 import views.plot_utils as pu
 
 
-import plotly.graph_objects as go
+#import plotly.graph_objects as go
 
 from os import listdir,makedirs
 from os.path import isfile, join

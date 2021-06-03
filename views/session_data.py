@@ -69,9 +69,15 @@ class Sesion():
         self.progressbar_maxvalue = 100
         self.progressbar_value = 0
 
-        #Porgress bar gsom
+        #Progress bar gsom
         self.gsom_train_condition = - np.inf
         self.pbar_gsom_distancia_maxima = np.inf
+
+        #Progress qe evolution
+        self.show_error_evolution = False
+        self.error_evolution = []
+        self.error_evolution_x_marks= []
+        self.total_iterations = None
 
         return
 
@@ -118,6 +124,11 @@ class Sesion():
         self.calculated_freq_map = None
         self.freq_hitrate_mask = None
 
+        #Progress qe evolution
+        self.show_error_evolution = False
+        self.error_evolution = []
+        self.error_evolution_x_marks= []
+        self.total_iterations = None
 
 
     
@@ -663,5 +674,30 @@ class Sesion():
         return now - self.start_time
 
     
+    def set_show_error_evolution(self,bool):
+        self.show_error_evolution = bool
+
+    def get_show_error_evolution(self):
+        return self.show_error_evolution
+
+    def reset_error_evolution(self):
+        #Progress qe evolution
+        self.error_evolution = []
+        self.error_evolution_x_marks= []
+
+    def error_evolution_add_point(self, x_point, y_point):
+        self.error_evolution.append(y_point)
+        self.error_evolution_x_marks.append(x_point)
+
+    def get_error_evolution(self):
+        return self.error_evolution_x_marks, self.error_evolution
+
+        
+    
+    def set_total_iterations(self, total_iterations):
+        self.total_iterations = total_iterations
+
+    def get_total_iterations(self):
+        return self.total_iterations
 
 session_data = Sesion()

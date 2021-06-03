@@ -68,7 +68,7 @@ def _wrap_index__in_verbose(iterations):
 def _wrap_index__in_verbose(iterations):
     """Yields the values in iterations printing the status on the stdout."""
     m = len(iterations)
-    digits = len(str(m))
+    #digits = len(str(m))
     session_data.reset_progressbar_value()
     session_data.set_progressbar_maxvalue(m)
 
@@ -390,7 +390,7 @@ class MiniSom(object):
             for j, c2 in enumerate(linspace(-1, 1, len(self._neigy))):
                 self._weights[i, j] = c1*pc[pc_order[0]] + c2*pc[pc_order[1]]
 
-    def train(self, data, num_iteration, random_order=False, verbose=False):
+    def train(self, data, num_iteration, random_order=False, verbose=False, plot_qe_at_n_it = None):
         """Trains the SOM.
 
         Parameters
@@ -407,6 +407,10 @@ class MiniSom(object):
         verbose : bool (default=False)
             If True the status of the training
             will be printed at each iteration.
+
+        plot_qe_at_n_it: int (default=None)
+            If None it will be ignored. If int, qe will be calculated every t 
+            iteration to plot qe error evolution.
         """
         self._check_iteration_number(num_iteration)
         self._check_input_len(data)
@@ -415,9 +419,28 @@ class MiniSom(object):
             random_generator = self._random_generator
         iterations = _build_iteration_indexes(len(data), num_iteration,
                                               verbose, random_generator)
-        for t, iteration in enumerate(iterations):
-            self.update(data[iteration], self.winner(data[iteration]),
-                        t, num_iteration)
+
+
+        if(plot_qe_at_n_it is None):
+
+            for t, iteration in enumerate(iterations):
+                self.update(data[iteration], self.winner(data[iteration]),
+                            t, num_iteration)
+
+        else:#plot qe error evolution in som app
+            session_data.set_total_iterations( num_iteration)
+
+            for t, iteration in enumerate(iterations):
+                if(t%plot_qe_at_n_it == 0):
+                    map_qe = self.quantization_error(data)
+                    session_data.error_evolution_add_point( t, map_qe)
+
+                self.update(data[iteration], self.winner(data[iteration]),
+                            t, num_iteration)
+            
+            #Map finished err last update
+            map_qe = self.quantization_error(data)
+            session_data.error_evolution_add_point( t, map_qe)
 
         session_data.update_progressbar_value(num_iteration)
 

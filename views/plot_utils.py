@@ -845,11 +845,6 @@ def get_log_colorbar(vmax,n_ticks=9,precision=3):
         tickvals = [round(i ,2) for i  in tickvals]
         ticktext = [round(i ,2) for i  in ticktext]
 
-    '''
-    print('tickvals y ticktext//**')
-    print(tickvals)
-    print(ticktext)    
-    '''
 
     ticktext = [si_format(i, precision=precision) for i  in ticktext]
 
@@ -875,17 +870,51 @@ def get_cmap_from_plotly_scale(plotly_scale):
 
 
 
+def create_qe_progress_figure(x, y, x_max):
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=x, y=y,text = y, fill='tozeroy', mode='lines+markers',)) # fill down to xaxis
+    fig.update_layout(
+            title={
+                'text': "Map Quantization Error Evolution",
+                'y':0.9,
+                'x':0.5,
+                'xanchor': 'center',
+                'yanchor': 'top'
+            },
+        xaxis_title="Iteration",
+        yaxis_title="Quantization Error",
+        #legend_title="Legend Title",
+        font=dict(
+            #family="Courier New, monospace",
+            size=7,
+            color="RebeccaPurple"
+        )
+    )
+    #fig.update_xaxes(range=[0, x_max])
+
+    return fig
 
 
+##################################################################
+#                          CSS STYLES
+##################################################################
 
-#CSS STYLES
+
 def get_css_style_inline_flex():
     return {'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
 
+def get_css_style_inline_flex_no_display():
+    return {'margin': '0 auto','width': '100%', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
 
-#{'textAlign': 'center'}
 '''
 {'margin': '0 auto','width': '100%', 'display': 'flex',
                                                     'align-items': 'center', 'justify-content': 'center',
                                                    'flex-wrap': 'wrap', 'flex-direction': 'column ' } 
 '''
+
+def get_css_style_hidden_visibility():
+    return { "visibility": "hidden",'display':'none'}
+
+def get_css_style_center():
+    return {'textAlign': 'center'}
