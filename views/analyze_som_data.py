@@ -171,12 +171,12 @@ def get_model_selection_card():
 
 
     return    dbc.Card(children=[
-                dbc.CardHeader(
-                    dbc.Button("Show Model Info/ Change Model Selection",id="show_model_selection_button",
-                                className="mb-6",color="success",block=True)
-                ),
+            
                 dbc.CardBody(
                     children = [
+
+                        dbc.Button("Show Model Info/ Change Model Selection",id="show_model_selection_button",
+                                className="mb-6",color="success",block=True),
                         dbc.Collapse(   children = create_multi_soms_table(),
                                         id= 'collapse_model_selection',
                                         is_open=False,
@@ -486,11 +486,11 @@ def analyze_som_data():
 
 
         #TODO BORRAR ESTO Y LA FUNCION DE LA TABLA DE AHORA!!!!!!
-        html.H6('Train Parameters',className="card-title"  ),
-        html.Div(id = 'info_table_som',children=info_trained_params_som_table(),style=pu.get_css_style_center() ),
+        #html.H6('Train Parameters',className="card-title"  ),
+        #html.Div(id = 'info_table_som',children=info_trained_params_som_table(),style=pu.get_css_style_center() ),
 
         #Model Selection Card
-        html.Div(get_model_selection_card()),
+        html.Div(id ='div_model_selection_card',children = get_model_selection_card()),
      
      
     
@@ -499,7 +499,7 @@ def analyze_som_data():
             active_tab='winners_map_som',
             style =pu.get_css_style_inline_flex(),
             children=[
-                dbc.Tab(get_select_splitted_option_card(),label = 'Select Dataset Splitted Part',tab_id='splitted_part',disabled= (not session_data.data_splitted )),
+                dbc.Tab(get_select_splitted_option_card(),label = 'Select Splitted Dataset Part',tab_id='splitted_part',disabled= (not session_data.data_splitted )),
                 dbc.Tab(get_estadisticas_som_card(),label = 'Statistics',tab_id='statistics_som' ),
                 dbc.Tab(get_mapaneuronasganadoras_som_card(),label = 'Winners Target Map',tab_id='winners_map_som'),
                 #dbc.Tab( get_mapafrecuencias_som_card() ,label = 'Freq',tab_id='freq_som'),
@@ -638,7 +638,7 @@ def update_selected_row_session_data(selected_rows, style_data_conditional):
     Output('alert_target_not_selected_som', 'is_open'),
     Output('collapse_winnersmap_som','is_open'),
     Output('dropdown_target_selection_som', 'value'),
-    Input('info_table_som', 'children'), #udpate on load
+    Input('div_model_selection_card', 'children'), #udpate on load
     Input('dropdown_target_selection_som', 'value'),
 )
 def toggle_winners_som(info_table,target_value):
@@ -648,7 +648,7 @@ def toggle_winners_som(info_table,target_value):
 
     preselected_target = session_data.get_target_name()
 
-    if( trigger_id == 'info_table_som' ): #init call
+    if( trigger_id == 'div_model_selection_card' ): #init call
         if(preselected_target is None):
             return False,True, None
 

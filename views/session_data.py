@@ -541,7 +541,7 @@ class Sesion():
 
 
     def get_som_model_info_dict(self):
-        print('self.selected_model_index ', self.selected_model_index )
+        #print('self.selected_model_index ', self.selected_model_index )
         if(self.selected_model_index is None):
             return self.som_params[0]
         else:

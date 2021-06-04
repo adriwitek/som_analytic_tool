@@ -338,7 +338,7 @@ def analyze_ghsom_data():
                 active_tab='',
                 style =pu.get_css_style_inline_flex(),
                 children=[
-                    dbc.Tab(get_select_splitted_option_card(),label = 'Select Dataset Splitted Part',tab_id='splitted_part',disabled= (not session_data.data_splitted )),
+                    dbc.Tab(get_select_splitted_option_card(),label = 'Select Splitted Dataset Part',tab_id='splitted_part',disabled= (not session_data.data_splitted )),
                     dbc.Tab(get_statistics_card_ghsom() ,label = 'Statistics',tab_id='statistics_card'),
                     dbc.Tab( get_winnersmap_card_ghsom() ,label = 'Winners Map',tab_id='winners_card'),
                     #dbc.Tab( get_freqmap_card_ghsom() ,label = 'Freq. Map',tab_id='freq_card'),

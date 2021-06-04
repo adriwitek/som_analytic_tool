@@ -754,7 +754,7 @@ def create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale
             vmin = np.nanmin(zz_list)
             vmax = np.nanmax(zz_list)
             if(vmin == vmax):
-                vmin = 0.1
+                vmin = vmax - 0.1
 
             norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
             colorbar = dict(thickness=20,  ticklen=4)

@@ -94,7 +94,7 @@ def Training_animation():
 
                         html.Br(),
                         html.Div( 
-                            [dbc.Button("Analyze Model", id="analyze_model_button",href='',disabled= True, className="mr-2", color="primary")],
+                            [dbc.Button("Analyze Model(s)", id="analyze_model_button",href='',disabled= True, className="mr-2", color="primary")],
                             style={'textAlign': 'center'}
                         ),
 
