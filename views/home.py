@@ -589,6 +589,7 @@ def create_preview_table(df, selected_columns = []):
     if(df is None):
         return dash_table.DataTable(
                                             id='dataset_table_preview',
+                                            data = [],
                                             column_selectable="single",
                                             columns=[],
                                         
@@ -955,14 +956,11 @@ def processed_df_callback(processed_df,not_numeric_df):
 
 @app.callback(  Output('dropdown_feature_selection','value'),
                 Output('dropdown_target_selection','value'),
-                
                 Input('dropdown_feature_selection','value'),
                 Input('dropdown_target_selection','value'),
                 Input('dropdown_feature_selection','options'),
-                    Input('dataset_table_preview', 'selected_columns'),
-
+                Input('dataset_table_preview', 'selected_columns'),
                 prevent_initial_call=True
-
 )
 def sync_target_and_feature_selection(features_values,target_value, feature_options,table_selected_col):
 
@@ -1392,7 +1390,7 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notn
             model_type= unserialized_data[0]
             columns_dtypes =  unserialized_data[1]
             model_info = unserialized_data[2]
-            session_data.set_modelo(unserialized_data[3])
+            session_data.set_modelos(unserialized_data[3])
 
         if(len(session_data.get_features_dtypes().keys()) != len(columns_dtypes.keys()) ):
             #dim no coincide

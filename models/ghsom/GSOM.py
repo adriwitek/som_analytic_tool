@@ -37,6 +37,8 @@ class GSOM:
 
         return winner_neurons, support_stuff
 
+
+
     def train(self, epochs, initial_gaussian_sigma, initial_learning_rate, decay,
               dataset_percentage, min_dataset_size, seed, maxiter):
         _iter = 0
@@ -46,7 +48,7 @@ class GSOM:
                                     dataset_percentage, min_dataset_size, seed)
 
             _iter += 1
-            print('\t Iteraccion: ', _iter)
+            print('\t Iteration: ', _iter)
             can_grow = self.__can_grow()
             if can_grow:
                 self.grow()
@@ -54,6 +56,8 @@ class GSOM:
         if can_grow:
             self.__map_data_to_neurons()
         return self
+
+
 
 
     #Train used when training single gsom to save progress status
@@ -64,6 +68,7 @@ class GSOM:
         session_data.reset_progressbar_value()
         condicion_parada = self.__t1 * self.__parent_quantization_error
         session_data.set_pbar_gsom_train_condition(condicion_parada)
+        session_data.reset_error_evolution()
 
         #Calculo de MQE para la distancia maxima de la progress bar
         self.__map_data_to_neurons()
@@ -74,8 +79,12 @@ class GSOM:
                 MQE += neuron.compute_quantization_error()
                 mapped_neurons += 1
 
+        map_mean_MQE = (MQE / mapped_neurons)
+        session_data.error_evolution_add_point(0, map_mean_MQE )
+
+
         #suponenmos distancia_maxima = MQEinicial*10
-        distancia_maxima= (MQE / mapped_neurons) 
+        distancia_maxima= map_mean_MQE
         distancia_maxima = distancia_maxima *10
         session_data.set_pbar_gsom_distancia_maxima(distancia_maxima)
 
@@ -88,8 +97,11 @@ class GSOM:
                                     dataset_percentage, min_dataset_size, seed)
 
             _iter += 1
-            print('\t Iteraccion: ', _iter)
-            can_grow,_,_ = self.__can_grow_single_train()
+            print('\t Iteration: ', _iter)
+            #can_grow,_,_ = self.__can_grow_single_train()
+            can_grow,mapa_mean_MQE = self.__can_grow_single_train()
+            session_data.error_evolution_add_point(_iter,mapa_mean_MQE )
+
             if can_grow:
                 self.grow()
 
@@ -128,6 +140,8 @@ class GSOM:
 
         return np.outer(np.exp(-1 * gauss_row), np.exp(-1 * gauss_col))
 
+
+
     def __can_grow(self):
         self.__map_data_to_neurons()
 
@@ -150,6 +164,8 @@ class GSOM:
         #Quitada esta clausula
         # and \ (changed_neurons > int(np.round(mapped_neurons/5)))
 
+
+
     #used in single_train
     def __can_grow_single_train(self):
         self.__map_data_to_neurons()
@@ -166,12 +182,15 @@ class GSOM:
                 MQE += neuron.compute_quantization_error()
                 mapped_neurons += 1
 
+        mapa_mean_MQE = (MQE / mapped_neurons)
         #Progress bar
-        distancia= (MQE / mapped_neurons) - (self.__t1 * self.__parent_quantization_error)
+        distancia= mapa_mean_MQE - (self.__t1 * self.__parent_quantization_error)
         session_data.update_gsom_progressbar_value(distancia)
 
-        return ((MQE / mapped_neurons) >= (self.__t1 * self.__parent_quantization_error)) , MQE , mapped_neurons
-     
+        #return (mapa_mean_MQE >= (self.__t1 * self.__parent_quantization_error)) , MQE , mapped_neurons
+        return (mapa_mean_MQE >= (self.__t1 * self.__parent_quantization_error)) , mapa_mean_MQE
+
+        
 
     def __map_data_to_neurons(self):
         self.__clear_neurons_dataset()
@@ -340,12 +359,10 @@ class GSOM:
     def get_structure_graph(self,grafo,data, target_col, level=0):
 
 
-
         #Indexes of dataset mapped on each neuron
         mapping = [[list() for _ in range(self.map_shape()[1])] for _ in range(self.map_shape()[0])]
         # contains targets list per neuron, later used to analyze the graph
         neurons_mapped_targets = {} 
-        #data = dataset[:,:-1]
 
         if(target_col is not None): # Si hay traget calculamos los winners,si no solo el hit rate
 

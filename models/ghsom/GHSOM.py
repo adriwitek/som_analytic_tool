@@ -42,7 +42,7 @@ class GHSOM:
         #self.structure_graph.add_node(zero_unit.child_map)
         #self.structure_graph.add_node(1, nivel = 1, parent = 0 )
         #self.structure_graph.add_edge(0, 1)
-        self.node_counter = 2
+        #self.node_counter = 2
 
         #Progressbar
         bar = progressbar.ProgressBar(max_value=active_dataset, widgets=[

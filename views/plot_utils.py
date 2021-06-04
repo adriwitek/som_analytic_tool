@@ -904,8 +904,17 @@ def create_qe_progress_figure(x, y, x_max):
 def get_css_style_inline_flex():
     return {'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
 
+
 def get_css_style_inline_flex_no_display():
     return {'margin': '0 auto','width': '100%', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
+
+'''
+def get_css_style_inline_block_center():
+    return {'display': 'inline-block', 'text-align': 'left'}
+
+def get_css_style_inline_block_right():
+'''
+
 
 '''
 {'margin': '0 auto','width': '100%', 'display': 'flex',
@@ -918,3 +927,16 @@ def get_css_style_hidden_visibility():
 
 def get_css_style_center():
     return {'textAlign': 'center'}
+
+def get_css_style_right():
+    return {'textAlign': 'right'}
+
+
+#TODO ESTO ESTA EN HOME
+'''
+show_file_info_style =  {'textAlign': 'center',  'display': 'block'}
+hidden_div_style ={'textAlign': 'center', "visibility": "hidden",'display':'none'} 
+'''
+
+#en train som
+# #style={'display': 'inline-block', 'text-align': 'left'},

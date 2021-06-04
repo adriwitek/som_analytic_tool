@@ -232,7 +232,7 @@ def train_ghsom(n_clicks,tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,e
 
     zero_unit = ghsom.train(epochs_number=epocas_ghsom, dataset_percentage=1, min_dataset_size=1, seed=seed,
                              grow_maxiter=max_iter_ghsom)
-    session_data.set_modelo(zero_unit)
+    session_data.set_modelos(zero_unit)
     end = time.time()
     
     #print('zerounit:',zero_unit)

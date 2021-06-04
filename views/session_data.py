@@ -7,6 +7,7 @@
     con el patrón MVC.
 '''
 from logging import raiseExceptions
+from flask.globals import session
 import numpy as np
 import pickle
 
@@ -54,8 +55,12 @@ class Sesion():
     
 
         #tipo de modelo
-        self.modelo = None
+        self.modelo = None #list of models if multiple trains is True
         self.som_params= None
+        self.som_multiple_trains = False
+        self.selected_model_index = None
+        self.current_training_model = -1
+        self.n_of_models = -1
         self.gsom_params=None
         self.ghsom_params=None
         self.ghsom_structure_graph = {}
@@ -114,8 +119,12 @@ class Sesion():
         #todo check si todo ok
 
         #tipo de modelo
-        self.modelo = None
+        self.modelo = None #list of models if multiple trains is True
         self.som_params= None
+        self.som_multiple_trains = False
+        self.selected_model_index = None
+        self.current_training_model = -1
+        self.n_of_models = -1
         self.gsom_params=None
         self.ghsom_params=None
         self.ghsom_structure_graph = {}
@@ -420,11 +429,18 @@ class Sesion():
     def get_filedata(self):
         return self.file_data 
 
-    def set_modelo(self,modelo):
-        self.modelo = modelo
+    def set_modelos(self,modelo):
+        if(self.modelo is None):
+            self.modelo = []
+        self.modelo.append(modelo)
 
     def get_modelo(self):
-        return self.modelo
+        if(self.selected_model_index is None):
+            return self.modelo[0]
+        else:
+            return self.modelo[self.selected_model_index]
+
+  
 
     def set_discrete_data(self,bool):
         self.discrete_data = bool
@@ -432,7 +448,8 @@ class Sesion():
     def get_discrete_data(self):
         return self.discrete_data
     
-
+    def reset_calculated_freq_map(self):
+        self.calculated_freq_map = None
 
     def set_calculated_freq_map(self, freq_map, dataset_portion_option,ghsom_node_coords = None):
         self.calculated_freq_map = (freq_map,dataset_portion_option, ghsom_node_coords)
@@ -477,36 +494,58 @@ class Sesion():
 
 
     def set_som_model_info_dict(self,tam_eje_vertical,tam_eje_horizontal,learning_rate,neigh_fun,distance_fun,
-                                sigma,iteraciones, inicialitacion_pesos,topologia,check_semilla, semilla):
+                                sigma,iteraciones, inicialitacion_pesos,topologia,check_semilla, semilla,
+                                training_time, som = None, qe = None):
 
+
+        if(self.som_params is None):
+            self.som_params= []
         #Only one model could be used at once
-        self.som_params= {}
         self.gsom_params=None
         self.ghsom_params=None
 
-        self.som_params['tam_eje_vertical'] = tam_eje_vertical
-        self.som_params['tam_eje_horizontal'] = tam_eje_horizontal 
-        self.som_params['learning_rate'] = learning_rate
-        self.som_params['neigh_fun'] = neigh_fun
-        self.som_params['distance_fun'] = distance_fun
-        self.som_params['sigma'] = sigma
-        self.som_params['iteraciones'] = iteraciones
-        self.som_params['inicialitacion_pesos'] = inicialitacion_pesos
-        self.som_params['topology'] = topologia
-        self.som_params['check_semilla'] = check_semilla
-        self.som_params['seed'] = semilla
+        som_params = {}
 
+        som_params['tam_eje_vertical'] = tam_eje_vertical
+        som_params['tam_eje_horizontal'] = tam_eje_horizontal 
+        som_params['learning_rate'] = learning_rate
+        som_params['neigh_fun'] = neigh_fun
+        som_params['distance_fun'] = distance_fun
+        som_params['sigma'] = sigma
+        som_params['iteraciones'] = iteraciones
+        som_params['inicialitacion_pesos'] = inicialitacion_pesos
+        som_params['topology'] = topologia
+        som_params['check_semilla'] = check_semilla
+        som_params['seed'] = semilla
+        som_params['training_time'] = training_time
+
+        if(qe is None):
+            som_params['qe'] = None
+        else:
+            som_params['qe'] = qe
+
+
+
+        self.som_params.append(som_params)
+        if(som is not None):
+            self.set_modelos(som)
             
     def set_som_model_info_dict_direct(self,dict):
         #for laod model purpose
-        self.som_params= dict.copy()
+        self.som_params= [dict.copy()]
         self.gsom_params = None
         self.ghsom_params=None
 
-    def get_som_model_info_dict(self):
+    def get_som_models_info_dict(self):
         return  self.som_params
 
 
+    def get_som_model_info_dict(self):
+        print('self.selected_model_index ', self.selected_model_index )
+        if(self.selected_model_index is None):
+            return self.som_params[0]
+        else:
+            return self.som_params[self.selected_model_index]
 
 
 
@@ -686,8 +725,8 @@ class Sesion():
         self.error_evolution_x_marks= []
 
     def error_evolution_add_point(self, x_point, y_point):
-        self.error_evolution.append(y_point)
         self.error_evolution_x_marks.append(x_point)
+        self.error_evolution.append(y_point)
 
     def get_error_evolution(self):
         return self.error_evolution_x_marks, self.error_evolution
@@ -699,5 +738,36 @@ class Sesion():
 
     def get_total_iterations(self):
         return self.total_iterations
+
+
+    def set_som_multiple_trains(self, bool):
+        self.som_multiple_trains = bool
+
+    def get_som_multiple_trains(self):
+        return self.som_multiple_trains
+
+    #FOR ANALYZE SOM DATA TABLE
+    def set_selected_model_index(self,index):
+        self.selected_model_index = index
+
+        #if(self.get_som_model_info_dict()['topology'] == 'hexagonal'):
+        #else:
+
+    def get_selected_model_index(self):
+        return self.selected_model_index
+
+
+    #FOR MULTIPLE TRAINING PROGRESS BAR
+    def set_current_training_model(self, current_training_model):
+        self.current_training_model = current_training_model
+
+    def get_current_training_model(self):
+        return self.current_training_model
+
+    def set_n_of_models(self, n_of_models):
+        self.n_of_models = n_of_models
+
+    def get_n_of_models(self):
+        return self.n_of_models
 
 session_data = Sesion()

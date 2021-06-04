@@ -249,8 +249,8 @@ def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,ta
                                 data,
                                 neuron_builder)
     
-    #print('test gsom train point',flush= True)
     #Train
+    session_data.set_show_error_evolution(True)
     print('Training gsom...')
 
     zero_unit.child_map.single_train(epocas_gsom,
@@ -261,9 +261,9 @@ def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,ta
                             min_dataset_size=1,
                             seed=seed,
                             maxiter=max_iter_gsom)
-    gsom = zero_unit.child_map
+    #gsom = zero_unit.child_map
     #matriz_de_pesos_neuronas = __gmap_to_matrix(gsom.weights_map)
-    session_data.set_modelo(zero_unit)
+    session_data.set_modelos(zero_unit)
 
     end = time.time()
     print('Training Complete!')

@@ -1,6 +1,9 @@
+from dash_bootstrap_components._components.Col import Col
+from dash_bootstrap_components._components.Collapse import Collapse
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
+from flask.globals import session
 from views.app import app
 import dash
 import  views.elements as elements
@@ -35,10 +38,156 @@ from matplotlib.colors import Normalize
 
 import matplotlib as mpl
 import matplotlib.cm as cm
+import dash_table
+
+
 
 #############################################################
 #	                  AUX LAYOUT FUNS	                    #
 #############################################################
+
+
+
+
+def create_new_model_row(qe, h_size, v_size, lr, nf, df,gs,mi,wi,t,s, training_time):
+    row = {}
+    row['QE'] = qe
+    row['Horizontal Size'] = h_size
+    row['Vertical Size'] = v_size
+    row['Learning Rate'] = lr
+    row['Neighborhood Function'] = nf
+    row['Distance Function'] = df
+    row['Gaussian Sigma'] = gs
+    row['Max Iterations'] = mi
+    row['Weights Initialization'] = wi
+    row['Topology'] = t
+    row['Seed'] = s
+    row['training_time'] = training_time
+
+
+    return row
+
+
+def create_multi_soms_table():
+            
+    columns = []
+    columns.append({'id': 'QE'         ,             'name': 'QE' })
+    columns.append({'id': 'Training Time'         ,  'name': 'Training Time' })
+    columns.append({'id': 'Horizontal Size'         , 'name': 'Hor. Size' })
+    columns.append({'id': 'Vertical Size'           , 'name': 'Ver. Size' })
+    columns.append({'id': "Learning Rate"           , 'name': "Learning Rate" })
+    columns.append({'id': "Neighborhood Function"   , 'name': "Neighborhood Function" })
+    columns.append({'id': "Distance Function"       , 'name': "Distance Function"})
+    columns.append({'id': "Gaussian Sigma"          , 'name': "Gaussian Sigma"})
+    columns.append({'id': "Max Iterations"          , 'name': "Max Iterations"})
+    columns.append({'id': "Weights Initialization"  , 'name': "Weights Initialization"})
+    columns.append({'id': "Topology"                , 'name': "Topology"})
+    columns.append({'id': "Seed"                    , 'name': "Seed"})
+    
+
+
+    data = []
+
+    for som_params in session_data.get_som_models_info_dict() :
+
+
+        v_size    = som_params['tam_eje_vertical'] 
+        h_size =   som_params['tam_eje_horizontal'] 
+        lr       =   som_params['learning_rate']  
+        nf    =   som_params['neigh_fun'] 
+        df    =   som_params['distance_fun'] 
+        gs    =   som_params['sigma'] 
+        mi    =   som_params['iteraciones'] 
+        wi    =   som_params['inicialitacion_pesos'] 
+        t    =   som_params['topology'] 
+        check_semilla    =   som_params['check_semilla'] 
+        semilla    =   som_params['seed'] 
+        training_time    =   som_params['training_time'] 
+
+        if(check_semilla):
+           seed = 'Yes:' + str(semilla)
+        else:
+            seed = 'No'
+
+        if(som_params['qe'] is None):
+            qe = 'qe not avaible'
+        else:
+            qe = som_params['qe'] 
+
+        row = create_new_model_row(qe, h_size, v_size, lr, nf, df,gs,mi,wi,t,seed, training_time)
+        data.append(row)
+
+
+    table =  dash_table.DataTable(	id = 'table_analyze_multi_som',
+                                    data = data,
+                                    columns = columns,
+                                    row_selectable='single',
+                                    selected_rows = [0],
+                                    row_deletable=False,
+                                    editable=False,
+                                    sort_action='native',
+                                    style_cell={      'textAlign': 'center',
+                                                      'textOverflow': 'ellipsis',
+                                                      'overflowX': 'auto'
+                                    },
+                                    #style_as_list_view=True,
+                                    style_header={
+                                            'backgroundColor': 'rgb(255, 255, 53)',
+                                            'fontWeight': 'bold'
+                                    },
+
+                                    style_data_conditional=[
+                                        {
+                                            'if': {'row_index': 'odd'},
+                                            'backgroundColor': 'rgb(248, 248, 248)'
+                                        },
+
+                                        {
+                                            'if': {'row_index': [0]},
+                                            'backgroundColor': '#D2F3FF',
+                                            #'fontWeight': 'bold',
+                                            #'color': 'white',
+                                        },
+                                    ],
+       
+    )
+
+
+    tablediv = html.Div(children=table, style = {"overflow": "scroll"})
+                                        
+    return tablediv
+
+
+
+
+
+
+
+#############################################################
+#	                       LAYOUT	                        #
+#############################################################
+
+def get_model_selection_card():
+
+
+    return    dbc.Card(children=[
+                dbc.CardHeader(
+                    dbc.Button("Show Model Info/ Change Model Selection",id="show_model_selection_button",
+                                className="mb-6",color="success",block=True)
+                ),
+                dbc.CardBody(
+                    children = [
+                        dbc.Collapse(   children = create_multi_soms_table(),
+                                        id= 'collapse_model_selection',
+                                        is_open=False,
+                        ),
+                        html.Div(id = 'hidden_div_analyze_som'),
+                    ],
+                )
+            ],
+            #color="secondary",
+        )
+
 
 #ESTADISTICAS
 def get_estadisticas_som_card():
@@ -210,6 +359,20 @@ def get_componentplans_som_card():
                                     ),
                                 ]
                             ),
+
+                            dbc.Alert(
+                                children =[
+                                    html.H4("Model have changed!", className="alert-heading"),
+                                    html.P(
+                                        "Replot Frequency Map or set Minimum hit rate to 0, to be able to plot Component plans. "
+                                    )
+                                ],
+        
+                                id="alert_fade_cplans_som",
+                                color='danger',
+                                dismissable=True,
+                                is_open=False,
+                            ),
                                         
                             dbc.Button("Plot Selected Components Map", id="ver_mapas_componentes_button", className="mr-2", color="primary")],
                             style={'textAlign': 'center'}
@@ -311,9 +474,6 @@ def get_select_splitted_option_card():
 
 
 
-#############################################################
-#	                       LAYOUT	                        #
-#############################################################
 
 
 
@@ -323,14 +483,17 @@ def analyze_som_data():
     body =  html.Div(children=[
         html.H4('Data Analysis \n',className="card-title"  ),
 
+
+
+        #TODO BORRAR ESTO Y LA FUNCION DE LA TABLA DE AHORA!!!!!!
         html.H6('Train Parameters',className="card-title"  ),
-        html.Div(id = 'info_table_som',children=info_trained_params_som_table(),style={'textAlign': 'center'} ),
+        html.Div(id = 'info_table_som',children=info_trained_params_som_table(),style=pu.get_css_style_center() ),
 
-
+        #Model Selection Card
+        html.Div(get_model_selection_card()),
      
      
-      
-
+    
         dbc.Tabs(
             id='tabs_som',
             active_tab='winners_map_som',
@@ -431,6 +594,45 @@ def info_trained_params_som_table():
 ##################################################################
 
 
+@app.callback(  Output('collapse_model_selection','is_open'),
+                Input('show_model_selection_button', 'n_clicks'),
+                State('collapse_model_selection','is_open'),
+                prevent_initial_call=True 
+)
+
+def open_collapse_model_selection(n_clicks,is_open):
+    return not is_open
+
+
+
+@app.callback(  Output('hidden_div_analyze_som','children'),
+                Output( 'table_analyze_multi_som', 'style_data_conditional'),
+                Input( 'table_analyze_multi_som', 'selected_rows'),
+                State( 'table_analyze_multi_som', 'style_data_conditional'),
+
+
+)
+def update_selected_row_session_data(selected_rows, style_data_conditional):
+    session_data.set_selected_model_index(selected_rows[0])
+    session_data.reset_calculated_freq_map()
+
+    style_data_conditional=[
+                            {
+                                'if': {'row_index': 'odd'},
+                                'backgroundColor': 'rgb(248, 248, 248)'
+                            },
+                            {
+                                'if': { 'row_index': selected_rows[0] },
+                                'background_color': '#D2F3FF'
+                            },
+
+                            ]
+
+    return '', style_data_conditional
+
+
+
+
 #Toggle winners map if selected target
 @app.callback(
     Output('alert_target_not_selected_som', 'is_open'),
@@ -474,9 +676,10 @@ def toggle_winners_som(info_table,target_value):
 
 #Habilitar boton ver_mapas_componentes_button
 @app.callback(Output('ver_mapas_componentes_button','disabled'),
-              Input('dropdown_atrib_names','value')
+              Input('dropdown_atrib_names','value'),
+              Input('min_hits_slider_som','value'),
             )
-def enable_ver_mapas_componentes_button(values):
+def enable_ver_mapas_componentes_button(values,slider_value):
     if ( values ):
         return False
     else:
@@ -790,6 +993,7 @@ def update_selected_min_hit_rate_badge_som(value):
 @app.callback(  Output('div_frequency_map','children'),
                 Output('min_hits_slider_som','max'),
                 Output('min_hits_slider_som','marks'),
+                Output('min_hits_slider_som','value'),
                 Input('frequency_map_button','n_clicks'),
                 Input('check_annotations_freq', 'value'),
                 Input('radioscale_freq_som','value'),
@@ -809,10 +1013,13 @@ def update_mapa_frecuencias_fig(click, check_annotations ,log_scale ,slider_valu
     tam_eje_vertical = params['tam_eje_vertical']
     pre_calc_freq = session_data.get_calculated_freq_map()
 
-
-    if( pre_calc_freq is None or (pre_calc_freq is not None and pre_calc_freq[1] != data_portion_option) ): #recalculate freq map
+    #ctx = dash.callback_context
+    #trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if(    pre_calc_freq is None or 
+            (pre_calc_freq is not None and pre_calc_freq[1] != data_portion_option) ): #recalculate freq map
         frequencies = som.activation_response(model_data)
         session_data.set_calculated_freq_map(frequencies,data_portion_option )
+        slider_value = 0
         #frequencies_list = frequencies.tolist()
 
     else:#load last calculated map
@@ -857,31 +1064,33 @@ def update_mapa_frecuencias_fig(click, check_annotations ,log_scale ,slider_valu
                                              check_annotations =check_annotations,log_scale = log_scale )
         
 
-
     children= pu.get_fig_div_with_info(figure,'frequency_map','Frequency Map',tam_eje_horizontal, tam_eje_vertical)
 
-
-    return children, max_freq,marks
+    return children, max_freq,marks,slider_value
   
 
 
 #Actualizar mapas de componentes
-@app.callback(Output('component_plans_figures_div','children'),
-              Input('ver_mapas_componentes_button','n_clicks'),
-              Input('min_hits_slider_som','value'),
-              State('dropdown_atrib_names','value'),
-              State('check_annotations_comp', 'value'),
-              State('radioscale_cplans_som','value'),
-              prevent_initial_call=True 
-              )
-def update_mapa_componentes_fig(n_cliks,slider_value,names,check_annotations, log_scale):
+@app.callback(  Output('component_plans_figures_div','children'),
+                Output('alert_fade_cplans_som','is_open'),
+                Input('ver_mapas_componentes_button','n_clicks'),
+                Input('min_hits_slider_som','value'),
+                State('dropdown_atrib_names','value'),
+                State('check_annotations_comp', 'value'),
+                State('radioscale_cplans_som','value'),
+                State( 'table_analyze_multi_som', 'selected_rows'),
+                prevent_initial_call=True 
+)
+def update_mapa_componentes_fig(n_cliks,slider_value,names,check_annotations, log_scale,selected_rows):
 
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    if(n_cliks == 0 and trigger_id == 'min_hits_slider_som' ):
+    if( (trigger_id == 'min_hits_slider_som' and n_cliks == 0)):
         raise PreventUpdate
     elif(trigger_id == 'min_hits_slider_som' and ( names is None or  len(names)==0)):
-        return dash.no_update
+        return dash.no_update, dash.no_update
+    elif( n_cliks != 0 and session_data.get_calculated_freq_map() is None and slider_value !=0 ):
+        return dash.no_update, True
 
     som = session_data.get_modelo()
     params = session_data.get_som_model_info_dict()
@@ -932,7 +1141,7 @@ def update_mapa_componentes_fig(n_cliks,slider_value,names,check_annotations, lo
             traces.append(html.Div(children= dcc.Graph(id=id,figure=figure)) )
 
 
-    return traces
+    return traces, False
   
 
 
