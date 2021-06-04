@@ -92,13 +92,17 @@ def get_winnersmap_card_ghsom():
                             is_open=False,
                             children=[
 
-                                html.Div(id = 'grafo_ghsom_winners',children = '',
-                                        style=pu.get_css_style_inline_flex()
+                                html.Div(
+                                    children = [
+                                        html.Div(id = 'grafo_ghsom_winners',children = '',
+                                                    style={'textAlign': 'center'}
+                                        ),
+                                        html.Div(   id = 'winners_map_ghsom',children = '',
+                                                    #style= pu.get_single_heatmap_css_style()
+                                        ),
+                                    ],style = pu.get_css_style_inline_flex()
                                 ),
-        
-                                html.Div(   id = 'winners_map_ghsom',children = '',
-                                            style= pu.get_single_heatmap_css_style()
-                                ),
+
         
                                 html.Div(
                                     dbc.Checklist(  options=[{"label": "Label Neurons", "value": 1}],
@@ -263,13 +267,21 @@ def get_freq_and_cplans_cards_ghsom():
 def get_umatrix_card_ghsom():
        
     return dbc.CardBody(children=[
-            html.Div(id = 'grafo_ghsom_umatrix',children = '',
-                    style=pu.get_css_style_inline_flex()
+
+
+            html.Div(
+                children = [
+                        html.Div(id = 'grafo_ghsom_umatrix',children = '',
+                                #style=pu.get_css_style_inline_flex()
+                        ),
+
+                        html.Div(id = 'umatrix_div_fig_ghsom',children = '',
+                                #style= pu.get_single_heatmap_css_style()
+                        ),                              
+                ],style = pu.get_css_style_inline_flex()
             ),
-            
-            html.Div(id = 'umatrix_div_fig_ghsom',children = '',
-                    style= pu.get_single_heatmap_css_style()
-            ),
+
+
             
             html.Div(dbc.Checklist(     options=[{"label": "Label Neurons", "value": 1}],
                                         value=[],
