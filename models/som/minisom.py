@@ -411,6 +411,9 @@ class MiniSom(object):
         plot_qe_at_n_it: int (default=None)
             If None it will be ignored. If int, qe will be calculated every t 
             iteration to plot qe error evolution.
+
+        Returns
+            map_qe: None if plot_qe_at_n_it is None, else Map QE
         """
         self._check_iteration_number(num_iteration)
         self._check_input_len(data)
@@ -420,6 +423,7 @@ class MiniSom(object):
         iterations = _build_iteration_indexes(len(data), num_iteration,
                                               verbose, random_generator)
 
+        map_qe = None
 
         if(plot_qe_at_n_it is None):
 
@@ -443,6 +447,7 @@ class MiniSom(object):
             session_data.error_evolution_add_point( t, map_qe)
 
         session_data.update_progressbar_value(num_iteration)
+        return map_qe
 
         #if verbose:
         #    print('\n quantization error:', self.quantization_error(data))

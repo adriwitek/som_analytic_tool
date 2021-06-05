@@ -26,15 +26,8 @@ import views.plot_utils as pu
 from logging import raiseExceptions
 
 from plotly.colors import validate_colors
+import time
 
-'''
-import matplotlib.pyplot as plt
-from matplotlib.patches import RegularPolygon, Ellipse
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-from matplotlib import cm, colorbar
-from matplotlib.lines import Line2D
-from matplotlib.colors import Normalize
-'''
 
 import matplotlib as mpl
 import matplotlib.cm as cm
@@ -62,7 +55,8 @@ def create_new_model_row(qe, h_size, v_size, lr, nf, df,gs,mi,wi,t,s, training_t
     row['Weights Initialization'] = wi
     row['Topology'] = t
     row['Seed'] = s
-    row['training_time'] = training_time
+    row['Training Time'] = time.strftime("%H h %M m %S s", time.gmtime(training_time))
+     
 
 
     return row
@@ -110,7 +104,7 @@ def create_multi_soms_table():
             seed = 'No'
 
         if(som_params['qe'] is None):
-            qe = 'qe not avaible'
+            qe = 'Not Calculated'
         else:
             qe = som_params['qe'] 
 
@@ -483,17 +477,9 @@ def analyze_som_data():
     body =  html.Div(children=[
         html.H4('Data Analysis \n',className="card-title"  ),
 
-
-
-        #TODO BORRAR ESTO Y LA FUNCION DE LA TABLA DE AHORA!!!!!!
-        #html.H6('Train Parameters',className="card-title"  ),
-        #html.Div(id = 'info_table_som',children=info_trained_params_som_table(),style=pu.get_css_style_center() ),
-
         #Model Selection Card
         html.Div(id ='div_model_selection_card',children = get_model_selection_card()),
      
-     
-    
         dbc.Tabs(
             id='tabs_som',
             active_tab='winners_map_som',
@@ -535,8 +521,8 @@ def analyze_som_data():
 #                       AUX FUNCTIONS
 ##################################################################
 
-
-
+#TODO BORRAR ESTO
+'''
 def info_trained_params_som_table():
 
     info = session_data.get_som_model_info_dict()
@@ -582,7 +568,7 @@ def info_trained_params_som_table():
 
     return children
 
-
+'''
 
 
 
@@ -609,10 +595,8 @@ def open_collapse_model_selection(n_clicks,is_open):
                 Output( 'table_analyze_multi_som', 'style_data_conditional'),
                 Input( 'table_analyze_multi_som', 'selected_rows'),
                 State( 'table_analyze_multi_som', 'style_data_conditional'),
-
-
 )
-def update_selected_row_session_data(selected_rows, style_data_conditional):
+def update_selected_row_session_data(selected_rows, style_data_conditional, ):
     session_data.set_selected_model_index(selected_rows[0])
     session_data.reset_calculated_freq_map()
 
@@ -687,21 +671,23 @@ def enable_ver_mapas_componentes_button(values,slider_value):
 
 
 
-#Estadisticas
-@app.callback(Output('div_estadisticas_som', 'children'),
-              Input('ver_estadisticas_som_button', 'n_clicks'),
-              State('dataset_portion_radio_analyze_som','value'),
-              prevent_initial_call=True )
-def ver_estadisticas_som(n_clicks,data_portion_option):
+#Stats
+@app.callback(  Output('div_estadisticas_som', 'children'),
+                Output( 'table_analyze_multi_som', 'data'),
+                Input('ver_estadisticas_som_button', 'n_clicks'),
+                State('dataset_portion_radio_analyze_som','value'),
+                State( 'table_analyze_multi_som', 'selected_rows'),
+                State( 'table_analyze_multi_som', 'data'),
+                prevent_initial_call=True 
+)
+def ver_estadisticas_som(n_clicks,data_portion_option, selected_rows, table_data):
 
     som = session_data.get_modelo()
     data = session_data.get_data(data_portion_option)
 
     qe,mqe = som.get_qe_and_mqe_errors(data)
-
     tp = som.topographic_error(data)
     
-
     #Table
     table_header = [
         html.Thead(html.Tr([html.Th("Metric"), html.Th("Value")]))
@@ -713,7 +699,14 @@ def ver_estadisticas_som(n_clicks,data_portion_option):
     table = dbc.Table(table_header + table_body,bordered=True,dark=False,hover=True,responsive=True,striped=True)
     children = [table]
 
-    return children
+
+    if(table_data[selected_rows[0]]['QE'] == 'Not Calculated' ):
+        table_data[selected_rows[0]]['QE'] = qe
+        return children, table_data
+
+    else:
+
+        return children, dash.no_update
 
 
 '''

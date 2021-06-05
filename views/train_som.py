@@ -169,8 +169,8 @@ def train_som_view():
                                                 children = [
                                                     dbc.Label(children='Plot evolution every  '),
                                                     dcc.Input(  id="input_qe_evolution_som", type="number",
-                                                                #value= math.ceil(0.1 * session_data.get_train_data_n_samples()),
-                                                                value= 100,
+                                                                value= math.ceil(0.1 * session_data.get_train_data_n_samples()),
+                                                                #value= 100,
                                                                 step=1,min=1,
                                                                 max = session_data.get_train_data_n_samples()-1),
                                                     dbc.Label(children='   iterations'),
@@ -535,16 +535,16 @@ def train_models_som(n_cliks, table_data, check_qe_evolution_som, input_qe_evolu
             #print('dentrooooo')
             session_data.set_show_error_evolution(True)
             session_data.reset_error_evolution()
-            som.train(data, iteracciones, random_order=False, verbose=True,plot_qe_at_n_it = input_qe_evolution_som)  
+            map_qe = som.train(data, iteracciones, random_order=False, verbose=True,plot_qe_at_n_it = input_qe_evolution_som)  
         else:
             session_data.set_show_error_evolution(False)
-            som.train(data, iteracciones, random_order=False, verbose=True)  
+            map_qe = som.train(data, iteracciones, random_order=False, verbose=True)  
 
         print('Training Complete!')
         end = time.time()
         #ojo en numpy: array[ejevertical][ejehorizontal] ,al contratio que en plotly
         session_data.set_som_model_info_dict(eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad,distance,sigma,iteracciones, 
-                                            pesos_init,topology,check_semilla, seed, end - start, som = som)
+                                            pesos_init,topology,check_semilla, seed, end - start, som = som, qe = map_qe)
         print('\t Elapsed Time:',str(end - start),'seconds')
 
         
