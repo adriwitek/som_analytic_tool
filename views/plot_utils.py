@@ -905,6 +905,15 @@ def get_css_style_inline_flex():
     return {'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
 
 
+#Used when there are 2 elemts for all the screen
+def get_css_style_inline_flex_align_2_elements():
+        return {'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'flex-start', 'justify-content': 'space-around','flex-wrap': 'wrap'}
+
+
+def get_css_style_inline_flex_align_flex_start_no_wrap():
+        return {'margin': '0 auto','width': '100%', 'display': 'flex', 'align-items': 'flex-start', 'justify-content': 'flex-start'}
+
+
 def get_css_style_inline_flex_no_display():
     return {'margin': '0 auto','width': '100%', 'align-items': 'center', 'justify-content': 'center','flex-wrap': 'wrap'}
 

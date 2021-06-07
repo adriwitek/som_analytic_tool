@@ -1,6 +1,6 @@
 from math import sqrt
 
-from numpy import (array, unravel_index, nditer, linalg, random, subtract, max,
+from numpy import (array, complex128, unravel_index, nditer, linalg, random, subtract, max,
                    power, exp, pi, zeros, ones, arange, outer, meshgrid, dot,
                    logical_and, mean, std, cov, argsort, linspace, transpose,
                    einsum, prod, nan, sqrt, hstack, diff, argmin, multiply)
@@ -417,6 +417,14 @@ class MiniSom(object):
         """
         self._check_iteration_number(num_iteration)
         self._check_input_len(data)
+
+
+        #sklearn fix
+        if(data.dtype == complex128 ):
+            raise ValueError("Complex data not supported")
+
+
+
         random_generator = None
         if random_order:
             random_generator = self._random_generator

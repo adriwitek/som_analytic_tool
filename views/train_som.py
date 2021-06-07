@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import dash
+from dash_bootstrap_components._components.Collapse import Collapse
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
@@ -28,6 +29,146 @@ import dash_table
 #	                       LAYOUT	                        #
 #############################################################
 
+
+
+
+def form_train_som(grid_recommended_size):
+    children = [
+
+                    
+                     #This 4 params may be oculted if param tuning is seleted. If then, they will be a range, not a single input
+                    dbc.Collapse(id = 'collapse_size',
+                                is_open = True,
+                                children =[
+                                        html.H5(children='Vertical Grid Size:'),
+                                        dcc.Input(id="tam_eje_vertical", type="number", value=grid_recommended_size,step=1,min=1),
+                                        html.H5(children='Horizontal Grid Size'),
+                                        dcc.Input(id="tam_eje_horizontal", type="number", value=grid_recommended_size,step=1,min=1),
+                                ]
+                    ),
+
+
+                    dbc.Collapse(id = 'collapse_distancef',
+                                is_open = True,
+                                children =[
+                                    html.H5(children='Distance Function'),
+                                    dcc.Dropdown(
+                                        id='dropdown_distance',
+                                        options=[
+                                            {'label': 'Euclidean', 'value': 'euclidean'},
+                                            {'label': 'Cosine', 'value': 'cosine'},
+                                            {'label': 'Manhattan', 'value': 'manhattan'},
+                                            {'label': 'Chebyshev', 'value': 'chebyshev'}
+                                        ],
+                                        value='euclidean',
+                                        searchable=False
+                                        #style={'width': '35%'}
+                                    ),
+                                ]
+                    ),
+
+                    dbc.Collapse(id = 'collapse_weightsini',
+                                is_open = True,
+                                children =[
+                                        html.H5(children='Weights Initialization'),
+                                        dcc.Dropdown(
+                                            id='dropdown_inicializacion_pesos',
+                                            options=[
+                                                {'label': 'PCA: Principal Component Analysis ', 'value': 'pca'},
+                                                {'label': 'Random', 'value': 'random'},
+                                                {'label': 'No Weight Initialization ', 'value': 'no_init'}
+                                            ],
+                                            value='pca',
+                                            searchable=False
+                                            #style={'width': '45%'}
+                                        ),
+                                ]
+                    ),
+                
+
+                    
+
+                    html.H5(children='Learning Rate'),
+                    dcc.Input(id="tasa_aprendizaje_som", type="number", value="0.5",step=0.0001,min=0,max=5),
+
+                    html.H5(children='Map Topology'),
+                    dcc.Dropdown(
+                        id='dropdown_topology',
+                        options=[
+                            {'label': 'Rectangular', 'value': 'rectangular'},
+                            {'label': 'Hexagonal', 'value': 'hexagonal'}
+                        ],
+                        value='rectangular',
+                        searchable=False
+                        #style={'width': '35%'}
+                    ),
+
+                    html.H5(children='Neighborhood Function'),
+                    dcc.Dropdown(
+                        id='dropdown_vecindad',
+                        options=[
+                            {'label': 'Gaussian', 'value': 'gaussian'},
+                            {'label': 'Mexican Hat', 'value': 'mexican_hat'},
+                            {'label': 'Bubble', 'value': 'bubble'},
+                            {'label': 'Triangle', 'value': 'triangle'}
+                        ],
+                        value='gaussian',
+                        searchable=False
+                        #style={'width': '50%'}
+                    ),
+
+                    html.H5(children='Gaussian Sigma'),
+                    dcc.Input(id="sigma", type="number", value="1.5",step=0.000001,min=0,max=10),
+
+                    html.H5(children='Max Iterations'),
+                    dcc.Input(id="iteracciones", type="number", value=session_data.get_train_data_n_samples(),
+                                step=1,min=1),
+
+                    html.H5(children='Seed'),
+                    html.Div( 
+                            [dbc.Checklist(
+                                options=[{"label": "Select Seed", "value": 1}],
+                                value=[],
+                                switch=True,
+                                id="check_semilla_som")]
+                    ),
+                    html.Div( id= 'div_semilla_som',
+                                children = [dcc.Input(id="seed_som", type="number", value="0",step=1,min=0, max=(2**32 - 1))],
+                                style= pu.get_css_style_hidden_visibility()
+                    ),   
+
+                    html.Hr(),
+                    html.H5(children='Show Map qe Error evolution while training'),
+                    html.Div( 
+                            [dbc.Checklist(
+                                options=[{"label": "Plot Evolution", "value": 1}],
+                                value=[],
+                                switch=True,
+                                id="check_qe_evolution_som")
+                            ]
+                    ),
+
+                    dbc.Collapse(   id = 'collapse_qe_evolution_som',
+                                    is_open= False,
+                                    children = [
+                                        dbc.Label(children='Plot evolution every  '),
+                                        dcc.Input(  id="input_qe_evolution_som", type="number",
+                                                    value= math.ceil(0.1 * session_data.get_train_data_n_samples()),
+                                                    #value= 100,
+                                                    step=1,min=1,
+                                                    max = session_data.get_train_data_n_samples()-1),
+                                        dbc.Label(children='   iterations'),
+                                    ],
+                                    style =pu.get_css_style_inline_flex_no_display()
+                    ),
+                    html.Hr(),
+            ]
+
+    return children
+
+
+
+
 def train_som_view():
 
     '''
@@ -36,6 +177,14 @@ def train_som_view():
     '''
     n_samples = session_data.get_train_data_n_samples()
     grid_recommended_size = ceil(  sqrt(5*sqrt(n_samples))  )
+
+    grid_start_default_size = ceil(0.8 * grid_recommended_size)
+    grid_stop_default_size = grid_recommended_size + ceil(0.2 * grid_recommended_size)
+    grid_step_default_value = ceil(grid_stop_default_size/grid_start_default_size)
+    if((grid_step_default_value % 2) == 0):
+        grid_stop_default_size = grid_start_default_size * (grid_step_default_value+1)
+    else:
+        grid_stop_default_size = grid_start_default_size * grid_step_default_value
 
     # Formulario SOM    
     formulario_som = dbc.ListGroupItem([
@@ -50,135 +199,118 @@ def train_som_view():
                 ),
                 html.Br(),
 
-                html.H4('Parameter Selection',className="card-title"  ),
+                html.H4('Hyperparameter Selection',className="card-title"  ),
                 html.Div(id = 'som_form_div',
-                        style=pu.get_css_style_inline_flex(),children=[
+                        style=pu.get_css_style_inline_flex_align_2_elements(),children=[
 
-                        
                         dbc.Collapse(id = 'table_multiple_trains_collapse',
                                     is_open = False,
                                     children = get_multiple_train_table()
                         ),
 
+                        #Only showed for param search tuning
+                        dbc.Collapse(id = 'collapse_param_tuning',
+                                is_open = False,
+                                children =[
+
+                                        html.Hr(),
+                                        html.H4( 'Params to make a search' ),
+                                        html.Br(),
+                                        #Vertical and horizontal Size Range
+                                        html.Div(
+                                            [   dbc.Button("Add",id='button_add_size_psearch', outline=True, color="success", className="mr-1"),
+                                                html.H5(children='Square Grid Size'),
+                                            ],
+                                            style = pu.get_css_style_inline_flex_align_flex_start_no_wrap(),
+                                        ),
+                                        dbc.Collapse(   id ='collapse_range_size_psearch',
+                                                        is_open = False,
+                                                        style= pu.get_css_style_center() ,
+                                                        children = [
+                                                            html.Br(),
+                                                            dbc.Label('Start:'),
+                                                            dbc.Input(id = 'input_start_size' ,type='number', min = 1, step = 1, value = grid_start_default_size),                              
+                                                            dbc.Label('Stop:'),
+                                                            dbc.Input(id = 'input_stop_size' ,type='number', min = 2, step = 1,value =grid_stop_default_size ),                              
+                                                            dbc.Label('Step:'),
+                                                            dbc.Input(id = 'input_step_size' , type='number',min = 1, step = 1, value = grid_step_default_value),                              
+                                                        ]
+                                        ),
+                                        html.Br(),
+
+
+                                       
+                                        # Distance Funcion Range
+                                        html.Div(
+                                            [   dbc.Button("Add",id='button_add_distancef_psearch', outline=True, color="success", className="mr-1"),
+                                                html.H5(children='Distance Function'),
+                                            ],
+                                            style = pu.get_css_style_inline_flex_align_flex_start_no_wrap(),
+                                        ),
+                                        dbc.Collapse(   id ='collapse_range_distancef_psearch',
+                                                        is_open = False,
+                                                        style= pu.get_css_style_inline_flex_no_display() ,
+                                                        children = [
+                                                            html.Br(),
+                                                            dbc.Label('Values to search with:'),
+                                                            dcc.Dropdown(
+                                                                id='dropdown_distance_psearch',
+                                                                multi=True,
+                                                                options=[
+                                                                    {'label': 'Euclidean', 'value': 'euclidean'},
+                                                                    {'label': 'Cosine', 'value': 'cosine'},
+                                                                    {'label': 'Manhattan', 'value': 'manhattan'},
+                                                                    {'label': 'Chebyshev', 'value': 'chebyshev'}
+                                                                ],
+                                                                value=['euclidean','cosine', 'manhattan', 'chebyshev'],
+                                                                searchable=False
+                                                                #style={'width': '35%'}
+                                                            ),
+                                                                                       
+                                                        ]
+                                        ),
+                                        html.Br(),
+
+                                        #Weights Init Range
+                                        html.Div(
+                                            [   dbc.Button("Add",id='button_add_weightsini_psearch', outline=True, color="success", className="mr-1"),
+                                                html.H5(children='Weights Initialization'),
+                                            ],
+                                            style = pu.get_css_style_inline_flex_align_flex_start_no_wrap(),
+                                        ),
+                                        dbc.Collapse(   id ='collapse_range_weightsini_psearch',
+                                                        is_open = False,
+                                                        style= pu.get_css_style_inline_flex_no_display() ,
+                                                        children = [
+                                                            html.Br(),                          
+                                                            dbc.Label('Values to search with:'),
+                                                            dcc.Dropdown(
+                                                                id='dropdown_weightsini_psearch',
+                                                                multi=True,
+                                                                options=[
+                                                                    {'label': 'PCA: Principal Component Analysis ', 'value': 'pca'},
+                                                                    {'label': 'Random', 'value': 'random'},
+                                                                    {'label': 'No Weight Initialization ', 'value': 'no_init'}
+                                                                ],
+                                                                value=['pca','random', 'no_init'],
+                                                                searchable=False
+                                                                #style={'width': '35%'}
+                                                            ),
+                                                                                       
+                                                        ]
+                                        ),
+
+                                        html.Hr(),
+
+                                ]
+                        ),
+
+
                         html.Div(
+                            id = 'form_train_som',
                             style={'display': 'inline-block', 'text-align': 'left'},
-                            children=[
-
-
-                                html.H5(children='Vertical Grid Size:'),
-                                dcc.Input(id="tam_eje_vertical", type="number", value=grid_recommended_size,step=1,min=1),
-
-                                html.H5(children='Horizontal Grid Size'),
-                                dcc.Input(id="tam_eje_horizontal", type="number", value=grid_recommended_size,step=1,min=1),
-
-                                html.H5(children='Learning Rate'),
-                                dcc.Input(id="tasa_aprendizaje_som", type="number", value="0.5",step=0.0001,min=0,max=5),
-
-
-                                html.H5(children='Map Topology'),
-                                dcc.Dropdown(
-                                    id='dropdown_topology',
-                                    options=[
-                                        {'label': 'Rectangular', 'value': 'rectangular'},
-                                        {'label': 'Hexagonal', 'value': 'hexagonal'}
-                                    ],
-                                    value='rectangular',
-                                    searchable=False
-                                    #style={'width': '35%'}
-                                ),
-
-
-                                html.H5(children='Neighborhood Function'),
-                                dcc.Dropdown(
-                                    id='dropdown_vecindad',
-                                    options=[
-                                        {'label': 'Gaussian', 'value': 'gaussian'},
-                                        {'label': 'Mexican Hat', 'value': 'mexican_hat'},
-                                        {'label': 'Bubble', 'value': 'bubble'},
-                                        {'label': 'Triangle', 'value': 'triangle'}
-                                    ],
-                                    value='gaussian',
-                                    searchable=False
-                                    #style={'width': '50%'}
-                                ),
-
-
-
-                                html.H5(children='Distance Function'),
-                                dcc.Dropdown(
-                                    id='dropdown_distance',
-                                    options=[
-                                        {'label': 'Euclidean', 'value': 'euclidean'},
-                                        {'label': 'Cosine', 'value': 'cosine'},
-                                        {'label': 'Manhattan', 'value': 'manhattan'},
-                                        {'label': 'Chebyshev', 'value': 'chebyshev'}
-                                    ],
-                                    value='euclidean',
-                                    searchable=False
-                                    #style={'width': '35%'}
-                                ),
-
-
-                                html.H5(children='Gaussian Sigma'),
-                                dcc.Input(id="sigma", type="number", value="1.5",step=0.000001,min=0,max=10),
-
-
-                                html.H5(children='Max Iterations'),
-                                dcc.Input(id="iteracciones", type="number", value=session_data.get_train_data_n_samples(),
-                                            step=1,min=1),
-
-                                html.H5(children='Weights Initialization'),
-                                dcc.Dropdown(
-                                    id='dropdown_inicializacion_pesos',
-                                    options=[
-                                        {'label': 'PCA: Principal Component Analysis ', 'value': 'pca'},
-                                        {'label': 'Random', 'value': 'random'},
-                                        {'label': 'No Weight Initialization ', 'value': 'no_init'}
-                                    ],
-                                    value='pca',
-                                    searchable=False
-                                    #style={'width': '45%'}
-                                ),
-
-                                html.H5(children='Seed'),
-                                html.Div( 
-                                        [dbc.Checklist(
-                                            options=[{"label": "Select Seed", "value": 1}],
-                                            value=[],
-                                            switch=True,
-                                            id="check_semilla_som")]
-                                ),
-                                html.Div( id= 'div_semilla_som',
-                                            children = [dcc.Input(id="seed_som", type="number", value="0",step=1,min=0, max=(2**32 - 1))],
-                                            style= pu.get_css_style_hidden_visibility()
-                                ),   
-
-                                html.Hr(),
-                                html.H5(children='Show Map qe Error evolution while training'),
-                                html.Div( 
-                                        [dbc.Checklist(
-                                            options=[{"label": "Plot Evolution", "value": 1}],
-                                            value=[],
-                                            switch=True,
-                                            id="check_qe_evolution_som")
-                                        ]
-                                ),
-
-                                dbc.Collapse(   id = 'collapse_qe_evolution_som',
-                                                is_open= False,
-                                                children = [
-                                                    dbc.Label(children='Plot evolution every  '),
-                                                    dcc.Input(  id="input_qe_evolution_som", type="number",
-                                                                value= math.ceil(0.1 * session_data.get_train_data_n_samples()),
-                                                                #value= 100,
-                                                                step=1,min=1,
-                                                                max = session_data.get_train_data_n_samples()-1),
-                                                    dbc.Label(children='   iterations'),
-                                                ],
-                                                style =pu.get_css_style_inline_flex_no_display()
-                                ),
-                                html.Hr(),
-                        ]),
+                            children=form_train_som(grid_recommended_size)
+                        ),
                 ]),
 
 
@@ -207,7 +339,7 @@ def train_som_view():
                 dbc.Collapse(id = 'grids_train_collapse',
                     is_open = False,
                     children = [
-                        dbc.Button("Train with Grid Search", id="train_gs_button_som",href=URLS['TRAINING_MODEL'],disabled= True, className="mr-2", color="primary"),
+                        dbc.Button("Search for Optimum Hyperparameters", id="search_params_button_som",href=URLS['TRAINING_MODEL'],disabled= True, className="mr-2", color="primary"),
                     ],
                     style={'textAlign': 'center'}
                 ),
@@ -308,7 +440,139 @@ def create_new_train_row(h_size, v_size, lr, nf, df,gs,mi,wi,t,s):
 #############################################################
 
 
-#Select train or load model
+#enable search_params_button_som button
+@app.callback(  Output('search_params_button_som', 'disabled'),
+                Input('input_start_size', 'invalid'),
+                Input('button_add_size_psearch', 'outline'),
+                Input('button_add_distancef_psearch', 'outline'),
+                Input('button_add_weightsini_psearch', 'outline'),
+                Input('dropdown_distance_psearch','value'),
+                Input('dropdown_weightsini_psearch', 'value'),
+                Input('input_start_size', 'value'),
+                Input('input_stop_size', 'value'),
+                Input('input_step_size', 'value'),
+                prevent_initial_call=True
+
+)
+def enable_search_params_button_som(invalid_start, outline1, outline2,outline3,dd1,dd2,start,stop,step):
+
+    #we must have mora than just one value
+    cond = 0
+
+   
+    if(not outline1):
+        if(  invalid_start):
+            return True
+        elif(start + step == stop):
+            cond += 1
+        else:
+            cond += 2
+
+    if(not outline2):
+        if(dd1 is None or len(dd1) == 0 ):
+            return True
+        elif(not outline2 and len(dd1)==1 ):
+            cond += 1
+        else:
+            cond += 2
+
+
+    if( not outline3 ):
+        if(dd2 is None or len(dd2) == 0):
+            return True
+        elif(not outline3 and len(dd2)==1 ):
+            cond += 1
+        else:
+            cond += 2
+    
+
+    if(cond >=2 ):
+       return False
+    else:
+        return True
+
+
+#start,stop,step values coordintaed in param tuning tab
+@app.callback( 
+                Output('input_start_size', 'invalid'),
+                Output('input_stop_size', 'invalid'),
+                Output('input_step_size', 'invalid'),
+                Input('input_start_size', 'value'),
+                Input('input_stop_size', 'value'),
+                Input('input_step_size', 'value'),
+                prevent_initial_call=True
+)
+def sync_start_stop_step_inputs(start,stop,step):
+
+    
+    if(start is None or stop is None or step is None):
+        return True, True, True
+    elif(start >=stop):
+        return  True, True, True
+    elif(stop<(start + step)):
+        return  True, True, True
+    elif( (stop - start)%step != 0 ):
+        return  True, True, True
+    else:
+        return False, False, False
+       
+
+
+
+
+#Toggles size param search menu in param search option
+@app.callback(  Output('collapse_range_size_psearch','is_open'),
+                Output('collapse_size','is_open'),
+                Output('button_add_size_psearch', 'outline'),
+                Output('button_add_size_psearch', 'children'),
+                Input('button_add_size_psearch', 'n_clicks'),
+                State('button_add_size_psearch', 'outline'),
+                prevent_initial_call=True
+)
+def toggle_size_psearch(n_clicks, outline):
+
+    if(outline):#added
+        return True, False, False, 'Added'
+    else:
+        return False, True, True, 'Add'
+
+
+#Toggles distance fun param search menu in param search option
+@app.callback(  Output('collapse_range_distancef_psearch','is_open'),
+                Output('collapse_distancef','is_open'),
+                Output('button_add_distancef_psearch', 'outline'),
+                Output('button_add_distancef_psearch', 'children'),
+                Input('button_add_distancef_psearch', 'n_clicks'),
+                State('button_add_distancef_psearch', 'outline'),
+                prevent_initial_call=True
+)
+def toggle_distancef_psearch(n_clicks, outline):
+
+    if(outline):#added
+        return True, False, False, 'Added'
+    else:
+        return False, True, True, 'Add'
+
+
+#Toggles weights init param search menu in param search option
+@app.callback(  Output('collapse_range_weightsini_psearch','is_open'),
+                Output('collapse_weightsini','is_open'),
+                Output('button_add_weightsini_psearch', 'outline'),
+                Output('button_add_weightsini_psearch', 'children'),
+                Input('button_add_weightsini_psearch', 'n_clicks'),
+                State('button_add_weightsini_psearch', 'outline'),
+                prevent_initial_call=True
+)
+def toggle_weightsinit_psearch(n_clicks, outline):
+
+    if(outline):#added
+        return True, False, False, 'Added'
+    else:
+        return False, True, True, 'Add'
+
+
+
+#Select train or load model and Param option is_open from with param ranges
 @app.callback(  
                 Output('single_train_sel','outline'),
                 Output('manual_train_sel','outline'),
@@ -317,6 +581,7 @@ def create_new_train_row(h_size, v_size, lr, nf, df,gs,mi,wi,t,s):
                 Output('manual_train_collapse','is_open'),
                 Output('grids_train_collapse','is_open'),
                 Output('table_multiple_trains_collapse', 'is_open'),
+                Output('collapse_param_tuning', 'is_open'),
                 Input('single_train_sel','n_clicks'),
                 Input('manual_train_sel','n_clicks'),
                 Input('grids_train_sel','n_clicks'),
@@ -329,13 +594,13 @@ def select_train_mode_som(n1,n2,n3):
 
     if(button_id == 'single_train_sel'):
         session_data.set_som_multiple_trains( False)
-        return False,  True, True,   True, False , False,    False
+        return False,  True, True,   True, False , False,    False, False
     elif(button_id == 'manual_train_sel' ):
         session_data.set_som_multiple_trains( True)
-        return True,  False, True,   False, True , False,   True
+        return True,  False, True,   False, True , False,   True,False
     else: #grids_train_sel
         session_data.set_som_multiple_trains( False)
-        return True,  True, False,   False, False , True,    False
+        return True,  True, False,   False, False , True,    False, True
 
 # Checklist seleccionar semilla
 @app.callback(
@@ -612,9 +877,9 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
         som.random_weights_init(data)
 
 
-    #print('Training som...')
+    print('Training som...')
+    #Random order =False due to data alrady shuffled
     if(any(check_qe_evolution_som)):
-        #print('dentrooooo')
         session_data.set_show_error_evolution(True)
         session_data.reset_error_evolution()
         som.train(data, iteracciones, random_order=False, verbose=True,plot_qe_at_n_it = input_qe_evolution_som)  
@@ -626,7 +891,6 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
     print('Training Complete!')
     end = time.time()
     #ojo en numpy: array[ejevertical][ejehorizontal] ,al contratio que en plotly
-    #TODO OJO VER SI ESTO AQUI PODRIA CAUSAR PROBLEMAS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     session_data.set_som_model_info_dict(eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad,distance,sigma,
                                             iteracciones, pesos_init,topology,check,seed, training_time = end)
     print('\t Elapsed Time:',str(end - start),'seconds')
