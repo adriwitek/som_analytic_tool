@@ -7,7 +7,6 @@ Created: 06-05-2021
 from sklearn.utils.estimator_checks import check_estimator
 from models.som import minisom
 from numpy.linalg import norm
-import unittest
 from sklearn.base import BaseEstimator
 
 
@@ -18,9 +17,10 @@ class SOM_Sklearn():
         Due to sklearn reqs. this class wont have heritage from minisom
     """
 
-    def __init__(self, sigma=1.0, learning_rate=0.5,
+    def __init__(self, ver_size = 3,hor_size = 3,sigma=1.0, learning_rate=0.5,
                  neighborhood_function='gaussian', topology='rectangular',
-                 num_iteration=None, random_seed=None):
+                 num_iteration=None, random_seed=None,
+                 square_grid_size=None, activation_distance='euclidean',weights_init='PCA' ):
         
         '''Initializes a Minisom sklearn Interface
 
@@ -29,6 +29,12 @@ class SOM_Sklearn():
 
         Parameters
         ----------
+
+        ver_size : int
+            x dimension of the SOM.(Will be ignored if fit fun it's called with square_grid_size != None)
+
+        hor_size : int
+            y dimension of the SOM.(Will be ignored if fit fun it's called with square_grid_size != None)
 
         input_len : int
             Number of the elements of the vectors in input.
@@ -72,17 +78,23 @@ class SOM_Sklearn():
             Random seed to use.
         
         '''
+        self.ver_size = ver_size
+        self.hor_size = hor_size
         self.sigma=sigma 
         self.learning_rate=learning_rate
         self.neighborhood_function=neighborhood_function
         self.topology=topology
         self.random_seed=random_seed
         self.num_iteration=num_iteration
+        self.square_grid_size=square_grid_size
+        self.activation_distance=activation_distance
+        self.weights_init=weights_init
+       
 
 
     #session_data.set_show_error_evolution(False)#poner esto antes de llamar a fit....######################################################################
 
-    def fit(self, X,y=None, hor_size=2, ver_size=2, activation_distance='euclidean',weights_init='PCA' ): #Only last fit will save model!
+    def fit(self, X,y=None ): #Only last fit will save model!
         '''
         Trains a som model due to fit parameters
         Parameters
@@ -103,34 +115,36 @@ class SOM_Sklearn():
         '''
 
         #print('X data dypte is',X.dtype,flush=True)
-
-
         self.input_len=X.shape[1]
+        
+
+        if(self.square_grid_size is None):
+            self.x_grid_size = self.ver_size
+            self.y_grid_size = self.hor_size
+        else:
+            self.x_grid_size = self.square_grid_size
+            self.y_grid_size = self.square_grid_size
+           
         if(self.num_iteration is None or self.num_iteration <1):
             self.num_iteration = X.shape[1]
-        som = minisom.MiniSom(x=hor_size, y=ver_size, input_len=X.shape[1], sigma=self.sigma, learning_rate=self.learning_rate,
+
+        #x=hor_size, y=ver_size,
+        som = minisom.MiniSom(x=self.x_grid_size, y=self.y_grid_size, input_len=X.shape[1], sigma=self.sigma, learning_rate=self.learning_rate,
                                 neighborhood_function=self.neighborhood_function, topology=self.topology,
-                                activation_distance=activation_distance, random_seed=self.random_seed)
+                                activation_distance=self.activation_distance, random_seed=self.random_seed)
         
         #Weigh init
-        if(weights_init == 'pca'):
+        if(self.weights_init == 'pca'):
             som.pca_weights_init(X)
-        elif(weights_init == 'random'):   
+        elif(self.weights_init == 'random'):   
             som.random_weights_init(X)
         som.train(X, self.num_iteration, random_order=False, verbose=True) 
         self.som_model = som
+        print('Size',self.square_grid_size,'MQE',som.get_qe_and_mqe_errors(X)[1],'dsitance', self.activation_distance ,
+                'weight init', self.weights_init,  flush = True)
         return self
 
 
-    '''
-    def _check_input_len(self, data):
-        """Checks that the data in input is of the correct shape."""
-        data_len = len(data[0])
-        if self.input_len != data_len:
-            msg = 'Received %d features, expected %d.' % (data_len,
-                                                          self.input_len)
-            raise ValueError(msg)
-    '''
 
     #Scoring fun (QE fun)
     def score(self, X, y=None):
@@ -160,14 +174,20 @@ class SOM_Sklearn():
     def _more_tags(self):
         return {'allow_nan ': True}
 
+
     def get_params(self, deep=False):
         return {    
+                    "ver_size": self.ver_size,
+                    "hor_size": self.hor_size,
                     "sigma": self.sigma,
                     "learning_rate": self.learning_rate,
                     "neighborhood_function": self.neighborhood_function ,
                     "topology": self.topology,
                     "random_seed": self.random_seed,
-                    "num_iteration": self.num_iteration
+                    "num_iteration": self.num_iteration,
+                    "square_grid_size":self.square_grid_size ,
+                    "activation_distance": self.activation_distance,
+                    "weights_init":self.weights_init
                 }
 
     def set_params(self, **parameters):

@@ -55,9 +55,10 @@ def create_new_model_row(qe, h_size, v_size, lr, nf, df,gs,mi,wi,t,s, training_t
     row['Weights Initialization'] = wi
     row['Topology'] = t
     row['Seed'] = s
-    row['Training Time'] = time.strftime("%H h %M m %S s", time.gmtime(training_time))
-     
-
+    if(isinstance(training_time,float) ):
+        row['Training Time'] = time.strftime("%H h %M m %S s", time.gmtime(training_time))
+    else:
+        row['Training Time'] =training_time
 
     return row
 

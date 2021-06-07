@@ -491,11 +491,12 @@ class Sesion():
 
   
         
-
+    def reset_som_model_info_dict(self):
+        self.som_params is None
 
     def set_som_model_info_dict(self,tam_eje_vertical,tam_eje_horizontal,learning_rate,neigh_fun,distance_fun,
                                 sigma,iteraciones, inicialitacion_pesos,topologia,check_semilla, semilla,
-                                training_time, som = None, qe = None):
+                                training_time = None, som = None, qe = None):
 
 
         if(self.som_params is None):
@@ -517,7 +518,10 @@ class Sesion():
         som_params['topology'] = topologia
         som_params['check_semilla'] = check_semilla
         som_params['seed'] = semilla
-        som_params['training_time'] = training_time
+        if(training_time is None):
+            som_params['training_time'] = 'Not calculated'
+        else:
+            som_params['training_time'] = training_time
 
         if(qe is None):
             som_params['qe'] = None

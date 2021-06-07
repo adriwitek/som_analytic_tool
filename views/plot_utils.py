@@ -896,6 +896,38 @@ def create_qe_progress_figure(x, y, x_max):
     return fig
 
 
+def create_simple_table(data,columns, id):
+    '''
+    Data is a list of rows, which are dicts containing {col:value}
+    '''
+
+    table =  dash_table.DataTable(	id = id,
+                                    columns = columns,
+                                    data= data,
+                                    row_deletable=False,
+                                    editable=False,
+                                    style_cell={      'textAlign': 'center',
+                                                      'textOverflow': 'ellipsis',
+                                                      'overflowX': 'auto'
+                                    },
+                                    #style_as_list_view=True,
+                                    style_header={
+                                            'backgroundColor': 'rgb(255, 255, 53)',
+                                            'fontWeight': 'bold'
+                                    },
+
+                                    style_data_conditional=[
+                                        {
+                                            'if': {'row_index': 'odd'},
+                                            'backgroundColor': 'rgb(248, 248, 248)'
+                                        }
+                                    ],
+    )
+
+    return table
+
+
+
 ##################################################################
 #                          CSS STYLES
 ##################################################################

@@ -22,7 +22,9 @@ import views.plot_utils as pu
 import math
 import dash_table
 
-
+import models.sklearn_interface_for_som.sklearn_interface_for_som as sksom
+from models.sklearn_interface_for_som.scoring_functions import  score_mqe, score_topographic_error
+from sklearn.model_selection import GridSearchCV
 
 
 #############################################################
@@ -31,7 +33,7 @@ import dash_table
 
 
 
-
+# Form containing input hyperparams
 def form_train_som(grid_recommended_size):
     children = [
 
@@ -138,7 +140,7 @@ def form_train_som(grid_recommended_size):
                     ),   
 
                     html.Hr(),
-                    html.H5(children='Show Map qe Error evolution while training'),
+                    html.H5(children='Show Map QE Error evolution while training'),
                     html.Div( 
                             [dbc.Checklist(
                                 options=[{"label": "Plot Evolution", "value": 1}],
@@ -302,6 +304,20 @@ def train_som_view():
 
                                         html.Hr(),
 
+                                        html.H5(children='Scoring metric to select best model'),
+                                        dcc.Dropdown(
+                                                                id='dropdown_scoring_metric_psearch',
+                                                                multi=False,
+                                                                options=[
+                                                                    {'label': 'Mean Quantization Error', 'value': 'mqe'},
+                                                                    {'label': 'Topographic Error', 'value': 'tp'}
+                                                                ],
+                                                                value='mqe',
+                                                                searchable=False
+                                                                #style={'width': '35%'}
+                                                            ),
+
+
                                 ]
                         ),
 
@@ -322,7 +338,7 @@ def train_som_view():
                         dbc.Button("Train", id="train_button_som",href=URLS['TRAINING_MODEL'],disabled= True, className="mr-2", color="primary")
                         #,dbc.Spinner(id='spinner_training',color="primary",fullscreen=False)],
                     ],
-                    style={'textAlign': 'center'}
+                    style=pu.get_css_style_center()
                 ),
                 html.H6(id='som_entrenado'),
 
@@ -332,16 +348,41 @@ def train_som_view():
                         dbc.Button("Add", id="add_train_som",disabled= True, className="mr-2", color="primary"),
                         dbc.Button("Train", id="train_models_button_som",href=URLS['TRAINING_MODEL'],disabled= True, className="mr-2", color="primary"),
                     ],
-                    style={'textAlign': 'center'}
+                    style=pu.get_css_style_center()
                 ),
                 html.H6(id='som_entrenado_2'),
                 
+                #Search optimum grid params collapse
                 dbc.Collapse(id = 'grids_train_collapse',
                     is_open = False,
                     children = [
-                        dbc.Button("Search for Optimum Hyperparameters", id="search_params_button_som",href=URLS['TRAINING_MODEL'],disabled= True, className="mr-2", color="primary"),
+                        dcc.Loading(id='loading',
+                                    type='dot',
+                                    children=[
+                                        dbc.Button("Search for Optimum Hyperparameters", id="search_params_button_som",
+                                        disabled= True, className="mr-2", color="warning"),
+                                    ]
+                        ),
+                        dbc.Collapse(   id= 'collapse_optimum_found_params',
+                                        is_open= False,
+                                        children=[
+                                            html.Br(),
+                                            html.Br(),
+                                            html.Div(id = 'div_table_search_found_params', children =pu.create_simple_table([],[], 'table_search_found_params') ),
+                                            html.Br(),
+                                            html.Div([
+                                                        dbc.Button("Analyze Model with current Hyperparameters", id="psearch_analyze_button",href = URLS['ANALYZE_SOM_URL'],
+                                                                    disabled= True, className="mr-2", color="primary"),
+                                                        dbc.Button("Add params to MultiTrain Tab", id="psearch_addtomulti_train_button",disabled= True, className="mr-2", color="primary"),
+                                                    ],
+                                                    style = pu.get_css_style_inline_flex_no_display()
+                                            ),
+                                        ]
+                        ),
+
+
                     ],
-                    style={'textAlign': 'center'}
+                    style=pu.get_css_style_center()
                 ),
                 html.H6(id='som_entrenado_3'),
 
@@ -431,6 +472,38 @@ def create_new_train_row(h_size, v_size, lr, nf, df,gs,mi,wi,t,s):
 
 
 
+#For param tuning search
+def add_data_table_search_found_params( h_size = None, v_size= None,df= None, wi= None, mqe= None, tp= None, data = None):
+
+    columns = []
+    if(data is None):
+        data = []
+    row = {}
+
+    if(mqe is not None):
+        columns.append({'id': 'mqe'         , 'name': 'Mean Quantization Error' })
+        row['mqe'] = mqe
+    if(tp is not None):
+        columns.append({'id': 'tp'         , 'name': 'Topographic Error' })
+        row['tp'] = tp
+    if(h_size is not None):
+        columns.append({'id': 'Horizontal Size'         , 'name': 'Hor. Size' })
+        row['Horizontal Size'] = h_size
+    if(v_size is not None):
+        columns.append({'id': 'Vertical Size'           , 'name': 'Ver. Size' })
+        row['Vertical Size'] = v_size
+    if(df is not None):
+        columns.append({'id': "Distance Function"       , 'name': "Distance Function"})
+        row['Distance Function'] = df
+    if(wi is not None):
+        columns.append({'id': "Weights Initialization"  , 'name': "Weights Initialization"})
+        row['Weights Initialization'] = wi
+
+    data.append(row)
+
+    return data, columns
+   
+
 
 
 
@@ -440,56 +513,7 @@ def create_new_train_row(h_size, v_size, lr, nf, df,gs,mi,wi,t,s):
 #############################################################
 
 
-#enable search_params_button_som button
-@app.callback(  Output('search_params_button_som', 'disabled'),
-                Input('input_start_size', 'invalid'),
-                Input('button_add_size_psearch', 'outline'),
-                Input('button_add_distancef_psearch', 'outline'),
-                Input('button_add_weightsini_psearch', 'outline'),
-                Input('dropdown_distance_psearch','value'),
-                Input('dropdown_weightsini_psearch', 'value'),
-                Input('input_start_size', 'value'),
-                Input('input_stop_size', 'value'),
-                Input('input_step_size', 'value'),
-                prevent_initial_call=True
 
-)
-def enable_search_params_button_som(invalid_start, outline1, outline2,outline3,dd1,dd2,start,stop,step):
-
-    #we must have mora than just one value
-    cond = 0
-
-   
-    if(not outline1):
-        if(  invalid_start):
-            return True
-        elif(start + step == stop):
-            cond += 1
-        else:
-            cond += 2
-
-    if(not outline2):
-        if(dd1 is None or len(dd1) == 0 ):
-            return True
-        elif(not outline2 and len(dd1)==1 ):
-            cond += 1
-        else:
-            cond += 2
-
-
-    if( not outline3 ):
-        if(dd2 is None or len(dd2) == 0):
-            return True
-        elif(not outline3 and len(dd2)==1 ):
-            cond += 1
-        else:
-            cond += 2
-    
-
-    if(cond >=2 ):
-       return False
-    else:
-        return True
 
 
 #start,stop,step values coordintaed in param tuning tab
@@ -516,8 +540,6 @@ def sync_start_stop_step_inputs(start,stop,step):
     else:
         return False, False, False
        
-
-
 
 
 #Toggles size param search menu in param search option
@@ -602,6 +624,7 @@ def select_train_mode_som(n1,n2,n3):
         session_data.set_som_multiple_trains( False)
         return True,  True, False,   False, False , True,    False, True
 
+
 # Checklist seleccionar semilla
 @app.callback(
     Output('div_semilla_som','style'),
@@ -630,7 +653,6 @@ def plot_qe_evolution(check):
         return False
 
 
-
 #Enable train som button
 @app.callback(  Output('train_button_som','disabled'),
                 Output('add_train_som','disabled'),
@@ -654,7 +676,6 @@ def enable_train_som_button(tam_eje_vertical,tam_eje_horizontal,tasa_aprendizaje
 
     params  = [tam_eje_vertical,tam_eje_horizontal,tasa_aprendizaje,vecindad, topology, distance,
                                     sigma,iteracciones,dropdown_inicializacion_pesos]
-
     if(check_semilla):
         params.append(seed)
 
@@ -685,7 +706,6 @@ def disable_triangular_with_hextopology(topology,options, valor_vecindad):
         options[3]['disabled']= False
     
     return options,valor_vecindad
-
 
 
 @app.callback(  Output('table_multiple_trains','data'),
@@ -751,6 +771,7 @@ def train_models_som(n_cliks, table_data, check_qe_evolution_som, input_qe_evolu
     if(table_data is None or (not any(table_data)) ):
         return PreventUpdate
 
+    session_data.reset_som_model_info_dict()
     session_data.set_n_of_models(len(table_data)) 
 
     for i, row in enumerate(table_data):
@@ -773,17 +794,10 @@ def train_models_som(n_cliks, table_data, check_qe_evolution_som, input_qe_evolu
         else:
             check_semilla = 1
 
-
         data = session_data.get_train_data()
-
         start = time.time()
         session_data.start_timer()
-
         # TRAINING
-
-
-        
-
         som = minisom.MiniSom(x=eje_vertical, y=eje_horizontal, input_len=data.shape[1], sigma=sigma, learning_rate=tasa_aprendizaje,
                     neighborhood_function=vecindad, topology=topology,
                      activation_distance=distance, random_seed=seed)
@@ -797,7 +811,6 @@ def train_models_som(n_cliks, table_data, check_qe_evolution_som, input_qe_evolu
 
         #print('Training som...')
         if(any(check_qe_evolution_som)):
-            #print('dentrooooo')
             session_data.set_show_error_evolution(True)
             session_data.reset_error_evolution()
             map_qe = som.train(data, iteracciones, random_order=False, verbose=True,plot_qe_at_n_it = input_qe_evolution_som)  
@@ -812,17 +825,8 @@ def train_models_som(n_cliks, table_data, check_qe_evolution_som, input_qe_evolu
                                             pesos_init,topology,check_semilla, seed, end - start, som = som, qe = map_qe)
         print('\t Elapsed Time:',str(end - start),'seconds')
 
-        
-
-
-
 
     return 'Training Complete'
-
-
-
-
-
 
 
 
@@ -847,7 +851,6 @@ def train_models_som(n_cliks, table_data, check_qe_evolution_som, input_qe_evolu
 def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, topology, distance,sigma,iteracciones,
                 pesos_init, semilla, check_semilla, check_qe_evolution_som, input_qe_evolution_som):
 
-
     tasa_aprendizaje=float(tasa_aprendizaje)
     sigma = float(sigma)
     iteracciones = int(iteracciones)
@@ -857,15 +860,12 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
     else:
         seed = None
         check = 0
-
+    session_data.reset_som_model_info_dict()
     data = session_data.get_train_data()
-
     start = time.time()
     session_data.start_timer()
     
     # TRAINING
-    
-
     som = minisom.MiniSom(x=eje_vertical, y=eje_horizontal, input_len=data.shape[1], sigma=sigma, learning_rate=tasa_aprendizaje,
                 neighborhood_function=vecindad, topology=topology,
                  activation_distance=distance, random_seed=seed)
@@ -875,7 +875,6 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
         som.pca_weights_init(data)
     elif(pesos_init == 'random'):   
         som.random_weights_init(data)
-
 
     print('Training som...')
     #Random order =False due to data alrady shuffled
@@ -894,14 +893,185 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
     session_data.set_som_model_info_dict(eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad,distance,sigma,
                                             iteracciones, pesos_init,topology,check,seed, training_time = end)
     print('\t Elapsed Time:',str(end - start),'seconds')
-
-
     return 'Training Complete'
 
 
 
 
 
+#############PARAM SEARCH CALLBACKS##########
+
+#enable search_params_button_som button
+@app.callback(  Output('search_params_button_som', 'disabled'),
+                Input('input_start_size', 'invalid'),
+                Input('button_add_size_psearch', 'outline'),
+                Input('button_add_distancef_psearch', 'outline'),
+                Input('button_add_weightsini_psearch', 'outline'),
+                Input('dropdown_distance_psearch','value'),
+                Input('dropdown_weightsini_psearch', 'value'),
+                Input('input_start_size', 'value'),
+                Input('input_stop_size', 'value'),
+                Input('input_step_size', 'value'),
+                prevent_initial_call=True
+)
+def enable_search_params_button_som(invalid_start, outline1, outline2,outline3,dd1,dd2,start,stop,step):
+
+    #we must have mora than just one value
+    cond = 0
+    if(not outline1):
+        if(  invalid_start):
+            return True
+        elif(start + step == stop):
+            cond += 1
+        else:
+            cond += 2
+
+    if(not outline2):
+        if(dd1 is None or len(dd1) == 0 ):
+            return True
+        elif(not outline2 and len(dd1)==1 ):
+            cond += 1
+        else:
+            cond += 2
+
+    if( not outline3 ):
+        if(dd2 is None or len(dd2) == 0):
+            return True
+        elif(not outline3 and len(dd2)==1 ):
+            cond += 1
+        else:
+            cond += 2
+    
+    if(cond >=2 ):
+       return False
+    else:
+        return True
+
+
+#Grid Search Button
+@app.callback(  Output('div_table_search_found_params', 'children'),
+                Output('collapse_optimum_found_params', 'is_open'),
+                Output('search_params_button_som', 'color'),
+
+                Input('search_params_button_som', 'n_clicks'),
+                State('button_add_size_psearch', 'outline'),
+                State('button_add_distancef_psearch', 'outline'),
+                State('button_add_weightsini_psearch', 'outline'),
+
+                State('dropdown_distance_psearch','value'),
+                State('dropdown_weightsini_psearch', 'value'),
+                State('input_start_size', 'value'),
+                State('input_stop_size', 'value'),
+                State('input_step_size', 'value'),
+                State('dropdown_scoring_metric_psearch','value'),
+
+                State('tam_eje_vertical', 'value'),
+                State('tam_eje_horizontal', 'value'),
+                State('tasa_aprendizaje_som', 'value'),
+                State('dropdown_vecindad', 'value'),
+                State('dropdown_topology', 'value'),
+                State('dropdown_distance', 'value'),
+                State('sigma', 'value'),
+                State('iteracciones', 'value'),
+                State('dropdown_inicializacion_pesos','value'),
+                State('seed_som','value'),
+                State("check_semilla_som", "value"),
+                prevent_initial_call=True
+)
+def param_search(  n_clicks,
+                outline1, outline2,outline3, dd1,dd2,start,stop,step,scoring_metric,
+                eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, topology, distance,sigma,iteracciones,
+                pesos_init, semilla, check_semilla):
+
+
+    parameters = {}
+    table_h_size, table_v_size,table_df, table_wi,table_mqe, table_tp = None,None,None,None,None,None
+    tasa_aprendizaje=float(tasa_aprendizaje)
+    sigma = float(sigma)
+    iteracciones = int(iteracciones)
+    if(check_semilla):
+        seed = int(semilla)
+    else:
+        seed = None
+   
+
+    if(not outline1):#Search with size
+        parameters['square_grid_size'] =[ i for i in range(start, (stop+step), step) ]
+        #print('debung range', parameters['square_grid_size'] )
+
+    if(not outline2):
+        parameters['activation_distance'] = dd1
+    else:
+        parameters['activation_distance'] = [distance]
+
+    if(not outline3):
+        parameters['weights_init'] = dd2
+    else:
+        parameters['weights_init'] = [pesos_init]
+
+    estimador = sksom.SOM_Sklearn(  ver_size =eje_vertical,hor_size = eje_horizontal, sigma=sigma, 
+                                    learning_rate=tasa_aprendizaje,
+                                    neighborhood_function=vecindad, topology=topology,
+                                    num_iteration=iteracciones, random_seed=seed,
+                                    activation_distance=distance,weights_init=pesos_init )
+
+    
+    scoring ={'tp': score_topographic_error,'mqe': score_mqe}
+    score_fun = scoring[scoring_metric]
+    gs = GridSearchCV(estimador, parameters, n_jobs = -1, scoring= score_fun, refit = True)
+    data = session_data.get_train_data()
+    print('\t -->Applying Hyperparameter Grid Search...')
+    gs.fit(data)
+    print('\t -->Hyperparameter Grid Search Complete!')
+
+    #Save best model since if later analyze this model button is used
+    #print('Best estimator size', gs.best_estimator_.som_model._weights.shape )
+    session_data.set_show_error_evolution(False)
+    session_data.set_modelos(gs.best_estimator_.som_model) 
+
+
+    #Best params
+    s_params = gs.best_params_
+    if('square_grid_size' in s_params):
+        table_h_size=s_params['square_grid_size']
+        table_v_size=s_params['square_grid_size']
+        session_data.set_som_model_info_dict(table_v_size,table_h_size,tasa_aprendizaje,vecindad,s_params['activation_distance'],sigma,
+                                            iteracciones, s_params['weights_init'],topology,check_semilla,seed)
+    else:
+        session_data.set_som_model_info_dict(eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad,s_params['activation_distance'],sigma,
+                                            iteracciones, s_params['weights_init'],topology,check_semilla,seed)
+        
+
+    table_df=  s_params['activation_distance']
+    table_wi = s_params['weights_init']
+    if(scoring_metric == 'mqe'):
+        table_mqe =  abs(gs.best_score_) 
+    else:
+        table_tp =  abs(gs.best_score_) 
+    data,columns = add_data_table_search_found_params(table_h_size, table_v_size,table_df, table_wi,table_mqe, table_tp)
+
+    #TODO Rest of the ranking ,pedning of implementing
+    '''
+    for in zip(gs.cv_results_['rank_test_score'],  gs.cv_results_['params'], gs.cv_results_['mean_test_score'],
+                gs.cv_results_['param_activation_distance'], gs.cv_results_['param_weights_init']
+                 ):
+         data,columns = add_data_table_search_found_params(data = data ,table_h_size, table_v_size,table_df, table_wi,table_mqe, table_tp)
+    '''
+
+    s_table = pu.create_simple_table(data, columns, 'table_search_found_params')
+    #print('Results',gs.cv_results_)
+    return s_table, True, "warning"
 
 
 
+@app.callback(  Output('psearch_analyze_button', 'disabled'),
+                Input('table_search_found_params','data'),
+                prevent_initial_call=True
+
+)
+def enable_analyze_model( data):
+
+    if(data is None or len(data)==0):
+        return True
+    else:
+        return False

@@ -31,7 +31,7 @@ scoring ={'qe': score_qe,
 #scoring = score_qe
 
 iris = datasets.load_iris()
-clf = GridSearchCV(estimador, parameters, n_jobs = -1, scoring= scoring)
+clf = GridSearchCV(estimador, parameters, scoring= scoring)
 #clf = GridSearchCV(estimador, parameters, n_jobs = -1, scoring= score_topographic_error)
 
 clf.fit(iris.data)
