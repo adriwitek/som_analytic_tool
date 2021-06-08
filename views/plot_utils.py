@@ -876,14 +876,14 @@ def create_qe_progress_figure(x, y, x_max):
     fig.add_trace(go.Scatter(x=x, y=y,text = y, fill='tozeroy', mode='lines+markers',)) # fill down to xaxis
     fig.update_layout(
             title={
-                'text': "Map Quantization Error Evolution",
+                'text': "Map Mean Quantization Error Evolution",
                 'y':0.9,
                 'x':0.5,
                 'xanchor': 'center',
                 'yanchor': 'top'
             },
         xaxis_title="Iteration",
-        yaxis_title="Quantization Error",
+        yaxis_title="Mean Quantization Error",
         #legend_title="Legend Title",
         font=dict(
             #family="Courier New, monospace",

@@ -42,7 +42,7 @@ def form_train_som(grid_recommended_size):
                     dbc.Collapse(id = 'collapse_size',
                                 is_open = True,
                                 children =[
-                                        html.H5(children='Vertical Grid Size:'),
+                                        html.H5(children='Vertical Grid Size'),
                                         dcc.Input(id="tam_eje_vertical", type="number", value=grid_recommended_size,step=1,min=1),
                                         html.H5(children='Horizontal Grid Size'),
                                         dcc.Input(id="tam_eje_horizontal", type="number", value=grid_recommended_size,step=1,min=1),
@@ -139,10 +139,11 @@ def form_train_som(grid_recommended_size):
                                 style= pu.get_css_style_hidden_visibility()
                     ),   
 
-                    html.Hr(),
+                    
                     dbc.Collapse(id = 'collapse_show_qe_evolution',
                                     is_open=True,
                                     children = [
+                                            html.Hr(),
                                             html.H5(children='Show Map QE Error evolution while training'),
                                             html.Div( 
                                                     [dbc.Checklist(
@@ -165,12 +166,25 @@ def form_train_som(grid_recommended_size):
                                                             ],
                                                             style =pu.get_css_style_inline_flex_no_display()
                                             ),
+                                            html.Hr(),
                                     ]
                     ),
                    
+                    dbc.Modal(
+                            [
+                                dbc.ModalHeader("Done"),
+                                dbc.ModalBody("This model will be avaible at Analyze Page, after training other models in Multi-Train Tab!"),
+                                dbc.ModalFooter(
+                                    dbc.Button("Close", id="close_modal_psearch_to_multitrain_tab", className="ml-auto")
+                                ),
+                            ],
+                            id="modal_psearch_to_multitrain_tab",
+                            centered=True,
+                            is_open= False,
+                    ),
 
                     
-                    html.Hr(),
+                   
             ]
 
     return children
@@ -201,8 +215,8 @@ def train_som_view():
                 html.Div(
                     children=[ 
                         dbc.Button("Single Train", id="single_train_sel", className="mr-2", color="primary", outline=False ),
-                        dbc.Button("Multiple Trains: Manual Selection", id="manual_train_sel", className="mr-2", color="primary", outline=True  ),
-                        dbc.Button("Multiple Trains: Grid Search", id="grids_train_sel", className="mr-2", color="primary", outline=True  )
+                        dbc.Button("Multi-Train", id="manual_train_sel", className="mr-2", color="primary", outline=True  ),
+                        dbc.Button("Optimum Hyperparameters Search", id="grids_train_sel", className="mr-2", color="primary", outline=True  )
                     ],
                     style=pu.get_css_style_inline_flex()
                 ),
@@ -352,7 +366,7 @@ def train_som_view():
                 dbc.Collapse(id = 'manual_train_collapse',
                     is_open = False,
                     children = [
-                        dbc.Button("Add", id="add_train_som",disabled= True, className="mr-2", color="primary"),
+                        dbc.Button("Add", id="add_train_som",disabled= True, className="mr-2", color="success"),
                         dbc.Button("Train", id="train_models_button_som",href=URLS['TRAINING_MODEL'],disabled= True, className="mr-2", color="primary"),
                     ],
                     style=pu.get_css_style_center()
@@ -366,7 +380,7 @@ def train_som_view():
                         dcc.Loading(id='loading',
                                     type='dot',
                                     children=[
-                                        dbc.Button("Search for Optimum Hyperparameters", id="search_params_button_som",
+                                        dbc.Button("Grid Search for Optimum Hyperparameters", id="gridsearch_params_button_som",
                                         disabled= True, className="mr-2", color="warning"),
                                     ]
                         ),
@@ -378,9 +392,11 @@ def train_som_view():
                                             html.Div(id = 'div_table_search_found_params', children =pu.create_simple_table([],[], 'table_search_found_params') ),
                                             html.Br(),
                                             html.Div([
+                                                        dbc.Button("Add Params to MultiTrain Tab", id="psearch_addtomulti_train_button",disabled= True, className="mr-2", color="success"),
+                                                        dbc.Button("Discard HyperParameters", id="discard_search_params_button",disabled= True, className="mr-2", color="danger"),
                                                         dbc.Button("Analyze Model with current Hyperparameters", id="psearch_analyze_button",href = URLS['ANALYZE_SOM_URL'],
                                                                     disabled= True, className="mr-2", color="primary"),
-                                                        dbc.Button("Add params to MultiTrain Tab", id="psearch_addtomulti_train_button",disabled= True, className="mr-2", color="primary"),
+                                                        
                                                     ],
                                                     style = pu.get_css_style_inline_flex_no_display()
                                             ),
@@ -739,6 +755,7 @@ def disable_triangular_with_hextopology(topology,options, valor_vecindad):
 
 @app.callback(  Output('table_multiple_trains','data'),
                 Input('add_train_som','n_clicks'),
+                             
                 State('table_multiple_trains','rows'),
                 State('tam_eje_vertical', 'value'),
                 State('tam_eje_horizontal', 'value'),
@@ -754,13 +771,27 @@ def disable_triangular_with_hextopology(topology,options, valor_vecindad):
                 State('table_multiple_trains','data'),
                 prevent_initial_call=True
 )
-#append a new train to table
+#append a new train to table: this can be done on multiple manual train tab or after param search(with the bests params found)
 def create_new_train_som(n_clicks,rows, eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, topology, distance,sigma,iteracciones,
                         pesos_init, semilla, check_semilla, table_data):         
 
     tasa_aprendizaje=float(tasa_aprendizaje)
     sigma = float(sigma)
     iteracciones = int(iteracciones)
+    ctx = dash.callback_context
+    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    
+    '''
+    if(trigger_id == 'psearch_addtomulti_train_button'):
+        if(param_table_data is None or len(param_table_data)==0):
+            raise PreventUpdate
+        else:
+           distance = param_table_data[0]['Distance Function']
+           pesos_init = param_table_data[0]['Weights Initialization']
+           if('Horizontal Size' in param_table_data[0] ):
+               eje_vertical = param_table_data[0]['Vertical Size']
+               eje_horizontal= param_table_data[0]['Horizontal Size']
+    ''' 
     if(check_semilla):
         seed = int(semilla)
         row = create_new_train_row(eje_horizontal, eje_vertical, tasa_aprendizaje, vecindad, distance,sigma,
@@ -800,7 +831,7 @@ def train_models_som(n_cliks, table_data, check_qe_evolution_som, input_qe_evolu
     if(table_data is None or (not any(table_data)) ):
         return PreventUpdate
 
-    session_data.reset_som_model_info_dict()
+    #session_data.reset_som_model_info_dict()
     session_data.set_n_of_models(len(table_data)) 
 
     for i, row in enumerate(table_data):
@@ -851,7 +882,7 @@ def train_models_som(n_cliks, table_data, check_qe_evolution_som, input_qe_evolu
         end = time.time()
         #ojo en numpy: array[ejevertical][ejehorizontal] ,al contratio que en plotly
         session_data.set_som_model_info_dict(eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad,distance,sigma,iteracciones, 
-                                            pesos_init,topology,check_semilla, seed, end - start, som = som, qe = map_qe)
+                                            pesos_init,topology,check_semilla, seed, end - start, som = som, mqe = map_qe)
         print('\t Elapsed Time:',str(end - start),'seconds')
 
 
@@ -930,8 +961,8 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
 
 #############PARAM SEARCH CALLBACKS##########
 
-#enable search_params_button_som button
-@app.callback(  Output('search_params_button_som', 'disabled'),
+#enable gridsearch_params_button_som button
+@app.callback(  Output('gridsearch_params_button_som', 'disabled'),
                 Input('input_start_size', 'invalid'),
                 Input('button_add_size_psearch', 'outline'),
                 Input('button_add_distancef_psearch', 'outline'),
@@ -943,7 +974,7 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
                 Input('input_step_size', 'value'),
                 prevent_initial_call=True
 )
-def enable_search_params_button_som(invalid_start, outline1, outline2,outline3,dd1,dd2,start,stop,step):
+def enable_gridsearch_params_button_som(invalid_start, outline1, outline2,outline3,dd1,dd2,start,stop,step):
 
     #we must have mora than just one value
     cond = 0
@@ -980,9 +1011,15 @@ def enable_search_params_button_som(invalid_start, outline1, outline2,outline3,d
 #Grid Search Button
 @app.callback(  Output('div_table_search_found_params', 'children'),
                 Output('collapse_optimum_found_params', 'is_open'),
-                Output('search_params_button_som', 'color'),
+                Output('gridsearch_params_button_som', 'color'),# This output is only for showin loading animation while searching
+                    Output("modal_psearch_to_multitrain_tab", "is_open"),
 
-                Input('search_params_button_som', 'n_clicks'),
+                    Input('gridsearch_params_button_som', 'n_clicks'),
+                    Input('psearch_addtomulti_train_button','n_clicks'),
+                    Input('close_modal_psearch_to_multitrain_tab','n_clicks'),
+                        Input('discard_search_params_button','n_clicks'),
+
+                    
                 State('button_add_size_psearch', 'outline'),
                 State('button_add_distancef_psearch', 'outline'),
                 State('button_add_weightsini_psearch', 'outline'),
@@ -1007,12 +1044,24 @@ def enable_search_params_button_som(invalid_start, outline1, outline2,outline3,d
                 State("check_semilla_som", "value"),
                 prevent_initial_call=True
 )
-def param_search(  n_clicks,
+def param_search(  n1,n2,n3,n4,
                 outline1, outline2,outline3, dd1,dd2,start,stop,step,scoring_metric,
                 eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, topology, distance,sigma,iteracciones,
                 pesos_init, semilla, check_semilla):
 
-
+    open_modal = False
+    ctx = dash.callback_context
+    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if(trigger_id == 'close_modal_psearch_to_multitrain_tab'):
+        return dash.no_update, dash.no_update, dash.no_update, False
+    elif(trigger_id == 'psearch_addtomulti_train_button'  ):
+        return dash.no_update, dash.no_update, dash.no_update,True
+    elif(trigger_id == 'discard_search_params_button'):
+        #session_data.reset_som_model_info_dict()
+        session_data.del_last_som_model_info_dict()
+        return  pu.create_simple_table([], [], 'table_search_found_params'), False, dash.no_update ,False
+    
+   
     parameters = {}
     table_h_size, table_v_size,table_df, table_wi,table_mqe, table_tp = None,None,None,None,None,None
     tasa_aprendizaje=float(tasa_aprendizaje)
@@ -1022,7 +1071,6 @@ def param_search(  n_clicks,
         seed = int(semilla)
     else:
         seed = None
-   
 
     if(not outline1):#Search with size
         parameters['square_grid_size'] =[ i for i in range(start, (stop+step), step) ]
@@ -1058,49 +1106,42 @@ def param_search(  n_clicks,
     session_data.set_show_error_evolution(False)
     session_data.set_modelos(gs.best_estimator_.som_model) 
 
-
-    #Best params
     s_params = gs.best_params_
-    if('square_grid_size' in s_params):
-        table_h_size=s_params['square_grid_size']
-        table_v_size=s_params['square_grid_size']
-        session_data.set_som_model_info_dict(table_v_size,table_h_size,tasa_aprendizaje,vecindad,s_params['activation_distance'],sigma,
-                                            iteracciones, s_params['weights_init'],topology,check_semilla,seed)
-    else:
-        session_data.set_som_model_info_dict(eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad,s_params['activation_distance'],sigma,
-                                            iteracciones, s_params['weights_init'],topology,check_semilla,seed)
-        
-
     table_df=  s_params['activation_distance']
     table_wi = s_params['weights_init']
     if(scoring_metric == 'mqe'):
         table_mqe =  abs(gs.best_score_) 
     else:
         table_tp =  abs(gs.best_score_) 
-    data,columns = add_data_table_search_found_params(table_h_size, table_v_size,table_df, table_wi,table_mqe, table_tp)
 
-    #TODO Rest of the ranking ,pedning of implementing
-    '''
-    for in zip(gs.cv_results_['rank_test_score'],  gs.cv_results_['params'], gs.cv_results_['mean_test_score'],
-                gs.cv_results_['param_activation_distance'], gs.cv_results_['param_weights_init']
-                 ):
-         data,columns = add_data_table_search_found_params(data = data ,table_h_size, table_v_size,table_df, table_wi,table_mqe, table_tp)
-    '''
+    #Best params
+    if('square_grid_size' in s_params):
+        table_h_size=s_params['square_grid_size']
+        table_v_size=s_params['square_grid_size']
+        session_data.set_som_model_info_dict(table_v_size,table_h_size,tasa_aprendizaje,vecindad,s_params['activation_distance'],sigma,
+                                            iteracciones, s_params['weights_init'],topology,check_semilla,seed,mqe =table_mqe)
+    else:
+        session_data.set_som_model_info_dict(eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad,s_params['activation_distance'],sigma,
+                                            iteracciones, s_params['weights_init'],topology,check_semilla,seed, mqe =table_mqe)
+        
+
+    
+    data,columns = add_data_table_search_found_params(table_h_size, table_v_size,table_df, table_wi,table_mqe, table_tp)
 
     s_table = pu.create_simple_table(data, columns, 'table_search_found_params')
     #print('Results',gs.cv_results_)
-    return s_table, True, "warning"
+    return s_table, True, "warning",False
 
 
 
 @app.callback(  Output('psearch_analyze_button', 'disabled'),
+                Output('psearch_addtomulti_train_button', 'disabled'),
+                Output('discard_search_params_button', 'disabled'),
                 Input('table_search_found_params','data'),
                 prevent_initial_call=True
-
 )
 def enable_analyze_model( data):
-
     if(data is None or len(data)==0):
-        return True
+        return True, True, True
     else:
-        return False
+        return False,False,False

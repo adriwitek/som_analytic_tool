@@ -44,7 +44,7 @@ import dash_table
 
 def create_new_model_row(qe, h_size, v_size, lr, nf, df,gs,mi,wi,t,s, training_time):
     row = {}
-    row['QE'] = qe
+    row['MQE'] = qe
     row['Horizontal Size'] = h_size
     row['Vertical Size'] = v_size
     row['Learning Rate'] = lr
@@ -66,7 +66,7 @@ def create_new_model_row(qe, h_size, v_size, lr, nf, df,gs,mi,wi,t,s, training_t
 def create_multi_soms_table():
             
     columns = []
-    columns.append({'id': 'QE'         ,             'name': 'QE' })
+    columns.append({'id': 'MQE'         ,             'name': 'MQE' })
     columns.append({'id': 'Training Time'         ,  'name': 'Training Time' })
     columns.append({'id': 'Horizontal Size'         , 'name': 'Hor. Size' })
     columns.append({'id': 'Vertical Size'           , 'name': 'Ver. Size' })
@@ -104,10 +104,10 @@ def create_multi_soms_table():
         else:
             seed = 'No'
 
-        if(som_params['qe'] is None):
+        if(som_params['mqe'] is None):
             qe = 'Not Calculated'
         else:
-            qe = som_params['qe'] 
+            qe = som_params['mqe'] 
 
         row = create_new_model_row(qe, h_size, v_size, lr, nf, df,gs,mi,wi,t,seed, training_time)
         data.append(row)
@@ -394,9 +394,7 @@ def get_umatrix_som_card():
 
     return  dbc.CardBody(children=[
 
-                    html.H5("U-Matrix"),
-                    html.H6("Returns the distance map of the weights.Each cell is the normalised sum of the distances betweena neuron and its neighbours. Note that this method usesthe euclidean distance"),
-                    
+                    html.H5("U-Matrix"),                    
                     html.Div(id='umatrix_figure_div', children=[''],style= pu.get_single_heatmap_css_style()
                     ),
 
@@ -701,8 +699,8 @@ def ver_estadisticas_som(n_clicks,data_portion_option, selected_rows, table_data
     children = [table]
 
 
-    if(table_data[selected_rows[0]]['QE'] == 'Not Calculated' ):
-        table_data[selected_rows[0]]['QE'] = qe
+    if(table_data[selected_rows[0]]['MQE'] == 'Not Calculated' ):
+        table_data[selected_rows[0]]['MQE'] = mqe
         return children, table_data
 
     else:
@@ -1177,7 +1175,7 @@ def update_umatrix(n_clicks,check_annotations, log_scale):
     params = session_data.get_som_model_info_dict()
 
     if(params['topology']== 'rectangular'):    #RECTANGULAR TOPOLOGY   
-        figure,_ = pu.create_heatmap_figure(umatrix ,tam_eje_horizontal,tam_eje_vertical, check_annotations, title ='Matriz U',
+        figure,_ = pu.create_heatmap_figure(umatrix ,tam_eje_horizontal,tam_eje_vertical, check_annotations, title ='U-Matrix',
                                              colorscale = UMATRIX_HEATMAP_COLORSCALE,  reversescale=True, log_scale = log_scale)
     else:#HEXAGONAL TOPOLOGY
 

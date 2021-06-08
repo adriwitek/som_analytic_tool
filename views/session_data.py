@@ -492,11 +492,20 @@ class Sesion():
   
         
     def reset_som_model_info_dict(self):
-        self.som_params is None
+        self.som_params = None
+        self.modelo = None
+
+    def del_last_som_model_info_dict(self):
+        if(self.som_params is not None and self.modelo is not None and any( self.som_params) and any(self.modelo) ):
+            del self.som_params[-1]
+            del self.modelo[-1]
+            print('deleted las item')
+            print(' now self.som_params', self.som_params)
+            
 
     def set_som_model_info_dict(self,tam_eje_vertical,tam_eje_horizontal,learning_rate,neigh_fun,distance_fun,
                                 sigma,iteraciones, inicialitacion_pesos,topologia,check_semilla, semilla,
-                                training_time = None, som = None, qe = None):
+                                training_time = None, som = None, mqe = None):
 
 
         if(self.som_params is None):
@@ -523,10 +532,10 @@ class Sesion():
         else:
             som_params['training_time'] = training_time
 
-        if(qe is None):
-            som_params['qe'] = None
+        if(mqe is None):
+            som_params['mqe'] = None
         else:
-            som_params['qe'] = qe
+            som_params['mqe'] = mqe
 
 
 

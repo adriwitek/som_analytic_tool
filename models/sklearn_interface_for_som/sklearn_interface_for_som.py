@@ -140,8 +140,10 @@ class SOM_Sklearn():
             som.random_weights_init(X)
         som.train(X, self.num_iteration, random_order=False, verbose=True) 
         self.som_model = som
+        '''
         print('Size',self.square_grid_size,'MQE',som.get_qe_and_mqe_errors(X)[1],'dsitance', self.activation_distance ,
                 'weight init', self.weights_init,  flush = True)
+        '''
         return self
 
 
