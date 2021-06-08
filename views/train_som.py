@@ -24,7 +24,7 @@ import dash_table
 
 import models.sklearn_interface_for_som.sklearn_interface_for_som as sksom
 from models.sklearn_interface_for_som.scoring_functions import  score_mqe, score_topographic_error
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 
 
 #############################################################
@@ -286,7 +286,7 @@ def train_som_view():
                                                             ), 
                                                                                        
                                                             dbc.Label('Number of hyperparameter settings to sample'),
-                                                            dbc.Input(id = 'input_n_iter_randsearch' , type='number',min = 1, step = 1, value = grid_step_default_value),                              
+                                                            dbc.Input(id = 'input_n_iter_randsearch' , type='number',min = 1, step = 1, value = 10),                              
                                                         ]
                                         ),
                                         html.Br(),
@@ -403,8 +403,8 @@ def train_som_view():
                 ),
                 html.H6(id='som_entrenado_2'),
                 
-                #Search optimum grid params collapse
-                dbc.Collapse(id = 'collapse_paramsearch_train_form',
+                #Grid Search
+                dbc.Collapse(id = 'collapse_gridsearch_train_form',
                     is_open = False,
                     children = [
                         dcc.Loading(id='loading',
@@ -414,29 +414,50 @@ def train_som_view():
                                         disabled= True, className="mr-2", color="warning"),
                                     ]
                         ),
-                        dbc.Collapse(   id= 'collapse_optimum_found_params',
-                                        is_open= False,
-                                        children=[
-                                            html.Br(),
-                                            html.Br(),
-                                            html.Div(id = 'div_table_search_found_params', children =pu.create_simple_table([],[], 'table_search_found_params') ),
-                                            html.Br(),
-                                            html.Div([
-                                                        dbc.Button("Add Params to MultiTrain Tab", id="psearch_addtomulti_train_button",disabled= True, className="mr-2", color="success"),
-                                                        dbc.Button("Discard HyperParameters", id="discard_search_params_button",disabled= True, className="mr-2", color="danger"),
-                                                        dbc.Button("Analyze Model with current Hyperparameters", id="psearch_analyze_button",href = URLS['ANALYZE_SOM_URL'],
-                                                                    disabled= True, className="mr-2", color="primary"),
-                                                        
-                                                    ],
-                                                    style = pu.get_css_style_inline_flex_no_display()
-                                            ),
-                                        ]
-                        ),
-
-
+                        
                     ],
                     style=pu.get_css_style_center()
                 ),
+
+
+
+                #Random Search
+                dbc.Collapse(id = 'collapse_randsearch_train_form',
+                    is_open = False,
+                    children = [
+                        dcc.Loading(id='loading',
+                                    type='dot',
+                                    children=[
+                                        dbc.Button("Rand Search for Optimum Hyperparameters", id="randsearch_params_button_som",
+                                        disabled= True, className="mr-2", color="warning"),
+                                    ]
+                        ),
+                    ],
+                    style=pu.get_css_style_center()
+                ),
+
+
+                #Table with best found hyperparams
+                dbc.Collapse(   id= 'collapse_optimum_found_params',
+                                is_open= False,
+                                style=pu.get_css_style_center(),
+                                children=[
+                                    html.Br(),
+                                    html.Br(),
+                                    html.Div(id = 'div_table_search_found_params', children =pu.create_simple_table([],[], 'table_search_found_params') ),
+                                    html.Br(),
+                                    html.Div([
+                                                dbc.Button("Add Params to MultiTrain Tab", id="psearch_addtomulti_train_button",disabled= True, className="mr-2", color="success"),
+                                                dbc.Button("Discard HyperParameters", id="discard_search_params_button",disabled= True, className="mr-2", color="danger"),
+                                                dbc.Button("Analyze Model with current Hyperparameters", id="psearch_analyze_button",href = URLS['ANALYZE_SOM_URL'],
+                                                            disabled= True, className="mr-2", color="primary"),  
+                                            ],
+                                            style = pu.get_css_style_inline_flex_no_display()
+                                    ),
+                                ]
+                ),
+
+
                 html.H6(id='som_entrenado_3'),
 
 
@@ -592,7 +613,71 @@ def sync_start_stop_step_inputs(start,stop,step):
         return  True, True, True
     else:
         return False, False, False
-       
+
+
+#validate_input_vstart_size_randsearch
+@app.callback(  Output('input_vstart_size_randsearch', 'invalid'),
+                Output('input_vstop_size_randsearch', 'invalid'),
+                Input('input_vstart_size_randsearch', 'value'),
+                Input('input_vstop_size_randsearch', 'value'),
+                prevent_initial_call=True
+)
+def validate_input_vstart_size_randsearch(start,stop):
+    if(start is None or stop is None ):
+        return True,True
+    elif(start >=stop):
+        return  True,True
+    else:
+        return False, False
+
+
+#validate_input_hstart_size_randsearch
+@app.callback(  Output('input_hstart_size_randsearch', 'invalid'),
+                Output('input_hstop_size_randsearch', 'invalid'),
+                Input('input_hstart_size_randsearch', 'value'),
+                Input('input_hstop_size_randsearch', 'value'),
+                prevent_initial_call=True
+)
+def validate_input_hstart_size_randsearch(start,stop):
+    if(start is None or stop is None ):
+        return True,True
+    elif(start >=stop):
+        return  True,True
+    else:
+        return False, False
+
+
+#validate_input_hstart_size_randsearch
+@app.callback(  Output('input_n_iter_randsearch', 'invalid'),
+                Input('input_n_iter_randsearch', 'value'),
+                prevent_initial_call=True
+)
+def validate_input_hstart_size_randsearch(value):
+    if(value is None or value <1 ):
+        return True
+    else:
+        return False
+
+        
+#enable randsearch_params_button_som button
+@app.callback(  Output('randsearch_params_button_som', 'disabled'),
+                Input('input_vstart_size_randsearch', 'invalid'),
+                Input('input_vstop_size_randsearch', 'invalid'),
+                Input('input_hstart_size_randsearch', 'invalid'),
+                Input('input_hstop_size_randsearch', 'invalid'),
+                Input('input_n_iter_randsearch', 'invalid'),
+                Input('gridsearch_params_button_som', 'disabled'),
+                prevent_initial_call=True
+)
+def enable_randsearch_button(i1,i2,i3,i4,i5, disabled_button):
+
+    if( i1 or i2 or i3 or i4 or i5 or disabled_button  ):
+        return True
+    else:
+        False
+
+
+
 
 
 #Toggles size param search menu in param search option
@@ -693,7 +778,9 @@ def toggle_weightsinit_psearch(n_clicks,outline_tab,outline_tab_2, button_outlin
 
                 Output('single_train_collapse','is_open'),
                 Output('manual_train_collapse','is_open'),
-                Output('collapse_paramsearch_train_form','is_open'),
+                Output('collapse_gridsearch_train_form','is_open'),
+                                Output('collapse_randsearch_train_form','is_open'),
+
                 Output('table_multiple_trains_collapse', 'is_open'),
                 Output('collapse_param_tuning', 'is_open'),
                 Output('collapse_show_qe_evolution', 'is_open'),
@@ -710,16 +797,16 @@ def select_train_mode_som(n1,n2,n3,n4):
 
     if(button_id == 'single_train_sel'):
         session_data.set_som_multiple_trains( False)
-        return False,  True, True,True,   True, False , False,    False, False, True
+        return False,  True, True,True,   True, False , False,False,    False, False, True
     elif(button_id == 'manual_train_sel' ):
         session_data.set_som_multiple_trains( True)
-        return True,  False, True,True,   False, True , False,   True,False,True
+        return True,  False, True,True,   False, True , False,False,   True,False,True
     else: #grids_train_sel or random_train_sel
         session_data.set_som_multiple_trains( False)
         if(button_id == 'grids_train_sel'):
-            return True,  True, False,True,   False, False , True,    False, True,False
+            return True,  True, False,True,   False, False , True,False,    False, True,False
         else:
-            return True,  True,True, False,   False, False , True,    False, True,False
+            return True,  True,True, False,   False, False , False, True,   False, True,False
 
 
 
@@ -1014,6 +1101,7 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
 
 #############PARAM SEARCH CALLBACKS##########
 
+
 #enable gridsearch_params_button_som button
 @app.callback(  Output('gridsearch_params_button_som', 'disabled'),
                 Input('input_start_size', 'invalid'),
@@ -1061,18 +1149,24 @@ def enable_gridsearch_params_button_som(invalid_start, outline1, outline2,outlin
         return True
 
 
-#Grid Search Button
+#Grid and Random Search Button
 @app.callback(  Output('div_table_search_found_params', 'children'),
                 Output('collapse_optimum_found_params', 'is_open'),
                 Output('gridsearch_params_button_som', 'color'),# This output is only for showin loading animation while searching
-                    Output("modal_psearch_to_multitrain_tab", "is_open"),
+                Output('randsearch_params_button_som', 'color'),# This output is only for showin loading animation while searching
+                Output("modal_psearch_to_multitrain_tab", "is_open"),
 
-                    Input('gridsearch_params_button_som', 'n_clicks'),
-                    Input('psearch_addtomulti_train_button','n_clicks'),
-                    Input('close_modal_psearch_to_multitrain_tab','n_clicks'),
-                        Input('discard_search_params_button','n_clicks'),
+                Input('gridsearch_params_button_som', 'n_clicks'),
+                Input('randsearch_params_button_som', 'n_clicks'),
+                Input('psearch_addtomulti_train_button','n_clicks'),
+                Input('close_modal_psearch_to_multitrain_tab','n_clicks'),
+                Input('discard_search_params_button','n_clicks'),
 
-                    
+                Input('single_train_sel', 'n_clicks'),
+                Input('manual_train_sel', 'n_clicks'),
+                Input('grids_train_sel', 'n_clicks'),
+                Input('random_train_sel', 'n_clicks'),
+
                 State('button_add_size_psearch', 'outline'),
                 State('button_add_distancef_psearch', 'outline'),
                 State('button_add_weightsini_psearch', 'outline'),
@@ -1095,24 +1189,44 @@ def enable_gridsearch_params_button_som(invalid_start, outline1, outline2,outlin
                 State('dropdown_inicializacion_pesos','value'),
                 State('seed_som','value'),
                 State("check_semilla_som", "value"),
+
+                State("input_vstart_size_randsearch", "value"),
+                State("input_vstop_size_randsearch", "value"),
+                State("input_hstart_size_randsearch", "value"),
+                State("input_hstop_size_randsearch", "value"),
+                State("input_n_iter_randsearch", "value"),
+
+                State('grids_train_sel','outline'),
+                State('random_train_sel','outline'),
                 prevent_initial_call=True
 )
-def param_search(  n1,n2,n3,n4,
+def param_search(  n1,n2,n3,n4,n5, 
+                n6,n7,n8,n9,
                 outline1, outline2,outline3, dd1,dd2,start,stop,step,scoring_metric,
                 eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, topology, distance,sigma,iteracciones,
-                pesos_init, semilla, check_semilla):
+                pesos_init, semilla, check_semilla,
+                v_start, v_stop,h_start, h_stop, n_iter_randsearch,
+                outline_tab , outline_tab_2 ):
 
     open_modal = False
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    if(trigger_id == 'close_modal_psearch_to_multitrain_tab'):
-        return dash.no_update, dash.no_update, dash.no_update, False
+
+    if(trigger_id == 'single_train_sel' or trigger_id == 'manual_train_sel'): #Hide/show collapse found params
+        return dash.no_update, False, dash.no_update,dash.no_update, dash.no_update
+    elif(trigger_id == 'grids_train_sel' or trigger_id == 'random_train_sel'):#Hide/show collapse found params
+        if(outline_tab and outline_tab_2 ):
+            return dash.no_update, False, dash.no_update,dash.no_update, dash.no_update,
+        else:
+            raise PreventUpdate
+    elif(trigger_id == 'close_modal_psearch_to_multitrain_tab'):
+        return dash.no_update, dash.no_update, dash.no_update,dash.no_update, False
     elif(trigger_id == 'psearch_addtomulti_train_button'  ):
-        return dash.no_update, dash.no_update, dash.no_update,True
+        return dash.no_update, dash.no_update, dash.no_update,dash.no_update,True
     elif(trigger_id == 'discard_search_params_button'):
         #session_data.reset_som_model_info_dict()
         session_data.del_last_som_model_info_dict()
-        return  pu.create_simple_table([], [], 'table_search_found_params'), False, dash.no_update ,False
+        return  pu.create_simple_table([], [], 'table_search_found_params'), False, dash.no_update ,dash.no_update,False
     
    
     parameters = {}
@@ -1125,9 +1239,13 @@ def param_search(  n1,n2,n3,n4,
     else:
         seed = None
 
-    if(not outline1):#Search with size
+    if(not outline1 and trigger_id == 'gridsearch_params_button_som'):# Grid Search  wit squaresize
         parameters['square_grid_size'] =[ i for i in range(start, (stop+step), step) ]
-        #print('debung range', parameters['square_grid_size'] )
+    elif(not outline1 and trigger_id == 'randsearch_params_button_som'): #Rando search ver. and hor. range sizes
+        parameters['ver_size'] = [i for i in range(v_start,v_stop+1 ,1 )]
+        parameters['hor_size'] = [i for i in range(h_start,h_stop+1 ,1 )]
+        #print('DEBUG RAND SERACH PARAMS ISEZ ADDED')
+
 
     if(not outline2):
         parameters['activation_distance'] = dd1
@@ -1148,11 +1266,16 @@ def param_search(  n1,n2,n3,n4,
     
     scoring ={'tp': score_topographic_error,'mqe': score_mqe}
     score_fun = scoring[scoring_metric]
-    gs = GridSearchCV(estimador, parameters, n_jobs = -1, scoring= score_fun, refit = True)
     data = session_data.get_train_data()
-    print('\t -->Applying Hyperparameter Grid Search...')
+    if(trigger_id == 'gridsearch_params_button_som'):#Apply grid search
+        gs = GridSearchCV(estimador, parameters, n_jobs = -1, scoring= score_fun, refit = True)
+        print('\t -->Applying Hyperparameter Grid Search...')
+    else: #Rand Search
+        gs = RandomizedSearchCV(estimador, parameters,n_iter=n_iter_randsearch, n_jobs = -1, scoring= score_fun,
+                                 refit = True)
+        print('\t -->Applying Hyperparameter Random Search...')
     gs.fit(data)
-    print('\t -->Hyperparameter Grid Search Complete!')
+    print('\t -->Hyperparameter Search Complete!')
 
     #Save best model since if later analyze this model button is used
     #print('Best estimator size', gs.best_estimator_.som_model._weights.shape )
@@ -1160,6 +1283,8 @@ def param_search(  n1,n2,n3,n4,
     session_data.set_modelos(gs.best_estimator_.som_model) 
 
     s_params = gs.best_params_
+    print('best_params', gs.best_params_)
+
     table_df=  s_params['activation_distance']
     table_wi = s_params['weights_init']
     if(scoring_metric == 'mqe'):
@@ -1168,9 +1293,14 @@ def param_search(  n1,n2,n3,n4,
         table_tp =  abs(gs.best_score_) 
 
     #Best params
-    if('square_grid_size' in s_params):
+    if('square_grid_size' in s_params):#grid search size
         table_h_size=s_params['square_grid_size']
         table_v_size=s_params['square_grid_size']
+        session_data.set_som_model_info_dict(table_v_size,table_h_size,tasa_aprendizaje,vecindad,s_params['activation_distance'],sigma,
+                                            iteracciones, s_params['weights_init'],topology,check_semilla,seed,mqe =table_mqe)
+    elif('ver_size' in s_params):#random search size
+        table_h_size=s_params['hor_size']
+        table_v_size=s_params['ver_size']
         session_data.set_som_model_info_dict(table_v_size,table_h_size,tasa_aprendizaje,vecindad,s_params['activation_distance'],sigma,
                                             iteracciones, s_params['weights_init'],topology,check_semilla,seed,mqe =table_mqe)
     else:
@@ -1178,15 +1308,13 @@ def param_search(  n1,n2,n3,n4,
                                             iteracciones, s_params['weights_init'],topology,check_semilla,seed, mqe =table_mqe)
         
 
-    
     data,columns = add_data_table_search_found_params(table_h_size, table_v_size,table_df, table_wi,table_mqe, table_tp)
-
     s_table = pu.create_simple_table(data, columns, 'table_search_found_params')
     #print('Results',gs.cv_results_)
-    return s_table, True, "warning",False
+    return s_table, True, "warning", "warning", False
 
 
-
+#Enable analyze model after param search button
 @app.callback(  Output('psearch_analyze_button', 'disabled'),
                 Output('psearch_addtomulti_train_button', 'disabled'),
                 Output('discard_search_params_button', 'disabled'),
