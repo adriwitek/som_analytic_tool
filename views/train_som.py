@@ -140,29 +140,36 @@ def form_train_som(grid_recommended_size):
                     ),   
 
                     html.Hr(),
-                    html.H5(children='Show Map QE Error evolution while training'),
-                    html.Div( 
-                            [dbc.Checklist(
-                                options=[{"label": "Plot Evolution", "value": 1}],
-                                value=[],
-                                switch=True,
-                                id="check_qe_evolution_som")
-                            ]
-                    ),
-
-                    dbc.Collapse(   id = 'collapse_qe_evolution_som',
-                                    is_open= False,
+                    dbc.Collapse(id = 'collapse_show_qe_evolution',
+                                    is_open=True,
                                     children = [
-                                        dbc.Label(children='Plot evolution every  '),
-                                        dcc.Input(  id="input_qe_evolution_som", type="number",
-                                                    value= math.ceil(0.1 * session_data.get_train_data_n_samples()),
-                                                    #value= 100,
-                                                    step=1,min=1,
-                                                    max = session_data.get_train_data_n_samples()-1),
-                                        dbc.Label(children='   iterations'),
-                                    ],
-                                    style =pu.get_css_style_inline_flex_no_display()
+                                            html.H5(children='Show Map QE Error evolution while training'),
+                                            html.Div( 
+                                                    [dbc.Checklist(
+                                                        options=[{"label": "Plot Evolution", "value": 1}],
+                                                        value=[],
+                                                        switch=True,
+                                                        id="check_qe_evolution_som")
+                                                    ]     
+                                            ),
+                                            dbc.Collapse(   id = 'collapse_qe_evolution_som',
+                                                            is_open= False,
+                                                            children = [
+                                                                dbc.Label(children='Plot evolution every  '),
+                                                                dcc.Input(  id="input_qe_evolution_som", type="number",
+                                                                            value= math.ceil(0.1 * session_data.get_train_data_n_samples()),
+                                                                            #value= 100,
+                                                                            step=1,min=1,
+                                                                            max = session_data.get_train_data_n_samples()-1),
+                                                                dbc.Label(children='   iterations'),
+                                                            ],
+                                                            style =pu.get_css_style_inline_flex_no_display()
+                                            ),
+                                    ]
                     ),
+                   
+
+                    
                     html.Hr(),
             ]
 
@@ -548,15 +555,22 @@ def sync_start_stop_step_inputs(start,stop,step):
                 Output('button_add_size_psearch', 'outline'),
                 Output('button_add_size_psearch', 'children'),
                 Input('button_add_size_psearch', 'n_clicks'),
+                Input('grids_train_sel', 'outline'),
                 State('button_add_size_psearch', 'outline'),
                 prevent_initial_call=True
 )
-def toggle_size_psearch(n_clicks, outline):
-
-    if(outline):#added
-        return True, False, False, 'Added'
-    else:
+def toggle_size_psearch(n_clicks,outline_tab, button_outline ):
+    if(outline_tab ):
         return False, True, True, 'Add'
+    ctx = dash.callback_context
+    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if(trigger_id == 'button_add_size_psearch'):
+        if(button_outline):#Not added --> Change to  Added
+            return True, False, False, 'Added'
+        else:
+            return False, True, True, 'Add'
+    else:
+        raise PreventUpdate
 
 
 #Toggles distance fun param search menu in param search option
@@ -565,15 +579,22 @@ def toggle_size_psearch(n_clicks, outline):
                 Output('button_add_distancef_psearch', 'outline'),
                 Output('button_add_distancef_psearch', 'children'),
                 Input('button_add_distancef_psearch', 'n_clicks'),
+                Input('grids_train_sel', 'outline'),
                 State('button_add_distancef_psearch', 'outline'),
                 prevent_initial_call=True
 )
-def toggle_distancef_psearch(n_clicks, outline):
-
-    if(outline):#added
-        return True, False, False, 'Added'
-    else:
+def toggle_distancef_psearch(n_clicks,outline_tab, button_outline ):
+    if(outline_tab ):
         return False, True, True, 'Add'
+    ctx = dash.callback_context
+    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if(trigger_id == 'button_add_distancef_psearch'):
+        if(button_outline):#Not added --> Change to  Added
+            return True, False, False, 'Added'
+        else:
+            return False, True, True, 'Add'
+    else:
+        raise PreventUpdate
 
 
 #Toggles weights init param search menu in param search option
@@ -582,15 +603,22 @@ def toggle_distancef_psearch(n_clicks, outline):
                 Output('button_add_weightsini_psearch', 'outline'),
                 Output('button_add_weightsini_psearch', 'children'),
                 Input('button_add_weightsini_psearch', 'n_clicks'),
+                Input('grids_train_sel', 'outline'),
                 State('button_add_weightsini_psearch', 'outline'),
                 prevent_initial_call=True
 )
-def toggle_weightsinit_psearch(n_clicks, outline):
-
-    if(outline):#added
-        return True, False, False, 'Added'
-    else:
+def toggle_weightsinit_psearch(n_clicks,outline_tab, button_outline ):
+    if(outline_tab ):
         return False, True, True, 'Add'
+    ctx = dash.callback_context
+    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if(trigger_id == 'button_add_weightsini_psearch'):
+        if(button_outline):#Not added --> Change to  Added
+            return True, False, False, 'Added'
+        else:
+            return False, True, True, 'Add'
+    else:
+        raise PreventUpdate
 
 
 
@@ -604,6 +632,7 @@ def toggle_weightsinit_psearch(n_clicks, outline):
                 Output('grids_train_collapse','is_open'),
                 Output('table_multiple_trains_collapse', 'is_open'),
                 Output('collapse_param_tuning', 'is_open'),
+                Output('collapse_show_qe_evolution', 'is_open'),
                 Input('single_train_sel','n_clicks'),
                 Input('manual_train_sel','n_clicks'),
                 Input('grids_train_sel','n_clicks'),
@@ -616,13 +645,13 @@ def select_train_mode_som(n1,n2,n3):
 
     if(button_id == 'single_train_sel'):
         session_data.set_som_multiple_trains( False)
-        return False,  True, True,   True, False , False,    False, False
+        return False,  True, True,   True, False , False,    False, False, True
     elif(button_id == 'manual_train_sel' ):
         session_data.set_som_multiple_trains( True)
-        return True,  False, True,   False, True , False,   True,False
+        return True,  False, True,   False, True , False,   True,False,True
     else: #grids_train_sel
         session_data.set_som_multiple_trains( False)
-        return True,  True, False,   False, False , True,    False, True
+        return True,  True, False,   False, False , True,    False, True,False
 
 
 # Checklist seleccionar semilla
