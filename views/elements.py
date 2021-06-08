@@ -9,7 +9,7 @@ import  views.elements as elements
 from  views.session_data import Sesion
 from  config.config import *
 
-
+import base64
 
 
 
@@ -43,6 +43,7 @@ navigation_bar = dbc.Navbar(
             dbc.Row(
                 [
                     dbc.Col(html.Img(src=PLOTLY_LOGO, height="30px")),
+                    #dbc.Col(html.Img(src= base64.b64encode(open(CONFIG_LOGO, 'rb').read()), height="30px")),
                     dbc.Col(dbc.NavbarBrand(APP_NAME, className="ml-2")),
                 ],
                 align="center",

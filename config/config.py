@@ -1,3 +1,4 @@
+#import os
 #APP CONFIG
 
 
@@ -102,3 +103,9 @@ URLS= {
 }
 
 
+#Icons and img routes
+
+#ICON_ROUTE =  os.getcwd() + "\\views\icons\\"
+
+#LOGO =ICON_ROUTE + "logo.png"
+#CONFIG_LOGO = ICON_ROUTE + "config.png"

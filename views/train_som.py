@@ -216,7 +216,9 @@ def train_som_view():
                     children=[ 
                         dbc.Button("Single Train", id="single_train_sel", className="mr-2", color="primary", outline=False ),
                         dbc.Button("Multi-Train", id="manual_train_sel", className="mr-2", color="primary", outline=True  ),
-                        dbc.Button("Optimum Hyperparameters Search", id="grids_train_sel", className="mr-2", color="primary", outline=True  )
+                        dbc.Button("Grid Hyperparameters Search", id="grids_train_sel", className="mr-2", color="primary", outline=True  ),
+                        dbc.Button("Random Hyperparameters Search", id="random_train_sel", className="mr-2", color="primary", outline=True  )
+
                     ],
                     style=pu.get_css_style_inline_flex()
                 ),
@@ -242,11 +244,11 @@ def train_som_view():
                                         #Vertical and horizontal Size Range
                                         html.Div(
                                             [   dbc.Button("Add",id='button_add_size_psearch', outline=True, color="success", className="mr-1"),
-                                                html.H5(children='Square Grid Size'),
+                                                html.H5(id = 'add_tag_size_gs_or_rands',children='Square Grid Size'),
                                             ],
                                             style = pu.get_css_style_inline_flex_align_flex_start_no_wrap(),
                                         ),
-                                        dbc.Collapse(   id ='collapse_range_size_psearch',
+                                        dbc.Collapse(   id ='collapse_range_size_gsearch',
                                                         is_open = False,
                                                         style= pu.get_css_style_center() ,
                                                         children = [
@@ -257,6 +259,34 @@ def train_som_view():
                                                             dbc.Input(id = 'input_stop_size' ,type='number', min = 2, step = 1,value =grid_stop_default_size ),                              
                                                             dbc.Label('Step:'),
                                                             dbc.Input(id = 'input_step_size' , type='number',min = 1, step = 1, value = grid_step_default_value),                              
+                                                        ]
+                                        ),
+
+                                        dbc.Collapse(   id ='collapse_range_size_randsearch',
+                                                        is_open = False,
+                                                        style= pu.get_css_style_center() ,
+                                                        children = [
+                                                            html.Br(),
+                                                            html.Div(
+                                                                [   dbc.Label('Vertical Size Start:'),
+                                                                    dbc.Input(id = 'input_vstart_size_randsearch' ,type='number', min = 1, step = 1, value = grid_start_default_size),                              
+                                                                    dbc.Label('Vertical Size Stop:'),
+                                                                    dbc.Input(id = 'input_vstop_size_randsearch' ,type='number', min = 2, step = 1,value =grid_stop_default_size ),  
+                                                                ],
+                                                                style = pu.get_css_style_inline_flex_no_display()
+                                                            ), 
+
+                                                            html.Div(
+                                                                [   dbc.Label('Horizontal Size Start:'),
+                                                                    dbc.Input(id = 'input_hstart_size_randsearch' ,type='number', min = 1, step = 1, value = grid_start_default_size),                              
+                                                                    dbc.Label('Horizontal Size Stop:'),
+                                                                    dbc.Input(id = 'input_hstop_size_randsearch' ,type='number', min = 2, step = 1,value =grid_stop_default_size ),  
+                                                                ],
+                                                                style = pu.get_css_style_inline_flex_no_display()
+                                                            ), 
+                                                                                       
+                                                            dbc.Label('Number of hyperparameter settings to sample'),
+                                                            dbc.Input(id = 'input_n_iter_randsearch' , type='number',min = 1, step = 1, value = grid_step_default_value),                              
                                                         ]
                                         ),
                                         html.Br(),
@@ -374,7 +404,7 @@ def train_som_view():
                 html.H6(id='som_entrenado_2'),
                 
                 #Search optimum grid params collapse
-                dbc.Collapse(id = 'grids_train_collapse',
+                dbc.Collapse(id = 'collapse_paramsearch_train_form',
                     is_open = False,
                     children = [
                         dcc.Loading(id='loading',
@@ -566,27 +596,41 @@ def sync_start_stop_step_inputs(start,stop,step):
 
 
 #Toggles size param search menu in param search option
-@app.callback(  Output('collapse_range_size_psearch','is_open'),
+@app.callback(  Output('collapse_range_size_gsearch','is_open'),
+                Output('collapse_range_size_randsearch','is_open'),
+
                 Output('collapse_size','is_open'),
                 Output('button_add_size_psearch', 'outline'),
                 Output('button_add_size_psearch', 'children'),
+                Output('add_tag_size_gs_or_rands', 'children'),
+
+            
                 Input('button_add_size_psearch', 'n_clicks'),
                 Input('grids_train_sel', 'outline'),
+                Input('random_train_sel' , 'outline'),
                 State('button_add_size_psearch', 'outline'),
                 prevent_initial_call=True
 )
-def toggle_size_psearch(n_clicks,outline_tab, button_outline ):
-    if(outline_tab ):
-        return False, True, True, 'Add'
+def toggle_size_psearch(n_clicks,outline_tab,outline_tab_2, button_outline ):
+    if(outline_tab and outline_tab_2):
+        return False,False, True, True, 'Add', 'Square Grid Size'
     ctx = dash.callback_context
-    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    if(trigger_id == 'button_add_size_psearch'):
-        if(button_outline):#Not added --> Change to  Added
-            return True, False, False, 'Added'
+    triggered_list =     trigger_id = ctx.triggered[0]["prop_id"].split(".")
+    trigger_id = triggered_list[0]
+    prop_id = triggered_list[1]
+    #trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+
+    if(not outline_tab):#Grid Search
+        if(button_outline and trigger_id == 'button_add_size_psearch' and prop_id == 'n_clicks'):#Not added --> Change to  Added
+            return True,False, False, False, 'Added', 'Square Grid Size'
         else:
-            return False, True, True, 'Add'
-    else:
-        raise PreventUpdate
+            return False,False, True, True, 'Add', 'Square Grid Size'
+    else:#Random Search
+        if(button_outline and trigger_id == 'button_add_size_psearch'  and prop_id == 'n_clicks'):#Not added --> Change to  Added
+            return False,True, False, False, 'Added', 'Grid Size Sampling Ranges'
+        else:
+            return False,False, True, True, 'Add', 'Grid Size Sampling Ranges'
+
 
 
 #Toggles distance fun param search menu in param search option
@@ -596,11 +640,12 @@ def toggle_size_psearch(n_clicks,outline_tab, button_outline ):
                 Output('button_add_distancef_psearch', 'children'),
                 Input('button_add_distancef_psearch', 'n_clicks'),
                 Input('grids_train_sel', 'outline'),
+                Input('random_train_sel', 'outline'),
                 State('button_add_distancef_psearch', 'outline'),
                 prevent_initial_call=True
 )
-def toggle_distancef_psearch(n_clicks,outline_tab, button_outline ):
-    if(outline_tab ):
+def toggle_distancef_psearch(n_clicks,outline_tab,outline_tab_2, button_outline ):
+    if(outline_tab and  outline_tab_2):
         return False, True, True, 'Add'
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
@@ -620,11 +665,12 @@ def toggle_distancef_psearch(n_clicks,outline_tab, button_outline ):
                 Output('button_add_weightsini_psearch', 'children'),
                 Input('button_add_weightsini_psearch', 'n_clicks'),
                 Input('grids_train_sel', 'outline'),
+                Input('random_train_sel', 'outline'),
                 State('button_add_weightsini_psearch', 'outline'),
                 prevent_initial_call=True
 )
-def toggle_weightsinit_psearch(n_clicks,outline_tab, button_outline ):
-    if(outline_tab ):
+def toggle_weightsinit_psearch(n_clicks,outline_tab,outline_tab_2, button_outline ):
+    if(outline_tab and outline_tab_2 ):
         return False, True, True, 'Add'
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
@@ -638,36 +684,43 @@ def toggle_weightsinit_psearch(n_clicks,outline_tab, button_outline ):
 
 
 
-#Select train or load model and Param option is_open from with param ranges
+#Select train or load model and Param option is_open form with param ranges
 @app.callback(  
                 Output('single_train_sel','outline'),
                 Output('manual_train_sel','outline'),
                 Output('grids_train_sel','outline'),
+                Output('random_train_sel','outline'),
+
                 Output('single_train_collapse','is_open'),
                 Output('manual_train_collapse','is_open'),
-                Output('grids_train_collapse','is_open'),
+                Output('collapse_paramsearch_train_form','is_open'),
                 Output('table_multiple_trains_collapse', 'is_open'),
                 Output('collapse_param_tuning', 'is_open'),
                 Output('collapse_show_qe_evolution', 'is_open'),
                 Input('single_train_sel','n_clicks'),
                 Input('manual_train_sel','n_clicks'),
                 Input('grids_train_sel','n_clicks'),
+                Input('random_train_sel','n_clicks'),
                 prevent_initial_call=True
 )
-def select_train_mode_som(n1,n2,n3):
+def select_train_mode_som(n1,n2,n3,n4):
 
     ctx = dash.callback_context
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
     if(button_id == 'single_train_sel'):
         session_data.set_som_multiple_trains( False)
-        return False,  True, True,   True, False , False,    False, False, True
+        return False,  True, True,True,   True, False , False,    False, False, True
     elif(button_id == 'manual_train_sel' ):
         session_data.set_som_multiple_trains( True)
-        return True,  False, True,   False, True , False,   True,False,True
-    else: #grids_train_sel
+        return True,  False, True,True,   False, True , False,   True,False,True
+    else: #grids_train_sel or random_train_sel
         session_data.set_som_multiple_trains( False)
-        return True,  True, False,   False, False , True,    False, True,False
+        if(button_id == 'grids_train_sel'):
+            return True,  True, False,True,   False, False , True,    False, True,False
+        else:
+            return True,  True,True, False,   False, False , True,    False, True,False
+
 
 
 # Checklist seleccionar semilla

@@ -394,7 +394,7 @@ def get_umatrix_som_card():
 
     return  dbc.CardBody(children=[
 
-                    html.H5("U-Matrix"),                    
+                    #html.H5("U-Matrix"),                    
                     html.Div(id='umatrix_figure_div', children=[''],style= pu.get_single_heatmap_css_style()
                     ),
 
@@ -508,66 +508,6 @@ def analyze_som_data():
     ])
 
     return layout
-
-
-
-
-
-
-
-
-##################################################################
-#                       AUX FUNCTIONS
-##################################################################
-
-#TODO BORRAR ESTO
-'''
-def info_trained_params_som_table():
-
-    info = session_data.get_som_model_info_dict()
-    
-    #Table
-    table_header = [
-         html.Thead(html.Tr([
-                        html.Th("Grid Horizontal Size"),
-                        html.Th("Grid Vertical Size"),
-                        html.Th("Learning Rate"),
-                        html.Th("Neighborhood Function"),
-                        html.Th("Distance Function"),
-                        html.Th("Gaussian Sigma"),
-                        html.Th("Max Iterations"),
-                        html.Th("Weights Initialization"),
-                        html.Th("Topology"),
-                        html.Th("Seed")
-        ]))
-    ]
-
-      
-    if(info['check_semilla'] == 0):
-        semilla = 'No'
-    else:
-        semilla = 'Yes: ' + str(info['seed']) 
-
-    row_1 = html.Tr([html.Td( info['tam_eje_horizontal']),
-                    html.Td( info['tam_eje_vertical']),
-                     html.Td( info['learning_rate']) ,
-                     html.Td( info['neigh_fun']),
-                     html.Td( info['distance_fun']) ,
-                     html.Td( info['sigma']) ,
-                     html.Td( info['iteraciones'] ),
-                     html.Td( info['inicialitacion_pesos']),
-                     html.Td( info['topology']),
-                     html.Td( semilla)
-
-    ]) 
-
-    table_body = [html.Tbody([row_1])]
-    table = dbc.Table(table_header + table_body,bordered=True,dark=False,hover=True,responsive=True,striped=True)
-    children = [table]
-
-    return children
-
-'''
 
 
 

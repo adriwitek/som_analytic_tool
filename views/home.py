@@ -213,7 +213,7 @@ def Home():
                     dbc.ListGroupItem([
                         html.H4('Local File',className="card-title" , style={'textAlign': 'center'} ),
 
-                        dcc.Upload( id='upload-data', children=html.Div(['Drag and Drop or  ', html.A('Select File  (.csv or .xls)')]),
+                        dcc.Upload( id='upload-data', children=html.Div(['Drag and Drop or  ', html.A('Select File  (.csv or .xls(xls nor working now))')]),
                                             style={'width': '100%',
                                                     'height': '60px',
                                                     'lineHeight': '60px',
