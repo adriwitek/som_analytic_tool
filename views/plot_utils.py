@@ -23,14 +23,14 @@ from libs.si_prefix_master.si_prefix import si_format
 
 import math
 
-#estos puntos no cuadran perfectamente las lineas,auqneu por el momento funciona
-raiz_d3 = math.sqrt(3)
-V0 = (0,   1/raiz_d3 )
-V1 = (0.5, 0.25  )
-V2 = (0.5, -0.25 )
-V3 = (0, - 1/raiz_d3  )
-V4 = (-0.5 , -0.25  )
-V5 = (-0.5 , 0.25    )
+
+#Hexagon(centered on (0,0) ) vertex 
+V0 = (0,   2/3 )
+V1 = (0.5,1/3)
+V2 = (0.5, -1/3 )
+V3 = (0, - 2/3  )
+V4 = (-0.5 , -1/3  )
+V5 = (-0.5 ,1/3    )
 
 def get_x_vertex_hexagon_svg():
     return [V0[0], V1[0], V2[0],V3[0],V4[0],V5[0], V0[0]   ]
