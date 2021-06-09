@@ -42,9 +42,10 @@ import dash_table
 
 
 
-def create_new_model_row(qe, h_size, v_size, lr, nf, df,gs,mi,wi,t,s, training_time):
+def create_new_model_row(qe, h_size, v_size, lr, nf, df,gs,mi,wi,t,s, training_time,tpe):
     row = {}
     row['MQE'] = qe
+    row['tpe'] = tpe
     row['Horizontal Size'] = h_size
     row['Vertical Size'] = v_size
     row['Learning Rate'] = lr
@@ -67,6 +68,7 @@ def create_multi_soms_table():
             
     columns = []
     columns.append({'id': 'MQE'         ,             'name': 'MQE' })
+    columns.append({'id': 'tpe'         ,             'name': 'Topographic Error' })
     columns.append({'id': 'Training Time'         ,  'name': 'Training Time' })
     columns.append({'id': 'Horizontal Size'         , 'name': 'Hor. Size' })
     columns.append({'id': 'Vertical Size'           , 'name': 'Ver. Size' })
@@ -109,7 +111,12 @@ def create_multi_soms_table():
         else:
             qe = som_params['mqe'] 
 
-        row = create_new_model_row(qe, h_size, v_size, lr, nf, df,gs,mi,wi,t,seed, training_time)
+        if(som_params['tpe'] is None):
+            tpe = 'Not Calculated'
+        else:
+            tpe = som_params['tpe'] 
+
+        row = create_new_model_row(qe, h_size, v_size, lr, nf, df,gs,mi,wi,t,seed, training_time,tpe)
         data.append(row)
 
 
@@ -172,7 +179,9 @@ def get_model_selection_card():
 
                         dbc.Button("Show Model Info/ Change Model Selection",id="show_model_selection_button",
                                 className="mb-6",color="success",block=True),
-                        dbc.Collapse(   children = create_multi_soms_table(),
+                        dbc.Collapse(   children =[ create_multi_soms_table(),
+                                                    html.P('Replot Graps after select a new model',className="text-secondary",  style= pu.get_css_style_center() ),
+                                        ] ,
                                         id= 'collapse_model_selection',
                                         is_open=False,
                         ),
@@ -189,7 +198,7 @@ def get_estadisticas_som_card():
     return  dbc.CardBody(children=[ 
                         html.Div( id='div_estadisticas_som',children = '', style={'textAlign': 'center'}),
                         html.Div([
-                            dbc.Button("Plot", id="ver_estadisticas_som_button", className="mr-2", color="primary")],
+                            dbc.Button("Calculate", id="ver_estadisticas_som_button", className="mr-2", color="primary")],
                             style={'textAlign': 'center'}
                         )
                     ])
@@ -568,13 +577,11 @@ def toggle_winners_som(info_table,target_value):
 
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
-
     preselected_target = session_data.get_target_name()
 
     if( trigger_id == 'div_model_selection_card' ): #init call
         if(preselected_target is None):
             return False,True, None
-
         else:
             return False,True, preselected_target
 
@@ -586,10 +593,6 @@ def toggle_winners_som(info_table,target_value):
 
     else:
         session_data.set_target_name(target_value)
-        #df = pd.read_json(origina_df,orient='split')
-        #df = df[target_value]
-        #session_data.targets_col = df_target.to_numpy()
-        
         return False, True,dash.no_update
 
     
@@ -639,12 +642,21 @@ def ver_estadisticas_som(n_clicks,data_portion_option, selected_rows, table_data
     children = [table]
 
 
+    update = False
     if(table_data[selected_rows[0]]['MQE'] == 'Not Calculated' ):
         table_data[selected_rows[0]]['MQE'] = mqe
+        update = True
+
+        #return children, table_data
+
+    if(table_data[selected_rows[0]]['tpe'] == 'Not Calculated'):
+        table_data[selected_rows[0]]['tpe'] = tp
+        update = True
+
+
+    if(update):
         return children, table_data
-
     else:
-
         return children, dash.no_update
 
 

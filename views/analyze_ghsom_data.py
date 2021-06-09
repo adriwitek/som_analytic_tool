@@ -41,7 +41,7 @@ def get_statistics_card_ghsom():
                         html.Div(id = 'grafo_ghsom_estadisticas',children = '',
                                 style=pu.get_css_style_inline_flex()
                         ),
-                        html.Div( id='div_estadisticas_ghsom',children = '', style={'textAlign': 'center'}) 
+                        html.Div( id='div_estadisticas_ghsom',children = '', style= pu.pu.get_css_style_center()) 
             ])
             
             
@@ -50,8 +50,6 @@ def get_statistics_card_ghsom():
 #Card winners map
 def get_winnersmap_card_ghsom():
     return  dbc.CardBody(children=[ 
-
-
                         dbc.Alert(
                         [
                             html.H4("Target not selected yet!", className="alert-heading"),
@@ -78,14 +76,12 @@ def get_winnersmap_card_ghsom():
 
                         ),
 
-
                         dcc.Dropdown(id='dropdown_target_selection_ghsom',
                            options=session_data.get_targets_options_dcc_dropdown_format() ,
                            multi=False,
                            value = session_data.get_target_name()
                         ),
                         html.Br(),  
-
 
                         dbc.Collapse(
                             id='collapse_winnersmap_ghsom',
@@ -103,7 +99,6 @@ def get_winnersmap_card_ghsom():
                                     ],style = pu.get_css_style_inline_flex()
                                 ),
 
-        
                                 html.Div(
                                     dbc.Checklist(  options=[{"label": "Label Neurons", "value": 1}],
                                                     value=[],
@@ -131,11 +126,7 @@ def get_winnersmap_card_ghsom():
                                             ),
                                         ]
                                 )
-
                         ])
-
-                    
-
             ])
         
 
@@ -153,7 +144,6 @@ def get_freqmap_card_ghsom():
                                 ),
                             ],style = pu.get_css_style_inline_flex()
                         ),
-
 
                         html.Div(children = [ 
                             dbc.FormGroup(
@@ -200,7 +190,6 @@ def get_componentplans_card_ghsom():
                                 style={'textAlign': 'center'}
                             ),
 
-                            
                             dbc.Alert(
                                     [
                                         html.H4("Feature(s) not selected yet!", className="alert-heading"),
@@ -213,7 +202,6 @@ def get_componentplans_card_ghsom():
                                     is_open=True
 
                             ),
-
 
                             dbc.Collapse(
                                 id='collapse_cplan_ghsom',
@@ -248,12 +236,10 @@ def get_componentplans_card_ghsom():
                                         ],
                                         style={'textAlign': 'center'}
                                     ),
-
-
                             ])
-
             ])
                     
+
 # Card freq + cplans
 def get_freq_and_cplans_cards_ghsom():
     children = []
@@ -268,7 +254,6 @@ def get_umatrix_card_ghsom():
        
     return dbc.CardBody(children=[
 
-
             html.Div(
                 children = [
                         html.Div(id = 'grafo_ghsom_umatrix',children = '',
@@ -281,8 +266,6 @@ def get_umatrix_card_ghsom():
                 ],style = pu.get_css_style_inline_flex()
             ),
 
-
-            
             html.Div(dbc.Checklist(     options=[{"label": "Label Neurons", "value": 1}],
                                         value=[],
                                         id="check_annotations_um_ghsom"),
@@ -303,7 +286,6 @@ def get_umatrix_card_ghsom():
                 ],
                 style={'textAlign': 'center'}
             ),
-        
         ])
 
 
@@ -312,9 +294,7 @@ def get_umatrix_card_ghsom():
 def get_savemodel_card_ghsom():
 
     return  dbc.CardBody(children=[
-        
                 html.Div(children=[
-
                     html.H5("Nombre del fichero"),
                     dbc.Input(id='nombre_de_fichero_a_guardar_ghsom',placeholder="Nombre del archivo", className="mb-3"),
                     dbc.Button("Guardar modelo", id="save_model_ghsom", className="mr-2", color="primary"),
@@ -343,8 +323,6 @@ def analyze_ghsom_data():
         html.H6('Train Parameters',className="card-title"  ),
         html.Div(id = 'info_table_ghsom',children=info_trained_params_ghsom_table(),style={'textAlign': 'center'} ),
 
-
-
         dbc.Tabs(
                 id='tabs_ghsom',
                 active_tab='',
@@ -358,15 +336,10 @@ def analyze_ghsom_data():
                     dbc.Tab( get_freq_and_cplans_cards_ghsom(), label=' Freq. Map + Component Plans',tab_id='freq_and_cplans_ghsom'),
                     dbc.Tab( get_umatrix_card_ghsom() ,label = 'U Matrix',tab_id='umatrix_card'),
                     dbc.Tab( get_savemodel_card_ghsom() ,label = 'Save Model',tab_id='save_model_card'),
-                    
                 ]
         ),
 
-        
     ])
-
-
-
 
     layout = html.Div(children=[
 
@@ -391,8 +364,6 @@ def analyze_ghsom_data():
 def info_trained_params_ghsom_table():
 
     info = session_data.get_ghsom_model_info_dict()
-
-    
     #Table
     table_header = [
          html.Thead(html.Tr([
@@ -407,8 +378,6 @@ def info_trained_params_ghsom_table():
                         html.Th("Seed")
         ]))
     ]
-
-
 
     if(info['check_semilla'] == 0):
         semilla = 'No'
@@ -425,7 +394,6 @@ def info_trained_params_ghsom_table():
                     html.Td( info['max_iter_gsom']  ),
                     html.Td( info['fun_disimilitud'] ),
                     html.Td( semilla )
-
     ]) 
 
     table_body = [html.Tbody([row_1])]
@@ -438,11 +406,9 @@ def info_trained_params_ghsom_table():
 # This 2 funcs are splitted in 2 for eficience. reason
 def get_ghsom_graph_div(fig,dcc_graph_id):
     children =[ dcc.Graph(id=dcc_graph_id,figure=fig)  ]
-
     div =  html.Div(children=children, style={'margin': '0 auto','width': '100%', 'display': 'flex',
                                              'align-items': 'center', 'justify-content': 'center',
                                             'flex-wrap': 'wrap', 'flex-direction': 'column ' } )
-
     return div
 
 # Grafo de la estructura del ghsom
@@ -534,9 +500,7 @@ def get_ghsom_fig(data, target_list):
     )
 
 
-
     data1=[edge_trace, node_trace]
-
 
     layout = go.Layout(
             title="Complete GHSOM Structure",
@@ -574,7 +538,6 @@ def get_distances(weights_map, saved_distances, x,y,a,b):
 #Card select dataset part
 
 def get_select_splitted_option_card():
-
     return     dbc.CardBody(   
                         children=[
                             dbc.Label("Select dataset portion"),
@@ -697,7 +660,6 @@ def load_graph_ghsom(tabs, option,target_selection,div_f):
         div_3 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_3')
         #div_4 = get_ghsom_graph_div(fig,'dcc_ghsom_graph_4')
         print('\tLoading Complete.', flush=True)
-
         #return div_0, div_1, div_2, div_3, div_2
         return div_0, div_1, div_3, div_2
 
@@ -741,7 +703,6 @@ def view_stats_map_by_selected_point(clickdata,figure,option):
 
 
     #Estadisticas del gsom seleccionado
-
     nodes_dict = session_data.get_ghsom_nodes_by_coord_dict()
     gsom = nodes_dict[(cord_vertical_punto_clickeado,cord_horizontal_punto_clickeado)]
     data= session_data.get_data(option)
@@ -750,7 +711,6 @@ def view_stats_map_by_selected_point(clickdata,figure,option):
     params = session_data.get_ghsom_model_info_dict()
     fun_disimilitud = params['fun_disimilitud']
     
-
 
     #Table
     table_header = [
@@ -768,11 +728,6 @@ def view_stats_map_by_selected_point(clickdata,figure,option):
     children = [table]
 
     return children,figure
-
-
-
-
-
 
 
 
@@ -911,8 +866,6 @@ def view_winner_map_by_selected_point(clickdata, check_annotations,logscale, fig
     return children,figure, output_alert_too_categorical_targets_ghsom
 
 
-
-
 #update_selected_min_hit_rate_badge_ghsom
 @app.callback(  Output('badge_min_hits_slider_ghsom','children'),
                 Input('min_hits_slider_ghsom','value'),
@@ -920,8 +873,6 @@ def view_winner_map_by_selected_point(clickdata, check_annotations,logscale, fig
 )
 def update_selected_min_hit_rate_badge_ghsom(value):
     return int(value)
-
-
 
 
 #Frequency map
@@ -1149,8 +1100,6 @@ def update_mapa_componentes_ghsom_fig(input_freq_map,check_annotations,log_scale
 
 
 
-
-
 #Ver UMatrix GHSOM
 @app.callback(Output('umatrix_div_fig_ghsom','children'),
               Output('dcc_ghsom_graph_3','figure'),
@@ -1228,8 +1177,6 @@ def ver_umatrix_ghsom_fig(clickdata,check_annotations,log_scale, fig_grafo):
     print('\n GHSOM UMatrix: Plotling complete! \n')
 
     return children, fig_grafo
-
-
 
 
 

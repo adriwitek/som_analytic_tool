@@ -74,30 +74,30 @@ def Training_selection():
                                             
                                                 #SOM
                                                 dbc.ListGroupItem([
-                                                    html.H4('SOM',style={'textAlign': 'center'} ),
+                                                    html.H4('SOM',style=pu.get_css_style_center()  ),
                                                     html.Div( 
                                                         [dbc.Button("SOM", id="train_mode_som_button", className="mr-2", color="primary",)],
-                                                        style={'textAlign': 'center'}
+                                                        style=pu.get_css_style_center() 
                                                     )
                                                 ]),
 
 
                                                 #GSOM
                                                 dbc.ListGroupItem([
-                                                    html.H4('GSOM',style={'textAlign': 'center'} ),
+                                                    html.H4('GSOM',style=pu.get_css_style_center()  ),
                                                     html.Div( 
                                                         [dbc.Button("GSOM", id="train_mode_gsom_button", className="mr-2", color="primary",)],
-                                                        style={'textAlign': 'center'}
+                                                        style=pu.get_css_style_center() 
                                                     )
                                                 ]),
 
 
                                                 #GHSOM
                                                 dbc.ListGroupItem([
-                                                    html.H4('GHSOM',style={'textAlign': 'center'} ),
+                                                    html.H4('GHSOM',style=pu.get_css_style_center()  ),
                                                     html.Div( 
                                                         [dbc.Button("GHSOM", id="train_mode_ghsom_button", className="mr-2", color="primary",)],
-                                                        style={'textAlign': 'center'}
+                                                        style=pu.get_css_style_center() 
                                                     )
                                                 ]),
 
@@ -123,8 +123,8 @@ def Training_selection():
                                     
                                         # Modelos guardados en la app
                                         dbc.ListGroupItem([
-                                            html.H4('Saved Models',className="card-title" , style={'textAlign': 'center'} ),
-                                            html.Div(style={'textAlign': 'center'},
+                                            html.H4('Saved Models',className="card-title" , style=pu.get_css_style_center() ),
+                                            html.Div(style=pu.get_css_style_center() ,
                                                     children=[
                                                         dcc.Dropdown(
                                                             id='modelos_guardados_en_la_app_dropdown',
@@ -132,10 +132,7 @@ def Training_selection():
                                                             value='',
                                                             searchable=False
                                                             #,style={'width': '35%'}
-    
                                                         ),
-
-
 
                                                         dbc.Alert(  id="alert_load_model",
                                                                     children = "ERROR",
@@ -150,7 +147,7 @@ def Training_selection():
                                                         ),
     
                                                         dbc.Button("Load Selected Model", id="load_model_buton",disabled= True, className="mr-2", color="primary"),
-                                                        html.Div(id='hidden_div_for_load_model',style={'textAlign': 'center'} ),
+                                                        html.Div(id='hidden_div_for_load_model',style=pu.get_css_style_center()),
     
     
                                                     ]
@@ -332,7 +329,7 @@ def div_info_loaded_file(filename,fecha_modificacion, n_samples, n_features):
                             children =[
                                 html.H6( dbc.Badge( 'Filename:' ,  pill=True, color="light", className="mr-1")   ),
                                 html.H6( dbc.Badge(filename, pill=True, color="info", className="mr-1")   ),
-                                html.H6( dbc.Badge( '---->' ,  pill=True, color="light", className="mr-1")   ),
+                                html.H6( dbc.Badge( 'with' ,  pill=True, color="light", className="mr-1")   ),
 
                                 #html.H6( dbc.Badge(fecha_modificacion, pill=True, color="warning", className="mr-1")   ),
                                 html.H6( dbc.Badge(str(n_samples) , id= 'badge_n_samples', pill=True, color="info", className="mr-1")   ),
@@ -349,9 +346,7 @@ def div_info_loaded_file(filename,fecha_modificacion, n_samples, n_features):
 def get_split_menu(n_samples):
 
     children = [
-
         html.P('To let 100% of rows be train or test data, It\'s not necessary to split dataset',className="text-secondary",  style={'textAlign': 'center'}  ),
-
         #Train/Test percentage badge
         html.Div(style=pu.get_css_style_inline_flex(),
                 children = [
@@ -361,7 +356,6 @@ def get_split_menu(n_samples):
                     html.H6( dbc.Badge( '50 %',  pill=True, color="warning", className="mr-1",id ='badge_info_percentage_test_slider')   )
                 ]
         ),
-
 
         #Slider split percentage
         dcc.Slider(id='split_slider', min=0,max=100,value=50,step =1 ,
@@ -375,7 +369,6 @@ def get_split_menu(n_samples):
                     }
         ),
 
-
         #Number of samples train/test
         html.Div(style=pu.get_css_style_inline_flex(),
                 children = [
@@ -384,11 +377,8 @@ def get_split_menu(n_samples):
                     html.H6(children='Test Samples\t'),
                     dcc.Input(id="test_samples_input", type="number", value=floor(n_samples/2),step=1,min=0, max = n_samples),
                 ]
-        
         ),
-
     ]
-
 
     return children
 
@@ -450,7 +440,7 @@ def get_dataset_size_card(n_samples):
                                                         ]
                                         ),
                                     ],
-                                    style={'textAlign': 'center'}
+                                    style= pu.get_css_style_center() 
                                 ),
                             ])
                 ])
@@ -474,7 +464,7 @@ def get_select_target_card():
                                                value = []
                                     ),
                                 ],
-                                style={'textAlign': 'center'}
+                                style=pu.get_css_style_center()
                             ),
                 ])
             ])
@@ -492,7 +482,7 @@ def get_features_selection_card():
                                 html.Div(children=[
                                         #Atrib names
                                         html.H6('Feature Selection:'),
-                                        html.P('Select at least 2 features',className="text-secondary",  style={'textAlign': 'center'}  ),
+                                        html.P('Select at least 2 features',className="text-secondary",  style=pu.get_css_style_center()  ),
 
                                         dbc.Checklist(
                                             options=[
@@ -505,13 +495,11 @@ def get_features_selection_card():
 
                                         dcc.Dropdown(id='dropdown_feature_selection',
                                                    options=[],
-                                                   #options=session_data.get_data_features_names_dcc_dropdown_format(columns=df.columns.tolist()),
                                                    multi=True,
-                                                   #value = df.columns.tolist()
                                                    value = []
                                         ),
                                     ],
-                                    style={'textAlign': 'center'}
+                                    style=pu.get_css_style_center()
                                 ),
                             ])  
              ])    
@@ -604,7 +592,7 @@ def create_preview_table(df, selected_columns = []):
                     html.Br(),
 
                     html.H4('Table Preview',className="card-title" , style={'textAlign': 'center'} ),
-                    html.P('Select a column to mark it as Target',className="text-secondary",  style={'textAlign': 'center'}  ),
+                    html.P('Select a column to mark it as Target',className="text-secondary",  style= pu.get_css_style_center() ),
 
                     dcc.Loading(id='loading',
                                 type='dot',
@@ -661,31 +649,23 @@ def get_onehot_childrendiv_menu():
         
  return  dbc.Card(  color = 'light',
                         children=[
-    
                             dbc.CardBody(children=[ 
                                 html.Div(
-                                
                                     children = [
-                                    
-                                    
                                         html.H5("Select Categorical Features to apply them One Hot:"),
                                         dcc.Dropdown(
                                             id='dropdown_features_toonehot',
                                             options=[],
                                             multi=True
                                         ),
-
                                         dbc.Checklist(  options=[{"label": "Consider empty values", "value": 0}],
                                                                             value=[],
                                                                             id="check_nanvalues_onehot"
                                         ),
-
                                         dbc.Button("Apply One Hot", id="apply_onehot_button", className="mr-2", color="primary")
-
                                     ]
                                 )
                             ])
-
             ])
    
 
@@ -888,14 +868,12 @@ def update_output( contents, filename, last_modified):
             return None,'', False, html.Div([ 'An error occurred processing the file']), show_file_info_style
         
     
-
         n_samples, n_features=dataframe.shape
         if(n_samples == 0):
             return None,'', False, html.Div([ 'ERROR: The file does not contain any  sample']),show_file_info_style
         elif(n_features<=2):
             return None,'', False, html.Div([ 'ERROR: The file must contain at least 2 features']),show_file_info_style
             
-
         div1 = div_info_loaded_file(filename,
                                     datetime.utcfromtimestamp(last_modified).strftime('%d/%m/%Y %H:%M:%S'),
                                     str(n_samples),
@@ -903,7 +881,6 @@ def update_output( contents, filename, last_modified):
         div2 = div_info_dataset(dataframe,n_samples) 
         return dataframe.to_json(date_format='iso',orient = 'split'),div1, True,   div2, show_file_info_style
                 
-
     else: 
         return  None,'' , False,  div_info_dataset( None,0)  ,{'textAlign': 'center', "visibility": "hidden"}
 
@@ -1010,55 +987,40 @@ def sync_target_and_feature_selection(features_values,target_value, feature_opti
                 State('dataset_nsamples_input','value'),
                 State('notnumeric_dataframe_storage', 'data'),
                 prevent_initial_call=True
-
-
 )
 def callback_preview_table(input_data,features_values,target_value,n_of_samples,notnumeric_df):
-
 
     disabled_button = True
     selected_columns = []
     
-
     if (input_data is  None) or  ( len(features_values)==0 and (target_value is  None or (len(target_value) ==0 )) ):
         dff =   pd.DataFrame(columns=[])
-    else:#hay features y/o target que mostar
-
+    else:#there are features and/or target to show
         df = pd.read_json(input_data,orient='split')
-
         if(len(features_values)==1 ):
             disabled_button = True
             dff = df[features_values]
         elif(len(features_values)> 1):
             disabled_button = False
             dff = df[features_values]
-
         else:  
             dff =   pd.DataFrame(columns=[])
 
-        
-
         #Add target col
         if( target_value is not None and (len(target_value) >0 )):
-            
             selected_columns = [target_value]
-
             if(target_value not in df.columns):
                 notnumeric_df = pd.read_json(notnumeric_df,orient='split')
                 dff = pd.concat( [dff, notnumeric_df[target_value] ],axis=1)
             else:
                 dff = pd.concat( [dff, df[target_value] ],axis=1)
 
-            
-
     if(n_of_samples < DEFAULT_DATASET_ROWS_PREVIEW):
         dff = dff.head(n_of_samples)
         if(n_of_samples == 0):
             disabled_button = True
 
-
     table =  create_preview_table(dff,selected_columns = selected_columns )
-
 
     return table, disabled_button, disabled_button
 
@@ -1121,7 +1083,6 @@ def toggle_collapse_info_dataset(n, is_open):
                 Input('train_new_model_button','n_clicks'),
                 Input('load_saved_model_button','n_clicks'),
                 Input('dropdown_feature_selection','value'),
-
                 State('train_new_model_button','outline'),
                 State('load_saved_model_button','outline'),
                 State('train_newmodel_collapse','is_open'),
@@ -1131,7 +1092,6 @@ def toggle_collapse_info_dataset(n, is_open):
 )
 def select_card_train_or_loadmodel_div(train_b, load_b,features_values, outline1,outline2, is_open1, is_open2):
     
-
     ctx = dash.callback_context
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
@@ -1152,52 +1112,58 @@ def select_card_train_or_loadmodel_div(train_b, load_b,features_values, outline1
                 Output('info_selected_model','is_open'),
                 Output('info_selected_model','children'),
                 Input('modelos_guardados_en_la_app_dropdown','value'),
-                
+
+                Input('dataset_nsamples_input', 'value'),
+                Input('check_split_dataset', 'value'),
+                Input('train_samples_input', 'value'),
+                Input('test_samples_input', 'value'),
                 prevent_initial_call=True
 )
-def enable_load_saved_model_button(filename):
-    if ( filename ):
+def enable_load_saved_model_button(filename, n_samples,check, n_train_samples , n_test_samples):
+
+    ctx = dash.callback_context
+    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if(trigger_id != 'modelos_guardados_en_la_app_dropdown'  ):#Disable button if no correct data number of samples selected
+        if(n_samples is None or n_samples <= 0 ):
+            return True, dash.no_update, dash.no_update
+        elif(check and (n_test_samples is None or n_test_samples <= 0 or 
+                        n_train_samples is None or n_train_samples <0)):
+            return True, dash.no_update, dash.no_update
+        else:
+            if ( filename ):
+                return False,dash.no_update, dash.no_update
+            else:
+                return True, dash.no_update, dash.no_update
 
 
-        with open(DIR_SAVED_MODELS + filename, 'rb') as handle:
-            unserialized_data = pickle.load(handle)
-            model_type= unserialized_data[0]
-            columns_dtypes =  unserialized_data[1]
+    else: # modelos_guardados_en_la_app_dropdown
+        if ( filename ):
+            with open(DIR_SAVED_MODELS + filename, 'rb') as handle:
+                unserialized_data = pickle.load(handle)
+                model_type= unserialized_data[0]
+                columns_dtypes =  unserialized_data[1]
+                col_names_badges = []
 
-            col_names_badges = []
+                for c in columns_dtypes.keys():
+                    col_names_badges.append( dbc.Badge(c, pill=True, color="info", className="mr-1"))
 
-            for c in columns_dtypes.keys():
-                col_names_badges.append( dbc.Badge(c, pill=True, color="info", className="mr-1"))
-        
-            children = html.Div(children= [
+                children = html.Div(children= [
+                    html.Br(),
+                    html.Div(children = [
+                        dbc.Badge('Model Vector Dimensionality:', pill=True, color="light", className="mr-1"),
+                        dbc.Badge(len(columns_dtypes.keys()), pill=True, color="info", className="mr-1")
 
+                    ]),
+                    html.Br(),
+                    dbc.Badge('Model Trained With Features:', pill=True, color="light", className="mr-1"),
+                    html.Div(children= col_names_badges, style=pu.get_css_style_inline_flex()),
+                    html.Br(),
+                    html.Br()
+                ])
 
-                html.Br(),
-                html.Div(children = [
-                    dbc.Badge('Model Vector Dimensionality:', pill=True, color="light", className="mr-1"),
-                    dbc.Badge(len(columns_dtypes.keys()), pill=True, color="info", className="mr-1")
-                    
-                ]),
-                html.Br(),
-
-
-                dbc.Badge('Model Trained With Features:', pill=True, color="light", className="mr-1"),
-
-
-                html.Div(children= col_names_badges, style=pu.get_css_style_inline_flex()),
-                html.Br(),
-                html.Br()
-
-            ])
-
-
-                            
-        
-
-        
-        return False, True, children
-    else:
-        return True,False, ''
+            return False, True, children
+        else:
+            return True,False, ''
 
 
 # Sync slider 
@@ -1214,9 +1180,6 @@ def sync_slider_input_datasetpercentage(slider_percentage, n_samples_sel, n_samp
 
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
-
-  
-
     if (trigger_id == "dataset_percentage_slider"):
         if(slider_percentage is None):
             raise dash.exceptions.PreventUpdate
@@ -1235,8 +1198,6 @@ def sync_slider_input_datasetpercentage(slider_percentage, n_samples_sel, n_samp
 
 
 
-
-
 @app.callback(
             Output('collapse_split_dataset', 'is_open'),
             Output('check_split_dataset', 'value'),
@@ -1248,12 +1209,10 @@ def sync_slider_input_datasetpercentage(slider_percentage, n_samples_sel, n_samp
 def split_dataset_collapse(check, n_sel_samples):
 
     if(check):
-
         if(n_sel_samples is None or n_sel_samples< 2):
             return False, 0
         else:
             return True, dash.no_update
-   
     else:
         return False, dash.no_update
 
@@ -1273,7 +1232,6 @@ def split_dataset_collapse(check, n_sel_samples):
 #todo en vez de leer json almacenar en un store
 def sync_slider_split(slider_percentage, train_samples_sel,test_samples_sel, n_of_sel_samples): 
    
-
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
@@ -1293,10 +1251,9 @@ def sync_slider_split(slider_percentage, train_samples_sel,test_samples_sel, n_o
             return percentage, (str(percentage) + ' %'), (str((100 - percentage)) + ' %'), number, (n_of_sel_samples - number)
 
     elif(train_samples_sel is None or test_samples_sel is None ):
-        
         raise dash.exceptions.PreventUpdate
-    elif(trigger_id == 'train_samples_input'):
 
+    elif(trigger_id == 'train_samples_input'):
         percentage_train = (train_samples_sel*100)/n_of_sel_samples
         percentage_test =  100 - percentage_train
         test_samples_sel =n_of_sel_samples - train_samples_sel
@@ -1304,16 +1261,33 @@ def sync_slider_split(slider_percentage, train_samples_sel,test_samples_sel, n_o
 
     else:
         percentage_test = (test_samples_sel*100)/n_of_sel_samples
-
         percentage_train =  100 - percentage_test
         train_samples_sel =n_of_sel_samples - test_samples_sel
         return percentage_train, (str(  round(percentage_train, 2 )) + ' %'),(str(  round(percentage_test, 2 )) + ' %'),train_samples_sel,    test_samples_sel
 
 
 
+#disable train the 3 models train buttons if split is check and train numebr is 0
+@app.callback(  Output('train_mode_som_button','disabled'),
+                Output('train_mode_gsom_button','disabled'),
+                Output('train_mode_ghsom_button','disabled'),
+                Input('dataset_nsamples_input', 'value'),
+                Input('check_split_dataset', 'value'),
+                Input('train_samples_input', 'value'),
+                Input('test_samples_input', 'value'),
+                prevent_initial_call=True
+)
+def enable_train_models_buttons(n_samples,check, n_train_samples , n_test_samples):
+    #print('n_samples', n_samples)
+    #print('check', check)
 
-
-
+    if(n_samples is None or n_samples <= 0 ):
+        return True, True, True
+    elif(check and (n_train_samples is None or n_train_samples <= 0 or 
+                    n_test_samples is None or n_test_samples <0)):
+        return True, True, True
+    else:
+        return False, False, False
 
 
 #Boton de continuar
@@ -1337,8 +1311,6 @@ def sync_slider_split(slider_percentage, train_samples_sel,test_samples_sel, n_o
 )
 def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notnumeric_df, filename,nsamples_percentage, nsamples_selected,
                          target_selection, feature_selection,check_split_dataset,train_samples_input  ):
-
-
 
     df = pd.read_json(data,orient='split')
     notnumeric_df = pd.read_json(notnumeric_df,orient='split')
@@ -1365,9 +1337,7 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notn
 
     print('\t -->Shuffling Complete.')
 
-
     #preselected target
-    
     if(target_selection is not None):
         session_data.set_target_name(str(target_selection))
 
@@ -1404,13 +1374,7 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notn
             #reorder selected dataframe cols to be the same as trained model
             cols = list(columns_dtypes.keys()) 
             df_features = df_features[cols]
-
-
-
             session_data.set_pd_dataframes(df_features,df_targets,split = split, train_samples_number=train_samples_input )
-
-            #df = session_data.get_pd_dataframe()[cols]
-            #session_data.set_pd_dataframe(df)
 
         if  model_type ==  'som':
             session_data.set_som_model_info_dict_direct(model_info)

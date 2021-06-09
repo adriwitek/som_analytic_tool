@@ -505,7 +505,7 @@ class Sesion():
 
     def set_som_model_info_dict(self,tam_eje_vertical,tam_eje_horizontal,learning_rate,neigh_fun,distance_fun,
                                 sigma,iteraciones, inicialitacion_pesos,topologia,check_semilla, semilla,
-                                training_time = None, som = None, mqe = None):
+                                training_time = None, som = None, mqe = None, tpe = None):
 
 
         if(self.som_params is None):
@@ -531,11 +531,14 @@ class Sesion():
             som_params['training_time'] = 'Not calculated'
         else:
             som_params['training_time'] = training_time
-
         if(mqe is None):
             som_params['mqe'] = None
         else:
             som_params['mqe'] = mqe
+        if(tpe is None):
+            som_params['tpe'] = None
+        else:
+            som_params['tpe'] = tpe
 
 
 

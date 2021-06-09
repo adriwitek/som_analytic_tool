@@ -128,7 +128,7 @@ def get_statistics_card_gsom():
     return  dbc.CardBody(children=[ 
                     html.Div( id='div_estadisticas_gsom',children = '', style={'textAlign': 'center'}),
                     html.Div([
-                        dbc.Button("Plot", id="ver_estadisticas_gsom_button", className="mr-2", color="primary")],
+                        dbc.Button("Calculate", id="ver_estadisticas_gsom_button", className="mr-2", color="primary")],
                         style={'textAlign': 'center'}
                     )
             ])

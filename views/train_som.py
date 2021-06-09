@@ -555,10 +555,10 @@ def add_data_table_search_found_params( h_size = None, v_size= None,df= None, wi
     row = {}
 
     if(mqe is not None):
-        columns.append({'id': 'mqe'         , 'name': 'Mean Quantization Error' })
+        columns.append({'id': 'mqe'         , 'name': 'Average Mean Quantization Error' })
         row['mqe'] = mqe
     if(tp is not None):
-        columns.append({'id': 'tp'         , 'name': 'Topographic Error' })
+        columns.append({'id': 'tp'         , 'name': ' Average Topographic Error' })
         row['tp'] = tp
     if(h_size is not None):
         columns.append({'id': 'Horizontal Size'         , 'name': 'Hor. Size' })
@@ -1283,7 +1283,7 @@ def param_search(  n1,n2,n3,n4,n5,
     session_data.set_modelos(gs.best_estimator_.som_model) 
 
     s_params = gs.best_params_
-    print('best_params', gs.best_params_)
+    #print('best_params', gs.best_params_)
 
     table_df=  s_params['activation_distance']
     table_wi = s_params['weights_init']
@@ -1297,15 +1297,15 @@ def param_search(  n1,n2,n3,n4,n5,
         table_h_size=s_params['square_grid_size']
         table_v_size=s_params['square_grid_size']
         session_data.set_som_model_info_dict(table_v_size,table_h_size,tasa_aprendizaje,vecindad,s_params['activation_distance'],sigma,
-                                            iteracciones, s_params['weights_init'],topology,check_semilla,seed,mqe =table_mqe)
+                                            iteracciones, s_params['weights_init'],topology,check_semilla,seed)
     elif('ver_size' in s_params):#random search size
         table_h_size=s_params['hor_size']
         table_v_size=s_params['ver_size']
         session_data.set_som_model_info_dict(table_v_size,table_h_size,tasa_aprendizaje,vecindad,s_params['activation_distance'],sigma,
-                                            iteracciones, s_params['weights_init'],topology,check_semilla,seed,mqe =table_mqe)
+                                            iteracciones, s_params['weights_init'],topology,check_semilla,seed)
     else:
         session_data.set_som_model_info_dict(eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad,s_params['activation_distance'],sigma,
-                                            iteracciones, s_params['weights_init'],topology,check_semilla,seed, mqe =table_mqe)
+                                            iteracciones, s_params['weights_init'],topology,check_semilla,seed)
         
 
     data,columns = add_data_table_search_found_params(table_h_size, table_v_size,table_df, table_wi,table_mqe, table_tp)
