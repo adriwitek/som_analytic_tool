@@ -571,22 +571,48 @@ class MiniSom(object):
         If the topographic error is 0, no error occurred.
         If 1, the topology was not preserved for any of the samples."""
         self._check_input_len(data)
-        if self.topology == 'hexagonal':
-            msg = 'Topographic error not implemented for hexagonal topology.'
-            raise NotImplementedError(msg)
+        
         total_neurons = prod(self._activation_map.shape)
         if total_neurons == 1:
             warn('The topographic error is not defined for a 1-by-1 map.')
             return nan
 
-        t = 1.42
+
         # b2mu: best 2 matching units
         b2mu_inds = argsort(self._distance_from_weights(data), axis=1)[:, :2]
         b2my_xy = unravel_index(b2mu_inds, self._weights.shape[:2])
         b2mu_x, b2mu_y = b2my_xy[0], b2my_xy[1]
-        dxdy = hstack([diff(b2mu_x), diff(b2mu_y)])
-        distance = norm(dxdy, axis=1)
-        return (distance > t).mean()
+
+        if self.topology == 'hexagonal':
+            #msg = 'Topographic error not implemented for hexagonal topology.'
+            #raise NotImplementedError(msg)
+            xx, yy = self.get_euclidean_coordinates()
+            t = 1 # adyacent hexagons at tha same row 1 unit of distance, adyacent ones one the upper and lower row, 2/3 of unit distance
+            error_counter =0 
+            for row_x,row_y in zip(b2mu_x, b2mu_y):
+
+                bmu1_x_coord = row_x[0]
+                bmu1_y_coord = row_y[1]
+                bmu2_x_coord = row_x[1]
+                bmu2_y_coord = row_y[1]
+                #Translate coords to hexagonal gird coords
+                bmu1_xx_coord = xx[( bmu1_x_coord,bmu1_y_coord) ]
+                bmu1_yy_coord = yy[( bmu1_x_coord,bmu1_y_coord)]
+                bmu2_xx_coord = xx[( bmu2_x_coord,bmu2_y_coord)]
+                bmu2_yy_coord = yy[( bmu2_x_coord,bmu2_y_coord)]
+
+                distance = sqrt( ((bmu1_xx_coord-bmu2_xx_coord)**2)+((bmu1_yy_coord-bmu2_yy_coord)**2) )
+                if(distance>t ):
+                    error_counter +=1
+
+                return error_counter/data.shape[0]
+
+        else:
+            t = 1.42
+            
+            dxdy = hstack([diff(b2mu_x), diff(b2mu_y)])
+            distance = norm(dxdy, axis=1)
+            return (distance > t).mean()
 
     def win_map(self, data, return_indices=False):
         """Returns a dictionary wm where wm[(i,j)] is a list with:
