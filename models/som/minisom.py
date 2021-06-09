@@ -545,13 +545,13 @@ class MiniSom(object):
         cross_term = dot(input_data, weights_flat.T)
         return sqrt(-2 * cross_term + input_data_sq + weights_flat_sq.T)
 
-    def quantization_error(self, data):
+    def quantization_error(self, data):#mqe
         """Returns the quantization error computed as the average
         distance between each input sample and its best matching unit."""
         self._check_input_len(data)
         return norm(data-self.quantization(data), axis=1).mean()
 
-    def get_qe_and_mqe_errors(self, data):
+    def get_qe_and_mqe_errors(self, data):#qe,mqe
         """Returns the quantization error computed as the average
         distance between each input sample and its best matching unit.
         Fun added, quantization_error return the mqe, this one return the qe. """
@@ -587,15 +587,15 @@ class MiniSom(object):
             #msg = 'Topographic error not implemented for hexagonal topology.'
             #raise NotImplementedError(msg)
             xx, yy = self.get_euclidean_coordinates()
-            t = 1 # adyacent hexagons at tha same row 1 unit of distance, adyacent ones one the upper and lower row, 2/3 of unit distance
+            t = 1.119 # adyacent hexagons at tha same row 1 unit of distance, adyacent ones less than 1.119 units of distance
             error_counter =0 
             for row_x,row_y in zip(b2mu_x, b2mu_y):
 
                 bmu1_x_coord = row_x[0]
-                bmu1_y_coord = row_y[1]
+                bmu1_y_coord = row_y[0]
                 bmu2_x_coord = row_x[1]
                 bmu2_y_coord = row_y[1]
-                #Translate coords to hexagonal gird coords
+                #Translate coords to hexagonal grid coords
                 bmu1_xx_coord = xx[( bmu1_x_coord,bmu1_y_coord) ]
                 bmu1_yy_coord = yy[( bmu1_x_coord,bmu1_y_coord)]
                 bmu2_xx_coord = xx[( bmu2_x_coord,bmu2_y_coord)]
@@ -605,11 +605,11 @@ class MiniSom(object):
                 if(distance>t ):
                     error_counter +=1
 
-                return error_counter/data.shape[0]
+       
+            return error_counter/len(data)
 
         else:
-            t = 1.42
-            
+            t = 1.42 #square root*2, since its the adyacent nerighbourds(diagonal ones)
             dxdy = hstack([diff(b2mu_x), diff(b2mu_y)])
             distance = norm(dxdy, axis=1)
             return (distance > t).mean()
@@ -784,10 +784,31 @@ class TestMinisom(unittest.TestCase):
         assert self.som.topographic_error([[5]]) == 0.0
         assert self.som.topographic_error([[15]]) == 1.0
 
+        '''
         self.som.topology = 'hexagonal'
         with self.assertRaises(NotImplementedError):
             assert self.som.topographic_error([[5]]) == 0.0
         self.som.topology = 'rectangular'
+        '''
+        #Test tp error in hex 
+        som = MiniSom(5, 5, 1, topology='hexagonal')
+        for i in range(5):
+            for j in range(5):
+                # checking weights normalization
+                assert_almost_equal(1.0, linalg.norm(som._weights[i, j]))
+        som._weights = zeros((5, 5, 1))  # fake weights
+        som._weights[2, 2] = 5.0
+        som._weights[2, 3] = 6.0
+        som._weights[1, 1] = 2.0
+        som._weights[4, 4] = 25.0
+        #som._weights[0, 0] = 14.
+        #som._weights[3, 3] = 14.
+        som._weights[1, 0] = 15.0   #hexagonal coord will be point (0.5 ; 0)
+        som._weights[0, 0] = 14.    #hexagonal coord will be point (-0.5 ; 0)
+        assert som.topographic_error([[5]]) == 0.0 #diagonal hexs
+        assert som.topographic_error([[15]]) == 0.0 #same row hexs
+        assert som.topographic_error([[25]]) == 1.0 #not contiguous hexs
+
 
     def test_quantization(self):
         q = self.som.quantization(array([[4], [2]]))
