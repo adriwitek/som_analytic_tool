@@ -121,8 +121,14 @@ def form_train_som(grid_recommended_size):
 
                     html.H5(children='Gaussian Sigma'),
                     dcc.Input(id="sigma", type="number", value="1.5",step=0.000001,min=0,max=10),
-
-                    html.H5(children='Max Iterations'),
+                                
+                    html.H5(children='Max Iterations', id="tooltip_target"),
+                    dbc.Tooltip(
+                        "1 Iteration per Data Sample,  "
+                        "If it is bigger, samples will be repeated in rounds.",
+                        target = 'iteracciones',
+                        placement = 'right'
+                    ),
                     dcc.Input(id="iteracciones", type="number", value=session_data.get_train_data_n_samples(),
                                 step=1,min=1),
 
@@ -779,7 +785,7 @@ def toggle_weightsinit_psearch(n_clicks,outline_tab,outline_tab_2, button_outlin
                 Output('single_train_collapse','is_open'),
                 Output('manual_train_collapse','is_open'),
                 Output('collapse_gridsearch_train_form','is_open'),
-                                Output('collapse_randsearch_train_form','is_open'),
+                Output('collapse_randsearch_train_form','is_open'),
 
                 Output('table_multiple_trains_collapse', 'is_open'),
                 Output('collapse_param_tuning', 'is_open'),
@@ -817,7 +823,6 @@ def select_train_mode_som(n1,n2,n3,n4):
     prevent_initial_call=True
     )
 def select_seed(check):
-
     if(check):
         return {  'display': 'block'}
     else:
@@ -918,8 +923,8 @@ def create_new_train_som(n_clicks,rows, eje_vertical,eje_horizontal,tasa_aprendi
     tasa_aprendizaje=float(tasa_aprendizaje)
     sigma = float(sigma)
     iteracciones = int(iteracciones)
-    ctx = dash.callback_context
-    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    #ctx = dash.callback_context
+    #trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
     
     '''
     if(trigger_id == 'psearch_addtomulti_train_button'):
@@ -1018,12 +1023,14 @@ def train_models_som(n_cliks, table_data, check_qe_evolution_som, input_qe_evolu
             session_data.set_show_error_evolution(False)
             map_qe = som.train(data, iteracciones, random_order=False, verbose=True)  
 
-        print('Training Complete!')
+        print('\t-->Training Complete!')
         end = time.time()
         #ojo en numpy: array[ejevertical][ejehorizontal] ,al contratio que en plotly
         session_data.set_som_model_info_dict(eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad,distance,sigma,iteracciones, 
-                                            pesos_init,topology,check_semilla, seed, end - start, som = som, mqe = map_qe)
-        print('\t Elapsed Time:',str(end - start),'seconds')
+                                            pesos_init,topology,check_semilla, seed, end - start, som = som, mqe = map_qe,
+                                             training_time = (end - start))
+        print('\t\tElapsed Time:',str(end - start),'seconds')
+
 
 
     return 'Training Complete'
@@ -1076,7 +1083,7 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
     elif(pesos_init == 'random'):   
         som.random_weights_init(data)
 
-    print('Training som...')
+    print('\t-->Training som...')
     #Random order =False due to data alrady shuffled
     if(any(check_qe_evolution_som)):
         session_data.set_show_error_evolution(True)
@@ -1087,12 +1094,12 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
         som.train(data, iteracciones, random_order=False, verbose=True)  
     session_data.set_modelos(som)                                                   
 
-    print('Training Complete!')
+    print('\t-->Training Complete!')
     end = time.time()
     #ojo en numpy: array[ejevertical][ejehorizontal] ,al contratio que en plotly
     session_data.set_som_model_info_dict(eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad,distance,sigma,
-                                            iteracciones, pesos_init,topology,check,seed, training_time = end)
-    print('\t Elapsed Time:',str(end - start),'seconds')
+                                            iteracciones, pesos_init,topology,check,seed, training_time = (end - start))
+    print('\t\tElapsed Time:',str(end - start),'seconds')
     return 'Training Complete'
 
 
@@ -1208,7 +1215,7 @@ def param_search(  n1,n2,n3,n4,n5,
                 v_start, v_stop,h_start, h_stop, n_iter_randsearch,
                 outline_tab , outline_tab_2 ):
 
-    open_modal = False
+    #open_modal = False
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
@@ -1224,7 +1231,6 @@ def param_search(  n1,n2,n3,n4,n5,
     elif(trigger_id == 'psearch_addtomulti_train_button'  ):
         return dash.no_update, dash.no_update, dash.no_update,dash.no_update,True
     elif(trigger_id == 'discard_search_params_button'):
-        #session_data.reset_som_model_info_dict()
         session_data.del_last_som_model_info_dict()
         return  pu.create_simple_table([], [], 'table_search_found_params'), False, dash.no_update ,dash.no_update,False
     
@@ -1278,12 +1284,11 @@ def param_search(  n1,n2,n3,n4,n5,
     print('\t -->Hyperparameter Search Complete!')
 
     #Save best model since if later analyze this model button is used
-    #print('Best estimator size', gs.best_estimator_.som_model._weights.shape )
+
     session_data.set_show_error_evolution(False)
     session_data.set_modelos(gs.best_estimator_.som_model) 
 
     s_params = gs.best_params_
-    #print('best_params', gs.best_params_)
 
     table_df=  s_params['activation_distance']
     table_wi = s_params['weights_init']

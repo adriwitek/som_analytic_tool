@@ -206,7 +206,7 @@ def get_estadisticas_som_card():
 
 
 
-#Mapa neurona winners
+#MAP: Winners Map
 def get_mapaneuronasganadoras_som_card():
 
     return  dbc.CardBody(children=[ 
@@ -406,7 +406,6 @@ def get_umatrix_som_card():
                     #html.H5("U-Matrix"),                    
                     html.Div(id='umatrix_figure_div', children=[''],style= pu.get_single_heatmap_css_style()
                     ),
-
                     html.Div(
                         [
                             dbc.Checklist(options=[{"label": "Label Neurons", "value": 1}],
@@ -429,7 +428,7 @@ def get_umatrix_som_card():
                             dbc.Button("Plot", id="umatrix_button", className="mr-2", color="primary"),       
 
                         ],
-                        style={'textAlign': 'center'}
+                        style=pu.get_css_style_center()
                     )
 
                    
@@ -451,7 +450,7 @@ def get_savemodel_som_card():
                             dbc.Button("Save Model", id="save_model_som", className="mr-2", color="primary"),
                             html.P('',id="check_correctly_saved_som")
                             ],
-                            style={'textAlign': 'center'}
+                            style=pu.get_css_style_center()
                         ),
             ])
           
@@ -794,10 +793,10 @@ def update_som_fig(n_clicks, check_annotations ,logscale, data_portion_option):
                                                     text = text, discrete_values_range= discrete_values_range, unique_targets = unique_targets,
                                                     log_scale = log_scale)
         if(table_legend is not None):
-            children = pu.get_fig_div_with_info(fig,'winners_map', 'Winners Target per Neuron Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,
+            children = pu.get_fig_div_with_info(fig,'winners_map', 'Winners Target per Neuron',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,
                                                 neurona_padre=None,  table_legend =  table_legend)
         else:
-            children = pu.get_fig_div_with_info(fig,'winners_map', 'Winners Target per Neuron Map',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,
+            children = pu.get_fig_div_with_info(fig,'winners_map', 'Winners Target per Neuron',tam_eje_horizontal, tam_eje_vertical,gsom_level= None,
                                                 neurona_padre=None)
         print('\n SOM Winning Neuron Map: Plotling complete! \n')
 
@@ -1127,7 +1126,7 @@ def update_umatrix(n_clicks,check_annotations, log_scale):
     params = session_data.get_som_model_info_dict()
 
     if(params['topology']== 'rectangular'):    #RECTANGULAR TOPOLOGY   
-        figure,_ = pu.create_heatmap_figure(umatrix ,tam_eje_horizontal,tam_eje_vertical, check_annotations, title ='U-Matrix',
+        figure,_ = pu.create_heatmap_figure(umatrix ,tam_eje_horizontal,tam_eje_vertical, check_annotations,
                                              colorscale = UMATRIX_HEATMAP_COLORSCALE,  reversescale=True, log_scale = log_scale)
     else:#HEXAGONAL TOPOLOGY
 
@@ -1138,8 +1137,10 @@ def update_umatrix(n_clicks,check_annotations, log_scale):
         figure, _ =  pu.create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True, colorscale = UMATRIX_HEATMAP_COLORSCALE,
                                              check_annotations = check_annotations, log_scale = log_scale)
       
+    
+    return html.Div(pu.get_fig_div_with_info(figure,'graph_u_matrix','U-Matrix',tam_eje_horizontal, tam_eje_vertical)) 
 
-    return  html.Div(children= dcc.Graph(id='graph_u_matrix',figure=figure))
+    #return  html.Div(children= dcc.Graph(id='graph_u_matrix',figure=figure))
 
 
 

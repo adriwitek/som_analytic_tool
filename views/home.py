@@ -1247,7 +1247,9 @@ def sync_slider_split(slider_percentage, train_samples_sel,test_samples_sel, n_o
         else:
             number = (slider_percentage * n_of_sel_samples)/100
             number = ceil(number)
-            percentage = (number*100)/n_of_sel_samples
+            #percentage = (number*100)/n_of_sel_samples
+            percentage = round ((number*100)/n_of_sel_samples, 2)
+
             return percentage, (str(percentage) + ' %'), (str((100 - percentage)) + ' %'), number, (n_of_sel_samples - number)
 
     elif(train_samples_sel is None or test_samples_sel is None ):

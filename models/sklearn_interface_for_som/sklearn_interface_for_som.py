@@ -4,10 +4,10 @@ Interface to adapt SOM algorithm(Minisom) with sklearn, in order to use hyper-pa
 Created: 06-05-2021
 """
 
-from sklearn.utils.estimator_checks import check_estimator
 from models.som import minisom
 from numpy.linalg import norm
-from sklearn.base import BaseEstimator
+#from sklearn.base import BaseEstimator
+#from sklearn.utils.estimator_checks import check_estimator
 
 
 
@@ -92,8 +92,6 @@ class SOM_Sklearn():
        
 
 
-    #session_data.set_show_error_evolution(False)#poner esto antes de llamar a fit....######################################################################
-
     def fit(self, X,y=None ): #Only last fit will save model!
         '''
         Trains a som model due to fit parameters
@@ -117,7 +115,6 @@ class SOM_Sklearn():
         #print('X data dypte is',X.dtype,flush=True)
         self.input_len=X.shape[1]
         
-
         if(self.square_grid_size is None):
             self.x_grid_size = self.ver_size
             self.y_grid_size = self.hor_size
