@@ -1014,7 +1014,7 @@ def train_models_som(n_cliks, table_data, check_qe_evolution_som, input_qe_evolu
             som.random_weights_init(data)
 
 
-        #print('Training som...')
+        print('\t-->Training SOM ',i,'...')
         if(any(check_qe_evolution_som)):
             session_data.set_show_error_evolution(True)
             session_data.reset_error_evolution()
@@ -1025,11 +1025,11 @@ def train_models_som(n_cliks, table_data, check_qe_evolution_som, input_qe_evolu
 
         print('\t-->Training Complete!')
         end = time.time()
+        tt = end - start
         #ojo en numpy: array[ejevertical][ejehorizontal] ,al contratio que en plotly
         session_data.set_som_model_info_dict(eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad,distance,sigma,iteracciones, 
-                                            pesos_init,topology,check_semilla, seed, end - start, som = som, mqe = map_qe,
-                                             training_time = (end - start))
-        print('\t\tElapsed Time:',str(end - start),'seconds')
+                                            pesos_init,topology,check_semilla, seed, som = som, mqe = map_qe,training_time = tt)
+        print('\t\tElapsed Time:',str(tt),'seconds')
 
 
 
@@ -1083,7 +1083,7 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
     elif(pesos_init == 'random'):   
         som.random_weights_init(data)
 
-    print('\t-->Training som...')
+    print('\t-->Training SOM...')
     #Random order =False due to data alrady shuffled
     if(any(check_qe_evolution_som)):
         session_data.set_show_error_evolution(True)
@@ -1098,7 +1098,7 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
     end = time.time()
     #ojo en numpy: array[ejevertical][ejehorizontal] ,al contratio que en plotly
     session_data.set_som_model_info_dict(eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad,distance,sigma,
-                                            iteracciones, pesos_init,topology,check,seed, training_time = (end - start))
+                                            iteracciones, pesos_init,topology,check,seed, training_time = end - start)
     print('\t\tElapsed Time:',str(end - start),'seconds')
     return 'Training Complete'
 
@@ -1283,7 +1283,7 @@ def param_search(  n1,n2,n3,n4,n5,
     gs.fit(data)
     print('\t -->Hyperparameter Search Complete!')
 
-    #Save best model since if later analyze this model button is used
+    #Save best model if later analyze this model button is used
 
     session_data.set_show_error_evolution(False)
     session_data.set_modelos(gs.best_estimator_.som_model) 

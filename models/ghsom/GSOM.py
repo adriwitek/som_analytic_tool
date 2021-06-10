@@ -48,7 +48,7 @@ class GSOM:
                                     dataset_percentage, min_dataset_size, seed)
 
             _iter += 1
-            print('\t Iteration: ', _iter)
+            #print('\t Iteration: ', _iter)
             can_grow = self.__can_grow()
             if can_grow:
                 self.grow()
@@ -97,7 +97,7 @@ class GSOM:
                                     dataset_percentage, min_dataset_size, seed)
 
             _iter += 1
-            print('\t Iteration: ', _iter)
+            #print('\t Iteration: ', _iter)
             #can_grow,_,_ = self.__can_grow_single_train()
             can_grow,mapa_mean_MQE = self.__can_grow_single_train()
             session_data.error_evolution_add_point(_iter,mapa_mean_MQE )

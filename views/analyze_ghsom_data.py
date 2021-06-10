@@ -41,7 +41,7 @@ def get_statistics_card_ghsom():
                         html.Div(id = 'grafo_ghsom_estadisticas',children = '',
                                 style=pu.get_css_style_inline_flex()
                         ),
-                        html.Div( id='div_estadisticas_ghsom',children = '', style= pu.pu.get_css_style_center()) 
+                        html.Div( id='div_estadisticas_ghsom',children = '', style= pu.get_css_style_center()) 
             ])
             
             

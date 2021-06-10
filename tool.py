@@ -55,6 +55,7 @@ def display_page(pathname):
     elif pathname == URLS['ANALYZE_GHSOM_URL']:
         return analyze_ghsom_data()
     elif pathname == URLS['TRAINING_MODEL']:
+        #time.sleep(1)
         return Training_animation()
     else:
         #return '404'

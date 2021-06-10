@@ -55,7 +55,7 @@ formulario_ghsom =  dbc.ListGroupItem([
                                             id='dropdown_fun_desigualdad_ghsom',
                                             options=[
                                                 {'label': 'Quantization Error', 'value': 'qe'},
-                                                {'label': ' Average Quantization Error', 'value': 'mqe'}
+                                                {'label': ' Mean Quantization Error', 'value': 'mqe'}
                                             ],
                                             value='qe',
                                             searchable=False
@@ -228,7 +228,8 @@ def train_ghsom(n_clicks,tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,e
     ghsom = GHSOM(input_dataset = data, t1= tau1, t2= tau2, learning_rate= tasa_aprendizaje, decay= decadencia,
                      gaussian_sigma=sigma_gaussiana, growing_metric=fun_desigualdad)
 
-    print('Training ghsom...')
+    print('\t-->Training GHSOM...')
+
 
     zero_unit = ghsom.train(epochs_number=epocas_ghsom, dataset_percentage=1, min_dataset_size=1, seed=seed,
                              grow_maxiter=max_iter_ghsom)
@@ -237,8 +238,8 @@ def train_ghsom(n_clicks,tau1,tau2,tasa_aprendizaje,decadencia,sigma_gaussiana,e
     
     #print('zerounit:',zero_unit)
 
-    print('Training Complete!')
-    print('\t Elapsed Time:',str(end - start),'seconds')
+    print('\t-->Training Complete!')
+    print('\t\t Elapsed Time:',str(end - start),'seconds')
     return 'Training Complete'
 
 

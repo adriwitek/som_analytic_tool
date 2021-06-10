@@ -23,8 +23,6 @@ import time
 # Formulario GSOM
 formulario_gsom =  dbc.ListGroupItem([
                     html.H4('Parameter Selection',className="card-title"  ),
-
-
                     html.Div(style={'textAlign': 'center'},children=[
                         html.Div(
                             style={'display': 'inline-block', 'text-align': 'left'},
@@ -251,7 +249,8 @@ def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,ta
     
     #Train
     session_data.set_show_error_evolution(True)
-    print('Training gsom...')
+    print('\t-->Training GSOM...')
+
 
     zero_unit.child_map.single_train(epocas_gsom,
                             sigma_gausiana,
@@ -266,10 +265,8 @@ def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,ta
     session_data.set_modelos(zero_unit)
 
     end = time.time()
-    print('Training Complete!')
-    print('\t Elapsed Time:',str(end - start),'seconds')
-
-    #TODO
+    print('\t-->Training Complete!')
+    print('\t\t Elapsed Time:',str(end - start),'seconds')
     return 'Training Complete'
 
 

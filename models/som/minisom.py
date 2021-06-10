@@ -452,7 +452,7 @@ class MiniSom(object):
             session_data.error_evolution_add_point( t, map_qe)
 
         session_data.update_progressbar_value(num_iteration)
-        print('numero de iteracciones', num_iteration)
+        #print('numero de iteracciones', num_iteration)
         return map_qe
 
         #if verbose:
