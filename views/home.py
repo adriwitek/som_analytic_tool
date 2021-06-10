@@ -192,11 +192,8 @@ def Home():
         dcc.Store(id='original_dataframe_storage',data=None),
         dcc.Store(id='processed_dataframe_storage',data=None),
         dcc.Store(id='notnumeric_dataframe_storage',data=None),
-        #dcc.Store(id='trainready_dataframe_storage',data=None),
         # making quicker the home view this additional dcc store
         dcc.Store(id='head_processed_dataframe_storage',data=None),
-
-
 
         elements.navigation_bar,
         elements.cabecera,
@@ -208,9 +205,9 @@ def Home():
                 dbc.ListGroup([
                     # Archivo Local
                     dbc.ListGroupItem([
-                        html.H4('Local File',className="card-title" , style={'textAlign': 'center'} ),
+                        html.H4('Local File',className="card-title" , style=pu.get_css_style_center() ),
 
-                        dcc.Upload( id='upload-data', children=html.Div(['Drag and Drop or  ', html.A('Select File  (.csv or .xls(xls nor working now))')]),
+                        dcc.Upload( id='upload-data', children=html.Div(['Drag and Drop or  ', html.A('Click to Select File  (.csv)')]),
                                             style={'width': '100%',
                                                     'height': '60px',
                                                     'lineHeight': '60px',
@@ -223,71 +220,73 @@ def Home():
                                             multiple=False
                         ),
 
-                        html.Br(),
-
-                        dcc.Loading(id='loading',
-                                type='dot',
-                                children=[
-                                        dbc.Collapse(id ='collapse_div_info_loaded_file',
-                                                    is_open= False,
-                                                    children = [   
-                                                        html.Div(id='div_info_loaded_file',
-                                                                style=hidden_div_style,
-                                                                children = div_info_loaded_file('','','','')
-                                                        )
-                                                    ]
-                                        )
-
-                        ]),
-
-                        # Preview Table
-                        html.Div(id = 'preview_table' ,children = create_preview_table(None)),
-                        html.Br(),
-
-
-                        #info showed when the dataset its loaded
-                        dbc.Collapse(id='collapse_modify_data_button', is_open = False, children = 
-                            dbc.Button("Modify Data",id="modify_data_button",className="mb-6",color="primary",block=True)
+                        dbc.Collapse(id ='collapse_error_uploadingfile',
+                                    is_open = False,
+                                    children = [   
+                                        html.P( id= 'error_tag_uploading_file',
+                                                children = 'ERROR: File format not admited' ,
+                                                style=pu.get_css_style_center())
+                                    ]
                         ),
+                        html.Br(),
+                        #File Info collapse
+                        dbc.Collapse(   id ='collapse_correct_loaded_file',
+                                        is_open = False,
+                                        children = [
+                                            dcc.Loading(id='loading',
+                                                    type='dot',
+                                                    children=[
+                                                            dbc.Collapse(id ='collapse_div_info_loaded_file',
+                                                                        is_open= False,
+                                                                        children = [   
+                                                                            html.Div(id='div_info_loaded_file',
+                                                                                    style=hidden_div_style,
+                                                                                    children = div_info_loaded_file('','','','')
+                                                                            )
+                                                                        ]
+                                                            )
+                                            ]),
+
+                                            # Preview Table
+                                            html.Div(id = 'preview_table' ,children = create_preview_table(None)),
+                                            html.Br(),
+
+                                            #info showed when the dataset its loaded
+                                            dbc.Collapse(id='collapse_modify_data_button', is_open = False, children = 
+                                                dbc.Button("Modify Data",id="modify_data_button",className="mb-6",color="primary",block=True)
+                                            ),
+                                            dbc.Collapse(id ='info_dataset_collapse',
+                                                children = [   
+                                                    html.Div(id='info_dataset_div',
+                                                            style=hidden_div_style,
+                                                            children = div_info_dataset( None,0 ) 
+                                                    )
+                                                ]
+                                            ),
+
+                                          
+                                            html.Hr(),
+                                            html.Br(),
+
+                                            #Training Selection Card
+                                            dbc.Collapse(id = 'collapse_traing_sel_home',
+                                                is_open= False,
+                                                children = [
+                                                    html.Div(Training_selection())
+                                                ]
+                                            )
+                                        ]
+                        ),
+
                         
-                        dbc.Collapse(id ='info_dataset_collapse',
-
-                            
-                            children = [   
-                                html.Div(id='info_dataset_div',
-                                        style=hidden_div_style,
-                                        children = div_info_dataset( None,0 ) 
-                                )
-                            ]
-                        )
-
-                       
-
                     ]),
-
-                 
-                    
                 ],flush=True,),
-
-
             )
         ]),
 
 
 
-        #Training Selection Card
-        dbc.Collapse(id = 'collapse_traing_sel_home',
-            is_open= False,
-            children = [
-                dbc.Card( color = 'light',
-                         children=[
-
-                        dbc.CardBody(
-                                html.Div(Training_selection())
-                        )
-                ])
-            ]
-        )
+        
 
 
 
@@ -508,8 +507,9 @@ def get_features_selection_card():
 
 def div_info_dataset( df, n_samples):
     if(df is None):
+        #Todo paar style a pu
         return html.Div(style = { "visibility": "hidden",'display':'none'}  ,
-        
+                #These elements are called in callbacks, show they need to exist at the load
                 children = [
                 #Necesario para la callback de entrenarcargar modelo
                 #Target
@@ -526,6 +526,18 @@ def div_info_dataset( df, n_samples):
                            multi=True,
                            value = []
                 ),
+
+                dbc.Checklist(
+                    options=[
+                        {"label": "Detect and Clean Categorical Data", "value": 1},
+                    ],
+                    value=[],
+                    id="clean_data_switch",
+                    switch=True,
+                ),
+                
+
+
         ])
 
 
@@ -662,7 +674,7 @@ def get_onehot_childrendiv_menu():
                                                                             value=[],
                                                                             id="check_nanvalues_onehot"
                                         ),
-                                        dbc.Button("Apply One Hot", id="apply_onehot_button", className="mr-2", color="primary")
+                                        dbc.Button("Apply One Hot", id="apply_onehot_button",disabled = True, className="mr-2", color="primary")
                                     ]
                                 )
                             ])
@@ -750,11 +762,21 @@ def onehot_dropdown_options(input_data):
     return options
 
 
-
+#disable_apply_onehot_button
+@app.callback(  Output('apply_onehot_button', 'disabled'),
+                Input('dropdown_features_toonehot', 'value'),
+                prevent_initial_call=True 
+)
+def disable_apply_onehot_button(names):
+    if(not(names)):
+        return True
+    else:
+        return False
 
 #Process data
 @app.callback(  Output('processed_dataframe_storage','data'),
                 Output('notnumeric_dataframe_storage','data'),
+                Output('dropdown_features_toonehot', 'value'),
                 Input('original_dataframe_storage','data'),
                 Input('clean_data_switch', 'value'),    
                 Input('apply_onehot_button', 'n_clicks'),
@@ -781,7 +803,7 @@ def process_data(input_data , clean_categorical_data, n_clicks, processed_data, 
             
             if( (processed_data is None) or (not names) or (notnum_df.empty ) ):
                #devolvemos tal cual pq no hay cambios
-               return  processed_data,notnum_data
+               return  processed_data,notnum_data, dash.no_update
 
 
             else:#applicamos onehot
@@ -796,7 +818,7 @@ def process_data(input_data , clean_categorical_data, n_clicks, processed_data, 
 
                 processed_data = processed_df.to_json(date_format='iso',orient = 'split')
                 notnum_data = notnum_df.to_json(date_format='iso',orient = 'split')
-                return  processed_data,notnum_data
+                return  processed_data,notnum_data, []
        
 
        #contexto del switch o del original_Dataframe: procesamos datos
@@ -808,12 +830,12 @@ def process_data(input_data , clean_categorical_data, n_clicks, processed_data, 
             processed_data = dff_num.to_json(date_format='iso',orient = 'split')
             notnum_data = dff_not_num.to_json(date_format='iso',orient = 'split')
 
-            return  processed_data,notnum_data
+            return  processed_data,notnum_data, dash.no_update
 
     
     else:
         dff = pd.DataFrame(columns=[])
-        return dff,dff
+        return dff,dff, dash.no_update
 
 
 
@@ -829,6 +851,11 @@ def process_data(input_data , clean_categorical_data, n_clicks, processed_data, 
                 Output('collapse_div_info_loaded_file','is_open'),
                 Output('info_dataset_div', 'children'),
                 Output('info_dataset_div', 'style'),
+
+                Output('collapse_error_uploadingfile', 'is_open'),
+                Output('collapse_correct_loaded_file', 'is_open'),
+                Output('error_tag_uploading_file', 'children'),
+
                 Input('upload-data', 'contents'),
                 State('upload-data', 'filename'),
                 State('upload-data', 'last_modified'), 
@@ -840,15 +867,18 @@ def update_output( contents, filename, last_modified):
     '''Carga el dataset en los elementos adecuados
 
     '''
+    show_file_info_style =  {'textAlign': 'center',  'display': 'block'}
+    hidden_file_info_style = {'textAlign': 'center', "visibility": "hidden"}
+    #TODO pasar estylos a pu
+
     if contents is not None:
-        
-        show_file_info_style =  {'textAlign': 'center',  'display': 'block'}
-
-        content_type, content_string = contents.split(',')
-        decoded = base64.b64decode(content_string)
-
         try:
             if 'csv' in filename:
+                content_split = contents.split(',')
+                if(len(content_split) <2):
+                    return dash.no_update,'', False, '', hidden_file_info_style, True,False,'An error occurred processing the file'
+                content_type, content_string = content_split
+                decoded = base64.b64decode(content_string)
                 try:
                     # Assume that the user uploaded a CSV file
                     dataframe = pd.read_csv(io.StringIO(decoded.decode('utf-8')),sep = None, decimal = ",", engine='python')
@@ -856,33 +886,30 @@ def update_output( contents, filename, last_modified):
                 except: 
                     dataframe = pd.read_csv(io.StringIO(decoded.decode('utf-8')),sep = ',', decimal = ".")
 
-            elif 'xls' in filename:
-                # Assume that the user uploaded an excel file
-                dataframe = pd.read_excel(io.BytesIO(decoded))
 
             else:
-                return None,'', False, html.Div([ 'ERROR: File format not admited']),show_file_info_style
+                return dash.no_update,'', False, '',hidden_file_info_style,True,False, 'ERROR: File format not admited'
 
         except Exception as e:
             print(e)
-            return None,'', False, html.Div([ 'An error occurred processing the file']), show_file_info_style
+            return dash.no_update,'', False, '', hidden_file_info_style, True,False,'An error occurred processing the file'
         
     
         n_samples, n_features=dataframe.shape
         if(n_samples == 0):
-            return None,'', False, html.Div([ 'ERROR: The file does not contain any  sample']),show_file_info_style
+            return dash.no_update,'', False,'', hidden_file_info_style, True,False,'ERROR: The file does not contain any sample'
         elif(n_features<=2):
-            return None,'', False, html.Div([ 'ERROR: The file must contain at least 2 features']),show_file_info_style
+            return dash.no_update,'', False, '', hidden_file_info_style, True,False,'ERROR: The file must contain at least 2 features'
             
         div1 = div_info_loaded_file(filename,
                                     datetime.utcfromtimestamp(last_modified).strftime('%d/%m/%Y %H:%M:%S'),
                                     str(n_samples),
                                     str(n_features))
         div2 = div_info_dataset(dataframe,n_samples) 
-        return dataframe.to_json(date_format='iso',orient = 'split'),div1, True,   div2, show_file_info_style
+        return dataframe.to_json(date_format='iso',orient = 'split'),div1, True,   div2, show_file_info_style , False,True, ''
                 
     else: 
-        return  None,'' , False,  div_info_dataset( None,0)  ,{'textAlign': 'center', "visibility": "hidden"}
+        return  None,'' , False,  div_info_dataset( None,0) ,hidden_file_info_style, False,True, ''
 
 
 
@@ -1065,9 +1092,7 @@ def toggle_modal(input_data, n_clicks, modal_is_open, cabecera_is_open, button_i
                 State("info_dataset_collapse", "is_open"),
                 prevent_initial_call=True
 )
-#TODO
-#@cache.memoize(timeout=60)  # in seconds
-def toggle_collapse_info_dataset(n, is_open):
+def toggle_collapse_info_dataset(n, is_open ):
     if n:
         return not is_open
     return is_open
@@ -1404,7 +1429,6 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notn
         return dcc.Location(pathname=URLS['TRAINING_GHSOM_URL'], id="redirect"), False, ''
     else:   #if something goes wrong, but app never should get here anyway
         return dcc.Location(pathname="/", id="redirect"), False, ''
-
 
 
 
