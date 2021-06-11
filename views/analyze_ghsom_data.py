@@ -35,14 +35,14 @@ from logging import raiseExceptions
 
 #Card Statistics
 def get_statistics_card_ghsom():
-
     return  dbc.CardBody(children=[ 
-
                         html.Div(id = 'grafo_ghsom_estadisticas',children = '',
-                                style=pu.get_css_style_inline_flex()
+                                style=pu.get_css_style_center()
                         ),
                         html.Div( id='div_estadisticas_ghsom',children = '', style= pu.get_css_style_center()) 
-            ])
+                        ], 
+                        style = pu.get_css_style_inline_flex()
+            )
             
             
 
@@ -91,7 +91,7 @@ def get_winnersmap_card_ghsom():
                                 html.Div(
                                     children = [
                                         html.Div(id = 'grafo_ghsom_winners',children = '',
-                                                    style={'textAlign': 'center'}
+                                                    style=pu.get_css_style_center()
                                         ),
                                         html.Div(   id = 'winners_map_ghsom',children = '',
                                                     #style= pu.get_single_heatmap_css_style()
@@ -103,7 +103,7 @@ def get_winnersmap_card_ghsom():
                                     dbc.Checklist(  options=[{"label": "Label Neurons", "value": 1}],
                                                     value=[],
                                                     id="check_annotations_winmap_ghsom"),
-                                    style={'textAlign': 'center'}
+                                    style=pu.get_css_style_center()
                                 ),
 
                                 dbc.Collapse(
@@ -122,7 +122,7 @@ def get_winnersmap_card_ghsom():
                                                         inline=True,
                                                     ),
                                                 ],
-                                                style={'textAlign': 'center'}
+                                                style=pu.get_css_style_center()
                                             ),
                                         ]
                                 )
@@ -136,7 +136,7 @@ def get_freqmap_card_ghsom():
 
                         html.Div(children = [
                                 html.Div(id = 'grafo_ghsom_freq',children = '',
-                                        style={'textAlign': 'center'}
+                                        style=pu.get_css_style_center() 
                                 ),
 
                                 html.Div(id = 'div_freq_map_ghsom',children=None
@@ -158,7 +158,7 @@ def get_freqmap_card_ghsom():
                                         inline=True,
                                     ),
                                 ],
-                                style={'textAlign': 'center'}
+                                style=pu.get_css_style_center() 
                             )
                         ]),
 
@@ -187,7 +187,7 @@ def get_componentplans_card_ghsom():
                                     options=[{"label": "Check All", "value": 1}],
                                     value=[],
                                     id="check_seleccionar_todos_mapas_ghsom")],
-                                style={'textAlign': 'center'}
+                                style=pu.get_css_style_center() 
                             ),
 
                             dbc.Alert(
@@ -219,7 +219,7 @@ def get_componentplans_card_ghsom():
                                     html.Div(dbc.Checklist(  options=[{"label": "Label Neurons", "value": 1}],
                                                             value=[],
                                                             id="check_annotations_comp_ghsom"),
-                                                style={'textAlign': 'center'}
+                                                style=pu.get_css_style_center() 
                                     ),
 
                                     dbc.FormGroup(
@@ -234,7 +234,7 @@ def get_componentplans_card_ghsom():
                                                 inline=True,
                                             ),
                                         ],
-                                        style={'textAlign': 'center'}
+                                        style=pu.get_css_style_center() 
                                     ),
                             ])
             ])
@@ -269,7 +269,7 @@ def get_umatrix_card_ghsom():
             html.Div(dbc.Checklist(     options=[{"label": "Label Neurons", "value": 1}],
                                         value=[],
                                         id="check_annotations_um_ghsom"),
-                    style={'textAlign': 'center'}
+                    style=pu.get_css_style_center() 
             ),
 
             dbc.FormGroup(
@@ -284,7 +284,7 @@ def get_umatrix_card_ghsom():
                         inline=True,
                     ),
                 ],
-                style={'textAlign': 'center'}
+                style=pu.get_css_style_center() 
             ),
         ])
 
@@ -300,7 +300,7 @@ def get_savemodel_card_ghsom():
                     dbc.Button("Guardar modelo", id="save_model_ghsom", className="mr-2", color="primary"),
                     html.P('',id="check_correctly_saved_ghsom")
                     ],
-                    style={'textAlign': 'center'}
+                    style=pu.get_css_style_center() 
                 ),
         ])
          
@@ -321,7 +321,7 @@ def analyze_ghsom_data():
         html.H4('Data Analysis',className="card-title"  ),
 
         html.H6('Train Parameters',className="card-title"  ),
-        html.Div(id = 'info_table_ghsom',children=info_trained_params_ghsom_table(),style={'textAlign': 'center'} ),
+        html.Div(id = 'info_table_ghsom',children=info_trained_params_ghsom_table(),style=pu.get_css_style_center()  ),
 
         dbc.Tabs(
                 id='tabs_ghsom',
@@ -405,7 +405,10 @@ def info_trained_params_ghsom_table():
 # Grafo de la estructura del ghsom
 # This 2 funcs are splitted in 2 for eficience. reason
 def get_ghsom_graph_div(fig,dcc_graph_id):
-    children =[ dcc.Graph(id=dcc_graph_id,figure=fig)  ]
+    children =  [   dcc.Graph(id=dcc_graph_id,figure=fig), 
+                    html.P('Double click on a node to plot his map',className="text-secondary",  
+                        style= pu.get_css_style_center() )  
+                ]
     div =  html.Div(children=children, style={'margin': '0 auto','width': '100%', 'display': 'flex',
                                              'align-items': 'center', 'justify-content': 'center',
                                             'flex-wrap': 'wrap', 'flex-direction': 'column ' } )
@@ -708,21 +711,17 @@ def view_stats_map_by_selected_point(clickdata,figure,option):
     data= session_data.get_data(option)
     gsom.replace_parent_dataset(data)
     qe, mqe = gsom.get_map_qe_and_mqe()
-    params = session_data.get_ghsom_model_info_dict()
-    fun_disimilitud = params['fun_disimilitud']
+    qe = round(qe, 4)
+    mqe = round(mqe, 4)
     
-
     #Table
     table_header = [
         html.Thead(html.Tr([html.Th("Magnitude"), html.Th("Value")]))
     ]
-    if(fun_disimilitud == 'qe'):
-        row0 = html.Tr([html.Td("MAPA: Sumatorio de  Errores de Cuantización(neuronas)"), html.Td(qe)])
-        row1 = html.Tr([html.Td("MAPA: Promedio de  Errores de Cuantización(neuronas)"), html.Td(mqe)])
-    else:
-        row0 = html.Tr([html.Td("MAPA: Sumatorio de  Errores de Cuantización Medios(neuronas)"), html.Td(qe)])
-        row1 = html.Tr([html.Td("MAPA: Promedio de  Errores de Cuantización Medios(neuronas)"), html.Td(mqe)])
 
+    row0 = html.Tr([html.Td("Quantization Error (Total)"), html.Td(qe)])
+    row1 = html.Tr([html.Td("Mean Quantization Error"), html.Td(mqe)])
+    
     table_body = [html.Tbody([row0,row1])]
     table = dbc.Table(table_header + table_body,bordered=True,dark=False,hover=True,responsive=True,striped=True)
     children = [table]

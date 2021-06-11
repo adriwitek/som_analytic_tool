@@ -9,9 +9,9 @@ import dash
 import  views.elements as elements
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-from math import ceil
+#import plotly.graph_objects as go
+#from plotly.subplots import make_subplots
+#from math import ceil
 import numpy as np
 import numpy.ma as ma
 
@@ -25,12 +25,9 @@ from re import search
 import views.plot_utils as pu
 from logging import raiseExceptions
 
-from plotly.colors import validate_colors
+#from plotly.colors import validate_colors
 import time
 
-
-import matplotlib as mpl
-import matplotlib.cm as cm
 import dash_table
 
 
@@ -628,13 +625,15 @@ def ver_estadisticas_som(n_clicks,data_portion_option, selected_rows, table_data
 
     qe,mqe = som.get_qe_and_mqe_errors(data)
     tp = som.topographic_error(data)
-    
+    qe = round(qe, 4)
+    mqe = round(mqe, 4)
+    tp = round(tp,4) 
     #Table
     table_header = [
         html.Thead(html.Tr([html.Th("Metric"), html.Th("Value")]))
     ]
-    row0 = html.Tr([html.Td("Quantization Error"), html.Td(qe)])
-    row1 = html.Tr([html.Td("Average Quantization Error"), html.Td(mqe)])
+    row0 = html.Tr([html.Td("Quantization Error(Total)"), html.Td(qe)])
+    row1 = html.Tr([html.Td("Mean Quantization Error"), html.Td(mqe)])
     row2 = html.Tr([html.Td("Topographic Error"), html.Td(tp)])
     table_body = [html.Tbody([row0,row1, row2])]
     table = dbc.Table(table_header + table_body,bordered=True,dark=False,hover=True,responsive=True,striped=True)

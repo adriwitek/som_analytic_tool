@@ -58,7 +58,7 @@ formulario_gsom =  dbc.ListGroupItem([
                                             id='dropdown_fun_desigualdad',
                                             options=[
                                                 {'label': 'Quantization Error', 'value': 'qe'},
-                                                {'label': 'Average Quantization Error', 'value': 'mqe'}
+                                                {'label': 'Mean Quantization Error', 'value': 'mqe'}
                                             ],
                                             value='qe',
                                             searchable=False

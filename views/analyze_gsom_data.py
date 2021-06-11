@@ -126,10 +126,10 @@ def get_select_splitted_option_card():
 def get_statistics_card_gsom():
 
     return  dbc.CardBody(children=[ 
-                    html.Div( id='div_estadisticas_gsom',children = '', style={'textAlign': 'center'}),
+                    html.Div( id='div_estadisticas_gsom',children = '', style=pu.get_css_style_center() ),
                     html.Div([
                         dbc.Button("Calculate", id="ver_estadisticas_gsom_button", className="mr-2", color="primary")],
-                        style={'textAlign': 'center'}
+                        style=pu.get_css_style_center() 
                     )
             ])
                
@@ -212,7 +212,7 @@ def get_winnersmaps_card_gsom():
 
 
                                     dbc.Button("Plot", id="ver_winners_map_gsom_button", className="mr-2", color="primary")],
-                                style={'textAlign': 'center'}
+                                style=pu.get_css_style_center() 
                             )
                 ])
 
@@ -240,7 +240,7 @@ def get_freqmap_card_gsom():
                             inline=True,
                         ),
                     ],
-                    style={'textAlign': 'center'}
+                    style=pu.get_css_style_center() 
                 ),
 
 
@@ -254,7 +254,7 @@ def get_freqmap_card_gsom():
 
                 html.Div([  
                         dbc.Button("Plot", id="ver_freq_map_gsom_button", className="mr-2", color="primary")],
-                    style={'textAlign': 'center'}
+                    style=pu.get_css_style_center() 
                 )
             ])
                
@@ -297,7 +297,7 @@ def get_componentplans_card_gsom():
                         ),
 
                         dbc.Button("Plot Selected Components Map", id="ver_mapas_componentes_button_gsom", className="mr-2", color="primary")],
-                        style={'textAlign': 'center'}
+                        style=pu.get_css_style_center() 
                     ),
                     html.Div(id='component_plans_figures_gsom_div', children=[''],
                             style=pu.get_css_style_inline_flex()
@@ -342,7 +342,7 @@ def get_umatrix_card_gsom():
                         ),
                             
                         dbc.Button("Plot", id="ver_umatrix_gsom_button", className="mr-2", color="primary")],
-                        style={'textAlign': 'center'}
+                        style=pu.get_css_style_center() 
                     )
                 ])
 
@@ -360,7 +360,7 @@ def get_savemodel_card_gsom():
                                 dbc.Button("Guardar modelo", id="save_model_gsom", className="mr-2", color="primary"),
                                 html.P('',id="check_correctly_saved_gsom")
                             ],
-                        style={'textAlign': 'center'}
+                        style=pu.get_css_style_center() 
                     ),
             ])
               
@@ -383,7 +383,7 @@ def analyze_gsom_data():
         html.H4('Data Analysis',className="card-title"  ),
 
         html.H6('Train Parameters',className="card-title"  ),
-        html.Div(id = 'info_table_gsom',children=info_trained_params_gsom_table(),style={'textAlign': 'center'} ),
+        html.Div(id = 'info_table_gsom',children=info_trained_params_gsom_table(),style=pu.get_css_style_center()  ),
 
         html.Div(children=[ 
             
@@ -505,24 +505,18 @@ def ver_estadisticas_gsom(n_clicks,data_portion_option):
     gsom.replace_parent_dataset(data)
 
     qe, mqe = gsom.get_map_qe_and_mqe()
-    params = session_data.get_gsom_model_info_dict()
-    fun_disimilitud = params['fun_disimilitud']
+    qe = round(qe, 4)
+    mqe = round(mqe, 4)
+ 
     
-
-  
-  
     #Table
     table_header = [
         html.Thead(html.Tr([html.Th("Magnitude"), html.Th("Value")]))
     ]
     
-    if(fun_disimilitud == 'qe'):
-        row0 = html.Tr([html.Td(" Sumatorio de  Errores de Cuantización(neuronas)"), html.Td(qe)])
-        row1 = html.Tr([html.Td("Promedio de  Errores de Cuantización(neuronas)"), html.Td(mqe)])
-    else:
-        row0 = html.Tr([html.Td("Sumatorio de  Errores de Cuantización Medios(neuronas)"), html.Td(qe)])
-        row1 = html.Tr([html.Td("Promedio de  Errores de Cuantización Medios(neuronas)"), html.Td(mqe)])
-
+    row0 = html.Tr([html.Td("Quantization Error (Total)"), html.Td(qe)])
+    row1 = html.Tr([html.Td("Mean Quantization Error"), html.Td(mqe)])
+    
     table_body = [html.Tbody([row0,row1])]
     table = dbc.Table(table_header + table_body,bordered=True,dark=False,hover=True,responsive=True,striped=True)
     children = [table]

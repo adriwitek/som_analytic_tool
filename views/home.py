@@ -345,7 +345,7 @@ def div_info_loaded_file(filename,fecha_modificacion, n_samples, n_features):
 def get_split_menu(n_samples):
 
     children = [
-        html.P('To let 100% of rows be train or test data, It\'s not necessary to split dataset',className="text-secondary",  style={'textAlign': 'center'}  ),
+        html.P('To let 100% of rows be train or test data, It\'s not necessary to split dataset',className="text-secondary",  style=pu.get_css_style_center()   ),
         #Train/Test percentage badge
         html.Div(style=pu.get_css_style_inline_flex(),
                 children = [
@@ -603,7 +603,7 @@ def create_preview_table(df, selected_columns = []):
 
                     html.Br(),
 
-                    html.H4('Table Preview',className="card-title" , style={'textAlign': 'center'} ),
+                    html.H4('Table Preview',className="card-title" , style=pu.get_css_style_center()  ),
                     html.P('Select a column to mark it as Target',className="text-secondary",  style= pu.get_css_style_center() ),
 
                     dcc.Loading(id='loading',

@@ -561,10 +561,10 @@ def add_data_table_search_found_params( h_size = None, v_size= None,df= None, wi
     row = {}
 
     if(mqe is not None):
-        columns.append({'id': 'mqe'         , 'name': 'Average Mean Quantization Error' })
+        columns.append({'id': 'mqe'         , 'name': 'Validation Score: Mean Quantization Error' })
         row['mqe'] = mqe
     if(tp is not None):
-        columns.append({'id': 'tp'         , 'name': ' Average Topographic Error' })
+        columns.append({'id': 'tp'         , 'name': ' Validation Score: Topographic Error' })
         row['tp'] = tp
     if(h_size is not None):
         columns.append({'id': 'Horizontal Size'         , 'name': 'Hor. Size' })
@@ -1292,10 +1292,15 @@ def param_search(  n1,n2,n3,n4,n5,
 
     table_df=  s_params['activation_distance']
     table_wi = s_params['weights_init']
+
+    std_test_score= round(gs.cv_results_['std_test_score'][gs.best_index_] ,4) 
     if(scoring_metric == 'mqe'):
-        table_mqe =  abs(gs.best_score_) 
-    else:
-        table_tp =  abs(gs.best_score_) 
+        table_mqe =  round(abs(gs.best_score_) , 4 )
+        table_mqe = str( table_mqe ) + ' +- ' + str(std_test_score)
+    else:#topo. error
+        table_tp =  round(abs(gs.best_score_), 4) 
+        table_tp = str( table_tp ) + ' +- ' + str(std_test_score)
+
 
     #Best params
     if('square_grid_size' in s_params):#grid search size
