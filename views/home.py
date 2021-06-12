@@ -598,11 +598,13 @@ def create_preview_table(df, selected_columns = []):
 
 
     else:
-   
+      
+        if(isinstance(df.columns,pd.DatetimeIndex)):# df.columns DatetimeIndex object, error in dash_table
+            df.columns = ['Feature_' + str(i) for i,_ in enumerate(df.columns)]
+    
         return html.Div([
 
                     html.Br(),
-
                     html.H4('Table Preview',className="card-title" , style=pu.get_css_style_center()  ),
                     html.P('Select a column to mark it as Target',className="text-secondary",  style= pu.get_css_style_center() ),
 
@@ -926,20 +928,16 @@ def update_output( contents, filename, last_modified):
 
 def processed_df_callback(processed_df,not_numeric_df):
 
-    
-
     if processed_df is not None:
         dff1 = pd.read_json(processed_df,orient='split')
         processed_cols = dff1.columns.tolist()
     else:
         raise PreventUpdate
   
-
     if(not_numeric_df is not None):
         dff2 = pd.read_json(not_numeric_df,orient='split')
         notnum_cols = dff2.columns.tolist() 
  
-   
     #Features options = processed df
     options_feature_selection = []  # must be a list of dicts per option
     for n in processed_cols:
@@ -949,7 +947,6 @@ def processed_df_callback(processed_df,not_numeric_df):
     options_target_selection = options_feature_selection.copy() 
     for n in notnum_cols:
         options_target_selection.append({'label' : n, 'value': n})
-
 
     #For preview table
     head = dff1.head(DEFAULT_DATASET_ROWS_PREVIEW).to_json(date_format='iso',orient = 'split') 
@@ -970,8 +967,6 @@ def sync_target_and_feature_selection(features_values,target_value, feature_opti
 
     ctx = dash.callback_context
     trigger = ctx.triggered[0]["prop_id"]
-    
-    #print('table_target_selection',table_selected_col)
 
     if(trigger == 'dropdown_feature_selection.options'): #first call select all
         all_features_values = []
@@ -980,19 +975,12 @@ def sync_target_and_feature_selection(features_values,target_value, feature_opti
         return all_features_values, None
 
     else:#rest of calls
-
-        
         if(trigger =='dataset_table_preview.selected_columns' and table_selected_col is not None and len(table_selected_col)>0 ):
             target_value = table_selected_col[0]
-            #print('hhiitt--->target_value',target_value)
-
-        #print('target_value es',target_value)
 
         if(target_value is None or len(target_value)==0): #no target
             return dash.no_update, dash.no_update
-
         else:
-        
             if( target_value in features_values):
                 features_values.remove(target_value)
                 return features_values, target_value
@@ -1000,8 +988,6 @@ def sync_target_and_feature_selection(features_values,target_value, feature_opti
                 return dash.no_update, target_value
 
     
-
-
 
 
 
@@ -1042,7 +1028,7 @@ def callback_preview_table(input_data,features_values,target_value,n_of_samples,
             else:
                 dff = pd.concat( [dff, df[target_value] ],axis=1)
 
-    if(n_of_samples < DEFAULT_DATASET_ROWS_PREVIEW):
+    if(n_of_samples < DEFAULT_DATASET_ROWS_PREVIEW):#if dataset is very small
         dff = dff.head(n_of_samples)
         if(n_of_samples == 0):
             disabled_button = True
