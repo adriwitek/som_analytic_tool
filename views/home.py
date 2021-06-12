@@ -16,8 +16,9 @@ from io import BytesIO
 from datetime import datetime
 import base64
 
+
 import pandas as pd
-import numpy as np
+#import numpy as np
 
 from  views.session_data import session_data
 from  config.config import *
@@ -31,8 +32,14 @@ from os import listdir,makedirs
 from os.path import isfile, join
 import pickle
 from math import ceil,floor
+from pathlib import Path
+import os
 
 
+
+
+
+#TODO pasar a pu file
 show_file_info_style =  {'textAlign': 'center',  'display': 'block'}
 hidden_div_style ={'textAlign': 'center', "visibility": "hidden",'display':'none'} 
 
@@ -947,6 +954,9 @@ def update_output( contents, filename, last_modified):
                                     str(n_samples),
                                     str(n_features))
         div2 = div_info_dataset(dataframe,n_samples) 
+        dirpath = Path(DIR_APP_DATA)
+        if( not dirpath.exists()):
+            os.mkdir(dirpath)
         with open(ORIGINAL_DF_PATH, 'wb') as handle:
             pickle.dump(dataframe, handle, protocol=pickle.HIGHEST_PROTOCOL)
         return 'OK',div1, True,   div2, show_file_info_style , False,True, '', get_upload_data_component_text()

@@ -17,6 +17,9 @@ import time
 import pandas as pd
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
+from pathlib import Path
+import shutil
+
 
 
 class Sesion():
@@ -84,6 +87,9 @@ class Sesion():
         self.error_evolution_x_marks= []
         self.total_iterations = None
 
+        #Clean previous appdata
+        self.clean_appdata_dir()
+
         return
 
 
@@ -114,8 +120,6 @@ class Sesion():
         self.joined_train_test_np_data = None
         self.joined_train_test_df_targets = None
 
-
-
         #todo check si todo ok
 
         #tipo de modelo
@@ -139,6 +143,14 @@ class Sesion():
         self.error_evolution_x_marks= []
         self.total_iterations = None
 
+        #Clean previous appdata
+        self.clean_appdata_dir()
+
+
+    def clean_appdata_dir(self):
+        dirpath = Path(DIR_APP_DATA)
+        if dirpath.exists() and dirpath.is_dir():
+            shutil.rmtree(dirpath)
 
     
     #estandariza y converte datos a numpy

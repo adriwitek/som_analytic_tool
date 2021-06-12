@@ -87,8 +87,9 @@ MIN_TAU_STEP = 1e-35
 
 #DIR
 DIR_SAVED_MODELS='Trained_Models/'
-DIR_APP_DATA = '.appdata/'
 
+#Procesing uploaded current dataset
+DIR_APP_DATA = '.appdata/'
 ORIGINAL_DF_PATH = DIR_APP_DATA + 'original_df'
 PROCESSED_DF_PATH = DIR_APP_DATA +  'processed_df'
 NOT_NUMERICAL_DF_PATH = DIR_APP_DATA + 'not_numeric_df'
