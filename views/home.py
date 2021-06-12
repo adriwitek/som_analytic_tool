@@ -188,7 +188,8 @@ def Home():
 
         html.Div(id="hidden_div_for_redirect_callback"),
 
-        #Dash componets for storing data
+        #Dash componets for storing data(Only used for signaling, while dumping data i pickle to make it
+        # quicker)
         dcc.Store(id='original_dataframe_storage',data=None),
         dcc.Store(id='processed_dataframe_storage',data=None),
         dcc.Store(id='notnumeric_dataframe_storage',data=None),
@@ -207,17 +208,22 @@ def Home():
                     dbc.ListGroupItem([
                         html.H4('Local File',className="card-title" , style=pu.get_css_style_center() ),
 
-                        dcc.Upload( id='upload-data', children=html.Div(['Drag and Drop or  ', html.A('Click to Select File  (.csv)')]),
-                                            style={'width': '100%',
-                                                    'height': '60px',
-                                                    'lineHeight': '60px',
-                                                    'borderWidth': '1px',
-                                                    'borderStyle': 'dashed',
-                                                    'borderRadius': '5px',
-                                                    'textAlign': 'center',
-                                                    'margin': '10px'},
-                                            # Allow multiple files to be uploaded
-                                            multiple=False
+                        dcc.Upload( id='upload-data', 
+                                    children= [ dcc.Loading(id='loading_file_animation',
+                                                    type='dot',
+                                                    children= get_upload_data_component_text()
+                                                )    
+                                    ],
+                                    style={'width': '100%',
+                                            'height': '60px',
+                                            'lineHeight': '60px',
+                                            'borderWidth': '1px',
+                                            'borderStyle': 'dashed',
+                                            'borderRadius': '5px',
+                                            'textAlign': 'center',
+                                            'margin': '10px'},
+                                    # Allow multiple files to be uploaded
+                                    multiple=False
                         ),
 
                         dbc.Collapse(id ='collapse_error_uploadingfile',
@@ -305,6 +311,10 @@ def Home():
 #############################################################
 #	                  AUX LAYOUT FUNS	                    #
 #############################################################
+
+#Used for spinner animation in uploading data
+def get_upload_data_component_text():
+    return html.Div(['Drag and Drop or  ', html.A('Click to Select File  (.csv)')])
 
 
 def get_app_saved_models():
@@ -599,8 +609,8 @@ def create_preview_table(df, selected_columns = []):
 
     else:
       
-        if(isinstance(df.columns,pd.DatetimeIndex)):# df.columns DatetimeIndex object, error in dash_table
-            df.columns = ['Feature_' + str(i) for i,_ in enumerate(df.columns)]
+        #if(isinstance(df.columns,pd.DatetimeIndex)):# df.columns DatetimeIndex object, error in dash_table
+        #    df.columns = ['Feature_' + str(i) for i,_ in enumerate(df.columns)]
     
         return html.Div([
 
@@ -756,7 +766,9 @@ def onehot_dropdown_options(input_data):
 
     options = []  # must be a list of dicts per option
     if input_data is not None:
-        dff = pd.read_json(input_data,orient='split')
+        #dff = pd.read_json(input_data,orient='split')
+        with open(NOT_NUMERICAL_DF_PATH , 'rb') as handle:
+            dff = pickle.load(handle)
         col = dff.columns
          
         for n in col:
@@ -800,17 +812,18 @@ def process_data(input_data , clean_categorical_data, n_clicks, processed_data, 
         #contexto de apply onehot: modificamos processed y notnumdata
         if(button_id == 'apply_onehot_button'): 
 
-            notnum_df   = pd.read_json(notnum_data,orient='split')
-
+            #notnum_df   = pd.read_json(notnum_data,orient='split')
+            with open(NOT_NUMERICAL_DF_PATH , 'rb') as handle:
+                notnum_df = pickle.load(handle)
             
             if( (processed_data is None) or (not names) or (notnum_df.empty ) ):
                #devolvemos tal cual pq no hay cambios
                return  processed_data,notnum_data, dash.no_update
-
-
             else:#applicamos onehot
 
-                processed_df = pd.read_json(processed_data,orient='split')
+                #processed_df = pd.read_json(processed_data,orient='split')
+                with open(PROCESSED_DF_PATH , 'rb') as handle:
+                    processed_df = pickle.load(handle)
 
                 for n in names:
                     # use pd.pd.concat to join the new columns with your original dataframe
@@ -818,26 +831,41 @@ def process_data(input_data , clean_categorical_data, n_clicks, processed_data, 
                     notnum_df.drop([n],axis=1, inplace=True)
 
 
-                processed_data = processed_df.to_json(date_format='iso',orient = 'split')
-                notnum_data = notnum_df.to_json(date_format='iso',orient = 'split')
-                return  processed_data,notnum_data, []
+                #processed_data = processed_df.to_json(date_format='iso',orient = 'split')
+                with open(PROCESSED_DF_PATH, 'wb') as handle:
+                    pickle.dump(processed_df, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                #notnum_data = notnum_df.to_json(date_format='iso',orient = 'split')
+                with open(NOT_NUMERICAL_DF_PATH, 'wb') as handle:
+                    pickle.dump(notnum_df, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                #return  processed_data,notnum_data, []
+                return  'OK','OK', []
        
 
        #contexto del switch o del original_Dataframe: procesamos datos
         else:  
-
-            dff = pd.read_json(input_data,orient='split')
+            
+            #dff = pd.read_json(input_data,orient='split')
+            with open(ORIGINAL_DF_PATH , 'rb') as handle:
+                dff = pickle.load(handle)
+           
+            #if(isinstance(dff.columns,pd.DatetimeIndex)):# df.columns DatetimeIndex object, error in dash_table
+            #    dff.columns = ['Feature_' + str(i) for i,_ in enumerate(dff.columns)]
             dff_num, dff_not_num = getNumericVars(dff,bool(clean_categorical_data))
 
-            processed_data = dff_num.to_json(date_format='iso',orient = 'split')
-            notnum_data = dff_not_num.to_json(date_format='iso',orient = 'split')
-
-            return  processed_data,notnum_data, dash.no_update
+            #processed_data = dff_num.to_json(date_format='iso',orient = 'split')
+            with open(PROCESSED_DF_PATH, 'wb') as handle:
+                pickle.dump(dff_num, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            #notnum_data = dff_not_num.to_json(date_format='iso',orient = 'split')
+            with open(NOT_NUMERICAL_DF_PATH, 'wb') as handle:
+                pickle.dump(dff_not_num, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            #return  processed_data,notnum_data, dash.no_update
+            return  'OK','OK',  dash.no_update
 
     
     else:
-        dff = pd.DataFrame(columns=[])
-        return dff,dff, dash.no_update
+        #dff = pd.DataFrame(columns=[])
+        #return dff,dff, dash.no_update
+        return None, None, dash.no_update
 
 
 
@@ -857,6 +885,8 @@ def process_data(input_data , clean_categorical_data, n_clicks, processed_data, 
                 Output('collapse_error_uploadingfile', 'is_open'),
                 Output('collapse_correct_loaded_file', 'is_open'),
                 Output('error_tag_uploading_file', 'children'),
+
+                Output('loading_file_animation', 'children'),#Just for training spinner animation
 
                 Input('upload-data', 'contents'),
                 State('upload-data', 'filename'),
@@ -878,7 +908,7 @@ def update_output( contents, filename, last_modified):
             if 'csv' in filename:
                 content_split = contents.split(',')
                 if(len(content_split) <2):
-                    return dash.no_update,'', False, '', hidden_file_info_style, True,False,'An error occurred processing the file'
+                    return dash.no_update,'', False, '', hidden_file_info_style, True,False,'An error occurred processing the file', get_upload_data_component_text()
                 content_type, content_string = content_split
                 decoded = base64.b64decode(content_string)
                 try:
@@ -886,32 +916,45 @@ def update_output( contents, filename, last_modified):
                     dataframe = pd.read_csv(io.StringIO(decoded.decode('utf-8')),sep = None, decimal = ",", engine='python')
 
                 except: 
-                    dataframe = pd.read_csv(io.StringIO(decoded.decode('utf-8')),sep = ',', decimal = ".")
+                    dataframe = pd.read_csv(io.StringIO(decoded.decode('utf-8')),sep = ',', decimal = "." , engine='python')
 
 
             else:
-                return dash.no_update,'', False, '',hidden_file_info_style,True,False, 'ERROR: File format not admited'
+                return dash.no_update,'', False, '',hidden_file_info_style,True,False, 'ERROR: File format not admited', get_upload_data_component_text()
 
         except Exception as e:
             print(e)
-            return dash.no_update,'', False, '', hidden_file_info_style, True,False,'An error occurred processing the file'
+            return dash.no_update,'', False, '', hidden_file_info_style, True,False,'An error occurred processing the file', get_upload_data_component_text()
         
     
         n_samples, n_features=dataframe.shape
+
+        '''
+        if(isinstance(dataframe.columns,pd.DatetimeIndex)):# df.columns DatetimeIndex object, error in dash_table
+                dataframe.columns = ['Feature_' + str(i) for i,_ in enumerate(dataframe.columns)]
+        print('Despues de ver si es datetimeindex----')
+        print('dataframe.columns', dataframe.columns)
+        '''
+
+
         if(n_samples == 0):
-            return dash.no_update,'', False,'', hidden_file_info_style, True,False,'ERROR: The file does not contain any sample'
+            return dash.no_update,'', False,'', hidden_file_info_style, True,False,'ERROR: The file does not contain any sample', get_upload_data_component_text()
         elif(n_features<=2):
-            return dash.no_update,'', False, '', hidden_file_info_style, True,False,'ERROR: The file must contain at least 2 features'
+            return dash.no_update,'', False, '', hidden_file_info_style, True,False,'ERROR: The file must contain at least 2 features', get_upload_data_component_text()
             
         div1 = div_info_loaded_file(filename,
                                     datetime.utcfromtimestamp(last_modified).strftime('%d/%m/%Y %H:%M:%S'),
                                     str(n_samples),
                                     str(n_features))
         div2 = div_info_dataset(dataframe,n_samples) 
-        return dataframe.to_json(date_format='iso',orient = 'split'),div1, True,   div2, show_file_info_style , False,True, ''
+        with open(ORIGINAL_DF_PATH, 'wb') as handle:
+            pickle.dump(dataframe, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        return 'OK',div1, True,   div2, show_file_info_style , False,True, '', get_upload_data_component_text()
+        #return dataframe.to_json(date_format='iso',orient = 'split'),div1, True,   div2, show_file_info_style , False,True, ''
+
                 
     else: 
-        return  None,'' , False,  div_info_dataset( None,0) ,hidden_file_info_style, False,True, ''
+        return  None,'' , False,  div_info_dataset( None,0) ,hidden_file_info_style, False,True, '', get_upload_data_component_text()
 
 
 
@@ -929,13 +972,18 @@ def update_output( contents, filename, last_modified):
 def processed_df_callback(processed_df,not_numeric_df):
 
     if processed_df is not None:
-        dff1 = pd.read_json(processed_df,orient='split')
+        #dff1 = pd.read_json(processed_df,orient='split')
+        with open(PROCESSED_DF_PATH , 'rb') as handle:
+            dff1 = pickle.load(handle)
         processed_cols = dff1.columns.tolist()
+        #print('processed_cols', processed_cols)
     else:
         raise PreventUpdate
   
     if(not_numeric_df is not None):
-        dff2 = pd.read_json(not_numeric_df,orient='split')
+        #dff2 = pd.read_json(not_numeric_df,orient='split')
+        with open(NOT_NUMERICAL_DF_PATH , 'rb') as handle:
+            dff2 = pickle.load(handle)
         notnum_cols = dff2.columns.tolist() 
  
     #Features options = processed df
@@ -949,9 +997,17 @@ def processed_df_callback(processed_df,not_numeric_df):
         options_target_selection.append({'label' : n, 'value': n})
 
     #For preview table
-    head = dff1.head(DEFAULT_DATASET_ROWS_PREVIEW).to_json(date_format='iso',orient = 'split') 
+    #head = dff1.head(DEFAULT_DATASET_ROWS_PREVIEW).to_json(date_format='iso',orient = 'split') 
+    head = dff1.head(DEFAULT_DATASET_ROWS_PREVIEW)
+    #print('saving head',type(head))
+    with open(HEAD_PROCESSED_DF_PATH, 'wb') as handle:
+        pickle.dump(head, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    if(head is None):
+        return  None, options_feature_selection, options_target_selection
+    else:
+        return  'OK', options_feature_selection, options_target_selection
 
-    return  head, options_feature_selection, options_target_selection
+
        
 
 
@@ -1009,7 +1065,10 @@ def callback_preview_table(input_data,features_values,target_value,n_of_samples,
     if (input_data is  None) or  ( len(features_values)==0 and (target_value is  None or (len(target_value) ==0 )) ):
         dff =   pd.DataFrame(columns=[])
     else:#there are features and/or target to show
-        df = pd.read_json(input_data,orient='split')
+        #df = pd.read_json(input_data,orient='split')
+        with open(HEAD_PROCESSED_DF_PATH , 'rb') as handle:
+            df = pickle.load(handle)
+
         if(len(features_values)==1 ):
             disabled_button = True
             dff = df[features_values]
@@ -1023,7 +1082,9 @@ def callback_preview_table(input_data,features_values,target_value,n_of_samples,
         if( target_value is not None and (len(target_value) >0 )):
             selected_columns = [target_value]
             if(target_value not in df.columns):
-                notnumeric_df = pd.read_json(notnumeric_df,orient='split')
+                #notnumeric_df = pd.read_json(notnumeric_df,orient='split')
+                with open(NOT_NUMERICAL_DF_PATH , 'rb') as handle:
+                    notnumeric_df = pickle.load(handle)
                 dff = pd.concat( [dff, notnumeric_df[target_value] ],axis=1)
             else:
                 dff = pd.concat( [dff, df[target_value] ],axis=1)
@@ -1325,8 +1386,12 @@ def enable_train_models_buttons(n_samples,check, n_train_samples , n_test_sample
 def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notnumeric_df, filename,nsamples_percentage, nsamples_selected,
                          target_selection, feature_selection,check_split_dataset,train_samples_input  ):
 
-    df = pd.read_json(data,orient='split')
-    notnumeric_df = pd.read_json(notnumeric_df,orient='split')
+    #df = pd.read_json(data,orient='split')
+    with open(PROCESSED_DF_PATH , 'rb') as handle:
+        df = pickle.load(handle)
+    #notnumeric_df = pd.read_json(notnumeric_df,orient='split')
+    with open(NOT_NUMERICAL_DF_PATH , 'rb') as handle:
+        notnumeric_df = pickle.load(handle)
     df_features = df[feature_selection]
     df_targets =  pd.concat( [notnumeric_df,  df[df.columns.difference(feature_selection)] ],axis=1)  
 
