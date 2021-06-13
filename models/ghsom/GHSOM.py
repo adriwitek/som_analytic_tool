@@ -4,7 +4,7 @@ from models.ghsom import GSOM
 
 import numpy as np
 from queue import Queue
-import progressbar
+#import progressbar
 from multiprocessing import Pool
 import networkx as nx
 from  views.session_data import session_data
@@ -45,12 +45,14 @@ class GHSOM:
         #self.node_counter = 2
 
         #Progressbar
+        '''
         bar = progressbar.ProgressBar(max_value=active_dataset, widgets=[
             '[', progressbar.Timer(), '] ',
             progressbar.Bar(),
             ' (', progressbar.Counter(format='%(value)02d/%(max_value)d'), ') ',
         ])
         bar.update(0)
+        '''
 
         maxvalue = active_dataset
         session_data.set_progressbar_maxvalue(maxvalue)
@@ -94,7 +96,7 @@ class GHSOM:
 
                     active_dataset += len(_neuron.input_dataset)
 
-            bar.update(bar.max_value - active_dataset)
+            #bar.update(bar.max_value - active_dataset)
             session_data.update_progressbar_value(maxvalue - active_dataset)
 
         #Complte progress bar in case callback glitches with long datasets

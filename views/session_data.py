@@ -511,8 +511,8 @@ class Sesion():
         if(self.som_params is not None and self.modelo is not None and any( self.som_params) and any(self.modelo) ):
             del self.som_params[-1]
             del self.modelo[-1]
-            print('deleted las item')
-            print(' now self.som_params', self.som_params)
+            #print('deleted last item')
+            #print(' now self.som_params', self.som_params)
             
 
     def set_som_model_info_dict(self,tam_eje_vertical,tam_eje_horizontal,learning_rate,neigh_fun,distance_fun,
