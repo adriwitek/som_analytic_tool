@@ -1455,7 +1455,7 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notn
             return '', True, 'ERROR: Model dimensionality and selected Dataset ones are not the same. Please, edit the number of selected features before continue.'
 
         elif(session_data.get_features_dtypes() != columns_dtypes ):
-            #types no coinciden
+            #dtypes no coinciden
             return '', True, 'ERROR: Model features-types and selected Dataset ones are not the same. Please, edit the selected features before continue.'
 
         else:

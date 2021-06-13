@@ -453,20 +453,30 @@ def get_savemodel_som_card():
           
 
 def get_select_splitted_option_card():
-
-    return     dbc.CardBody(   id='get_select_splitted_option_card_som',
+ 
+    return  dbc.CardBody(  id='get_select_splitted_option_card_som', 
                         children=[
-                            dbc.Label("Select dataset portion"),
-                            dbc.RadioItems(
-                                options=[
-                                    {"label": "Train Data", "value": 1},
-                                    {"label": "Test Data", "value": 2},
-                                    {"label": "Train + Test Data", "value": 3},
+                            html.Div(
+                                children = [
+                                    html.H5( dbc.Badge( 'Select Dataset Portion' ,  color="info", className="mr-1")   ),
+                                    html.Br(),
+                                    dbc.RadioItems(
+                                        options=[
+                                            {"label": "Train Data", "value": 1},
+                                            {"label": "Test Data", "value": 2},
+                                            {"label": "Train + Test Data", "value": 3},
+                                        ],
+                                        value=2,
+                                        id="dataset_portion_radio_analyze_som",
+                                    ),
+                                    html.Br(),
+                                    html.P('Replot Graps after select a new option',className="text-secondary" ),
                                 ],
-                                value=2,
-                                id="dataset_portion_radio_analyze_som",
-                            )
-                        ]
+                                style={'display': 'inline-block', 'text-align': 'left'},
+                            ),
+                            
+                        ],
+                        style = pu.get_css_style_center(),
                 )
 
 

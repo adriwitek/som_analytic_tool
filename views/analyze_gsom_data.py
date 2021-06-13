@@ -107,20 +107,30 @@ def get_distances(weights_map, saved_distances, x,y,a,b):
 
 def get_select_splitted_option_card():
 
-    return     dbc.CardBody(   
-                        children=[
-                            dbc.Label("Select dataset portion"),
-                            dbc.RadioItems(
-                                options=[
-                                    {"label": "Train Data", "value": 1},
-                                    {"label": "Test Data", "value": 2},
-                                    {"label": "Train + Test Data", "value": 3},
-                                ],
-                                value=2,
-                                id="dataset_portion_radio_analyze_gsom",
-                            )
-                        ]
-                )
+    return  dbc.CardBody(  
+                    children=[
+                        html.Div(
+                            children = [
+                                html.H5( dbc.Badge( 'Select Dataset Portion' ,  color="info", className="mr-1")   ),
+                                html.Br(),
+                                dbc.RadioItems(
+                                    options=[
+                                        {"label": "Train Data", "value": 1},
+                                        {"label": "Test Data", "value": 2},
+                                        {"label": "Train + Test Data", "value": 3},
+                                    ],
+                                    value=2,
+                                    id="dataset_portion_radio_analyze_gsom",
+                                ),
+                                html.Br(),
+                                html.P('Replot Graps after select a new option',className="text-secondary" ),
+                            ],
+                            style={'display': 'inline-block', 'text-align': 'left'},
+                        ),
+                        
+                    ],
+                    style = pu.get_css_style_center(),
+            )
 
 #Card: Statistics
 def get_statistics_card_gsom():
