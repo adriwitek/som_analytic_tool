@@ -670,10 +670,23 @@ def get_onehot_childrendiv_menu():
                                             options=[],
                                             multi=True
                                         ),
-                                        dbc.Checklist(  options=[{"label": "Consider empty values", "value": 0}],
+                                        html.Div(
+                                            children=[
+
+                                                dbc.Checklist(
+                                                    options=[{"label": "Select all", "value": 0}],
+                                                    value=[],
+                                                    id="check_seleccionar_todos_onehot"
+                                                ),
+                                                dbc.Checklist(  options=[{"label": "Consider empty values", "value": 0}],
                                                                             value=[],
                                                                             id="check_nanvalues_onehot"
+                                                ),
+
+                                            ],
+                                            style = pu.get_css_style_inline_flex_no_display()
                                         ),
+                                        
                                         dbc.Button("Apply One Hot", id="apply_onehot_button",disabled = True, className="mr-2", color="primary")
                                     ]
                                 )
@@ -775,6 +788,9 @@ def disable_apply_onehot_button(names):
     else:
         return False
 
+
+
+
 #Process data
 @app.callback(  Output('processed_dataframe_storage','data'),
                 Output('notnumeric_dataframe_storage','data'),
@@ -782,14 +798,16 @@ def disable_apply_onehot_button(names):
                 Input('original_dataframe_storage','data'),
                 Input('clean_data_switch', 'value'),    
                 Input('apply_onehot_button', 'n_clicks'),
+                                Input('check_seleccionar_todos_onehot', 'value'),
                 State('processed_dataframe_storage','data'),
                 State('notnumeric_dataframe_storage','data'),
                 State('dropdown_features_toonehot','value'),
                 State('check_nanvalues_onehot','value'),
+                State('dropdown_features_toonehot', 'options'),
                 prevent_initial_call=True
             )
 #TODO MEMORIZE
-def process_data(input_data , clean_categorical_data, n_clicks, processed_data, notnum_data, names,check_nan):
+def process_data(input_data , clean_categorical_data, n_clicks, check_sel_all_onehot,processed_data, notnum_data, names,check_nan, onehot_options):
 
 
     if input_data is not None:
@@ -826,8 +844,26 @@ def process_data(input_data , clean_categorical_data, n_clicks, processed_data, 
                 with open(NOT_NUMERICAL_DF_PATH, 'wb') as handle:
                     pickle.dump(notnum_df, handle, protocol=pickle.HIGHEST_PROTOCOL)
                 #return  processed_data,notnum_data, []
-                return  'OK','OK', []
+
+                onehot_all_possible_values = []
+                for d in onehot_options:
+                    label = d['label']
+                    if(label not in names):
+                        onehot_all_possible_values.append(label)
+                #return  'OK','OK', []
+                #print('debug onehot_all_possible_values', onehot_all_possible_values)
+                return  'OK','OK', onehot_all_possible_values
        
+        #contexto de select all  onehot: actualizamos el value de su dropdown 
+        elif(button_id == 'check_seleccionar_todos_onehot'): 
+            onehot_all_possible_values = []
+            if(check_sel_all_onehot):
+                for d in onehot_options:
+                    label = d['label']
+                    onehot_all_possible_values.append(label)
+                return dash.no_update, dash.no_update, onehot_all_possible_values
+            else:
+                return dash.no_update, dash.no_update, []
 
        #contexto del switch o del original_Dataframe: procesamos datos
         else:  
