@@ -480,10 +480,10 @@ def get_anomaly_detection_card():
                                     children = [
                                         html.H6(children='Minimum Normality percentage\t'),
                                         #html.H6( dbc.Badge( '1 %',  pill=True, color="warning", className="mr-1",id ='badge_info_normalitypercentage_slider')   )
-                                        dcc.Input(id="normality_percentage", type="number", value=0.05,step=0.00001,min=0, max = 1),
+                                        dcc.Input(id="normality_percentage", type="number", value=0.01,step=0.0000001,min=0, max = 1),
                                     ]
                             ),
-                            html.P('Small values recommended ',className="text-secondary" ),
+                            html.P('Small values increasing from 0 recommended, for an precision  ',className="text-secondary" ),
                             html.P('0  means All Data will be Classified as Normal ',className="text-secondary" ),
                             html.P('1  means All Data will be Classified as Anomaly ',className="text-secondary" ),
 
@@ -1449,7 +1449,9 @@ def detect_anomalies(n1, min_normality_percentage, data_portion_option):
         #    print('debug pesos[:,:,0]', pesos[:,:,i])
         #working
 
-        pesos[:,:,i] = ma.masked_array(pesos[:,:,i], mask=mask).filled(np.inf) 
+        #pesos[:,:,i] = ma.masked_array(pesos[:,:,i], mask=mask).filled(np.inf) 
+        pesos[:,:,i] = ma.masked_array(pesos[:,:,i], mask=mask)
+
 
         #if(i ==0):
         #    print('debug pesos[:,:,0]', pesos[:,:,i])
