@@ -27,6 +27,12 @@ from logging import raiseExceptions
 
 #from plotly.colors import validate_colors
 import time
+import base64
+from pathlib import Path
+import pandas as pd
+import os
+import io
+
 
 import dash_table
 
@@ -190,7 +196,7 @@ def get_model_selection_card():
         )
 
 
-#ESTADISTICAS
+#Statistics
 def get_estadisticas_som_card():
     return  dbc.CardBody(children=[ 
                         html.Div( id='div_estadisticas_som',children = '', style={'textAlign': 'center'}),
@@ -285,7 +291,7 @@ def get_mapaneuronasganadoras_som_card():
 
             ])
 
-#Mapa frecuencias
+#Freq mat
 def get_mapafrecuencias_som_card():
 
     return  dbc.CardBody(children=[
@@ -431,7 +437,82 @@ def get_umatrix_som_card():
                    
             ])
 
-              
+#Card: Anomaly Detetection
+def get_anomaly_detection_card():  
+
+    return dbc.CardBody(children=[
+                        html.Div(children=[
+                            
+                            html.H5("Anomaly Detection, tutoriall......."),
+                            html.Br(),
+                            html.H5('Upload File to Search for Anomalies in Data',className="card-title" , style=pu.get_css_style_center() ),
+                            dcc.Upload( id='upload_anomaly_data', 
+                                        children= pu.get_upload_data_component_text() ,
+                                        style={'width': '100%',
+                                                'height': '60px',
+                                                'lineHeight': '60px',
+                                                'borderWidth': '1px',
+                                                'borderStyle': 'dashed',
+                                                'borderRadius': '5px',
+                                                'textAlign': 'center',
+                                                'margin': '10px'},
+                                        # Allow multiple files to be uploaded
+                                        multiple=False
+                            ),
+                            dbc.Collapse(   id = 'collapse_info_loaded_file_anomaly',
+                                            children = '',
+                                            is_open = False,
+                            ),
+                            dbc.Collapse(   id = 'collapse_error_loaded_file_anomaly',
+                                            children = '',
+                                            is_open = False,
+                            ),
+                            dbc.Collapse(   id = 'collapse_anomaly_result_table',
+                                            children = '',
+                                            is_open = False,
+                            ),
+
+                            html.Br(),
+
+                            
+                            #Normality percentage
+                            html.Div(style=pu.get_css_style_inline_flex(),
+                                    children = [
+                                        html.H6(children='Minimum Normality percentage\t'),
+                                        #html.H6( dbc.Badge( '1 %',  pill=True, color="warning", className="mr-1",id ='badge_info_normalitypercentage_slider')   )
+                                        dcc.Input(id="normality_percentage", type="number", value=0.05,step=0.00001,min=0, max = 1),
+                                    ]
+                            ),
+                            html.P('Small values recommended ',className="text-secondary" ),
+                            html.P('0  means All Data will be Classified as Normal ',className="text-secondary" ),
+                            html.P('1  means All Data will be Classified as Anomaly ',className="text-secondary" ),
+
+                            html.Br(),
+                            dbc.Collapse(   id = 'collapse_anomaly_result_table',
+                                            children = '',
+                                            is_open = False,
+                                            style = pu.get_css_style_center()
+                            ),
+
+                            #Slider percentage
+                            
+                            #dcc.Slider(id='normality_percentage_slider', min=0,max=100,value=1,step =0.0001 ,
+                            #            marks={
+                            #                0: {'label': '0 % \n All Data Classified as Normal'},
+                            #                25: {'label':  '25 %'},
+                            #                50: {'label':  '50 %'},
+                            #                75: {'label':  '75 %'},
+                            #                100: {'label': '100 % \n All Data Classified As Anomaly'}
+                            #            }
+                            #),
+                            
+                            html.Br(),
+                            dbc.Button("Search for Anomalies", id="anomaly_button",disabled = True,  className="mr-2", color="primary",)
+        
+                            ],
+                            style=pu.get_css_style_center()
+                        ),
+            ])         
 
 
 #Card: Guardar modelo
@@ -506,6 +587,7 @@ def analyze_som_data():
                 #dbc.Tab( get_componentplans_som_card(), label='Component Plans',tab_id='components_plans_som'),
                 dbc.Tab( get_freq_and_cplans_cards(), label=' Freq. Map + Component Plans',tab_id='freq_and_cplans_som'),
                 dbc.Tab(get_umatrix_som_card()  , label='U-Matrix',tab_id='umatrix_som'),
+                dbc.Tab(get_anomaly_detection_card() ,label = 'Anomaly Detection',tab_id='anomaly_detection_som'),
                 dbc.Tab(get_savemodel_som_card() ,label = 'Save Model',tab_id='save_model_som'),
             ]
         ),
@@ -965,8 +1047,6 @@ def update_mapa_frecuencias_fig(click, check_annotations ,log_scale ,slider_valu
     tam_eje_vertical = params['tam_eje_vertical']
     pre_calc_freq = session_data.get_calculated_freq_map()
 
-    #ctx = dash.callback_context
-    #trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if(    pre_calc_freq is None or 
             (pre_calc_freq is not None and pre_calc_freq[1] != data_portion_option) ): #recalculate freq map
         frequencies = som.activation_response(model_data)
@@ -1198,3 +1278,229 @@ def save_som_model(n_clicks,name,isvalid):
         pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     return 'Model saved! Filename: ' + filename
+
+
+
+
+
+#TODO DELETE THIS
+'''
+##################ANOMALY DETECTION CALLBACKS
+# Sync slider wit badge info min normality percentage
+@app.callback(  Output("badge_info_normalitypercentage_slider", "children"),
+                #Input("normality_percentage_slider", "value"),
+                Input("normality_percentage", "value"),
+                prevent_initial_call=True
+                )
+def sync_slider_input_datasetpercentage(v):
+
+    if(v is None):
+        return '0 %'
+    else:
+        return (str(v) + ' %')
+   
+'''
+
+#Carga la info del dataset en el home
+@app.callback( 
+                Output('collapse_error_loaded_file_anomaly', 'is_open'),
+                Output('collapse_error_loaded_file_anomaly', 'children'),
+                Output('collapse_info_loaded_file_anomaly', 'is_open'),
+                Output('collapse_info_loaded_file_anomaly', 'children'),
+                Output('upload_anomaly_data', 'children'),#Just for training spinner animation
+                Input('upload_anomaly_data', 'contents'),
+                State('upload_anomaly_data', 'filename'),
+                prevent_initial_call=True
+)
+def update_output( contents, filename):
+    '''Loads anomaly test dataset
+
+    '''
+    if contents is not None:
+        try:
+            if 'csv' in filename:
+                content_split = contents.split(',')
+                if(len(content_split) <2):
+                    return True,'An error occurred processing the file' , False, '', pu.get_upload_data_component_text()
+                content_type, content_string = content_split
+                decoded = base64.b64decode(content_string)
+                try:
+                    # Assume that the user uploaded a CSV file
+                    dataframe = pd.read_csv(io.StringIO(decoded.decode('utf-8')),sep = None, decimal = ",", engine='python')
+
+                except: 
+                    dataframe = pd.read_csv(io.StringIO(decoded.decode('utf-8')),sep = ',', decimal = "." , engine='python')
+
+            else:
+                return True,'ERROR: File format not admited' , False,'',  pu.get_upload_data_component_text()
+
+        except Exception as e:
+            print(e)
+            return True,'An error occurred processing the file' , False,'',  pu.get_upload_data_component_text()
+        
+    
+        n_samples, n_features=dataframe.shape
+        if(n_samples == 0):
+            return True,'ERROR: The file does not contain any sample' , False,'',  pu.get_upload_data_component_text()
+        elif(n_features<=2):
+            return True,'ERROR: The file must contain at least 2 features' , False,'',  pu.get_upload_data_component_text()
+            
+        div1 = pu.div_info_loaded_file(filename,
+                                    str(n_samples),
+                                    str(n_features))
+
+
+        file_features_dtypes = dataframe.dtypes.to_dict()
+
+        if(len(session_data.get_features_dtypes().keys()) != len(file_features_dtypes.keys()) ):
+            #dim no coincide
+            error_div = html.Div(   
+                            children = [
+                                div1,
+                                html.P('ERROR: Model dimensionality and selected Dataset ones are not the same. Please, upload a file with the same feature length') 
+                            ]
+                        ) 
+            return True, error_div, False,'',pu.get_upload_data_component_text()
+
+        elif(session_data.get_features_dtypes() != file_features_dtypes ):
+            #dtypes no coinciden
+            error_div = html.Div(   
+                            children = [
+                                div1,
+                                html.P('ERROR: Model features-types and selected Dataset ones are not the same. Please, upload a file with the same feature-dtype as the dataset to train the model.') 
+                            ]
+                        ) 
+            return True, error_div, False,'',pu.get_upload_data_component_text()
+
+
+        else:
+            #reorder selected dataframe cols to be the same as trained model
+            cols = list(file_features_dtypes.keys()) 
+            dataframe = dataframe[cols]
+
+            dirpath = Path(DIR_APP_DATA)
+            if( not dirpath.exists()):
+                os.mkdir(dirpath)
+            with open(ANOMALY_DF_PATH, 'wb') as handle:
+                pickle.dump(dataframe, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            return False, '', True, div1, pu.get_upload_data_component_text()
+       
+    else: 
+        return True,'An error occurred processing the file' , False,'',  pu.get_upload_data_component_text()
+        #return  None,'' , False,  div_info_dataset( None,0) ,hidden_file_info_style, False,True, '', pu.get_upload_data_component_text()
+
+
+#enable anomaly button
+@app.callback(  Output('anomaly_button','disabled'),
+                Input('collapse_error_loaded_file_anomaly', 'is_open'),
+                Input('normality_percentage', 'value'),
+                prevent_initial_call=True
+)
+def enable_anomaly_button(error_is_open, v):
+    if(error_is_open):
+        return True
+    elif(v is None or v<0 or v >1):
+        return True
+    else:
+        return False
+
+
+
+# anomaly button click
+@app.callback(  Output('collapse_anomaly_result_table', 'is_open'),
+                Output('collapse_anomaly_result_table', 'children'),
+                Input('anomaly_button','n_clicks'),
+                #State('normality_percentage_slider', 'value'),
+                State('normality_percentage', 'value'),
+                State('dataset_portion_radio_analyze_som','value'),
+                prevent_initial_call=True
+)
+def detect_anomalies(n1, min_normality_percentage, data_portion_option):
+
+
+    #With normal data( dataset loaded at home), we delete the neurons that are not BMU for any
+    # of this data, that means hit rate is 0
+    som = session_data.get_modelo() 
+    model_data =  session_data.get_data(data_portion_option)
+    pre_calc_freq = session_data.get_calculated_freq_map()
+    print('\t--> Looking for anomalies in Loaded Data...')
+    
+    if(    pre_calc_freq is None or 
+            (pre_calc_freq is not None and pre_calc_freq[1] != data_portion_option) ): #recalculate freq map
+        frequencies = som.activation_response(model_data)
+    else:#load last calculated map
+        frequencies,_, _ = pre_calc_freq
+  
+    #filter minimum hit rate per neuron
+    frequencies = ma.masked_less(frequencies, 1)
+    mask = ma.getmask(frequencies) #we take the musk to apply it to weights map
+    pesos = som.get_weights().copy()
+    '''
+    print('pesos shape', pesos.shape)
+    masked_pesos = ma.masked_array(pesos, mask=mask[:,:,np.newaxis])
+    masked_pesos = masked_pesos.filled(np.inf) 
+    print('masked_pesos.shape',masked_pesos.shape, flush = True )
+    '''
+    print('\t\t--> Deleting neurons that are not BMUs for Normal Data...') #since it is a np array we just put their values to np.inf so they will never be BMU
+    _,_, z = pesos.shape
+    for i in range(z):
+        #debug
+        #if(i ==0):
+        #    print('debug pesos[:,:,0]', pesos[:,:,i])
+        #working
+
+        pesos[:,:,i] = ma.masked_array(pesos[:,:,i], mask=mask).filled(np.inf) 
+
+        #if(i ==0):
+        #    print('debug pesos[:,:,0]', pesos[:,:,i])
+        #working
+
+    print('\t\t--> Calculating hyperparameters...')
+    qes_normal_data = []
+    for d in model_data:#this could be parallelized
+        v_coord, h_coord = som.winner(d)
+        bmu = pesos[v_coord][h_coord]
+        #euclidean distance
+        #print('d',d)
+        #print('bmu', bmu)
+        qe = np.linalg.norm(np.subtract(d, bmu), axis=-1)
+        qes_normal_data.append(qe)
+    n = len(qes_normal_data)
+    print('qes_normal_data',qes_normal_data)
+
+    print('\t\t--> Detecting anormal data in loaded dataset...')
+    with open(ANOMALY_DF_PATH , 'rb') as handle:
+        dff = pickle.load(handle)
+        test_data = session_data.estandarizar_data( dff, string_info = '', data_splitted = False)
+    #controlar que la distancia no sea np.inf
+
+    #Info table
+    data = []
+    columns = []
+    columns_names = session_data.get_features_names()
+    for col in columns_names:
+        columns.append({'id': col        , 'name': col })
+
+    no_std_test_data = dff.to_numpy()
+    for d, no_std in zip(test_data, no_std_test_data):
+        v_coord, h_coord = som.winner(d)
+        bmu = pesos[v_coord][h_coord]
+        qe = np.linalg.norm(np.subtract(d, bmu), axis=-1)
+        b = sum(q > qe for q in qes_normal_data)
+        print('qe',qe)
+        normality_value = b/n
+        print('normality_value', normality_value)
+        if(normality_value<min_normality_percentage):
+            #add anomaly to table
+            row = {}
+            for i,c in enumerate(columns_names):
+                #row[c] = d[i]
+                row[c] = no_std[i] #recovered original data, since d is std
+                
+            data.append(row)
+            #see the top 3 features 
+
+    s_table = pu.create_simple_table(data, columns, 'table_detected_anomalies')
+    title = html.H5("Detected Potential Anomalies")
+    
+    return  True,html.Div([title,html.Br(), s_table]) 

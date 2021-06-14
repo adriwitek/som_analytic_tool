@@ -94,6 +94,7 @@ ORIGINAL_DF_PATH = DIR_APP_DATA + 'original_df'
 PROCESSED_DF_PATH = DIR_APP_DATA +  'processed_df'
 NOT_NUMERICAL_DF_PATH = DIR_APP_DATA + 'not_numeric_df'
 HEAD_PROCESSED_DF_PATH = DIR_APP_DATA + 'head_processed_df'
+ANOMALY_DF_PATH =  DIR_APP_DATA + 'anomaly_df'
 
 #URLS
 URLS= {

@@ -928,6 +928,36 @@ def create_simple_table(data,columns, id):
 
 
 
+#Info about loaded file
+def div_info_loaded_file(filename, n_samples, n_features):
+    return      html.Div(    id = 'div_info_loaded_file',
+                            style=get_css_style_inline_flex(),
+                            children =[
+                                html.H6( dbc.Badge( 'Filename:' ,  pill=True, color="light", className="mr-1")   ),
+                                html.H6( dbc.Badge(filename, pill=True, color="info", className="mr-1")   ),
+                                html.H6( dbc.Badge( 'with' ,  pill=True, color="light", className="mr-1")   ),
+
+                                #html.H6( dbc.Badge(fecha_modificacion, pill=True, color="warning", className="mr-1")   ),
+                                html.H6( dbc.Badge(str(n_samples) , id= 'badge_n_samples', pill=True, color="info", className="mr-1")   ),
+                                html.H6( dbc.Badge( ' samples' , id= 'badge_n_samples', pill=True, color="light", className="mr-1")   ),
+
+                                html.H6( dbc.Badge(str(n_features) , id= 'badge_n_features', pill=True, color="info", className="mr-1")   ),
+                                html.H6( dbc.Badge( ' features' , id= 'badge_n_features', pill=True, color="light", className="mr-1")   )
+
+                ])
+
+
+
+#Used for spinner animation in uploading data
+def get_upload_data_component_text():
+    return html.Div(['Drag and Drop or  ', html.A('Click to Select File  (.csv)')])
+
+
+
+
+
+
+
 ##################################################################
 #                          CSS STYLES
 ##################################################################

@@ -12,8 +12,8 @@ import  views.elements as elements
 
 
 import io
-from io import BytesIO
-from datetime import datetime
+#from io import BytesIO
+#from datetime import datetime
 import base64
 
 
@@ -211,14 +211,14 @@ def Home():
 
             dbc.CardBody(
                 dbc.ListGroup([
-                    # Archivo Local
+                    #  Local File
                     dbc.ListGroupItem([
                         html.H4('Local File',className="card-title" , style=pu.get_css_style_center() ),
 
                         dcc.Upload( id='upload-data', 
                                     children= [ dcc.Loading(id='loading_file_animation',
                                                     type='dot',
-                                                    children= get_upload_data_component_text()
+                                                    children= pu.get_upload_data_component_text()
                                                 )    
                                     ],
                                     style={'width': '100%',
@@ -254,7 +254,7 @@ def Home():
                                                                         children = [   
                                                                             html.Div(id='div_info_loaded_file',
                                                                                     style=hidden_div_style,
-                                                                                    children = div_info_loaded_file('','','','')
+                                                                                    children = pu.div_info_loaded_file('','','')
                                                                             )
                                                                         ]
                                                             )
@@ -319,10 +319,6 @@ def Home():
 #	                  AUX LAYOUT FUNS	                    #
 #############################################################
 
-#Used for spinner animation in uploading data
-def get_upload_data_component_text():
-    return html.Div(['Drag and Drop or  ', html.A('Click to Select File  (.csv)')])
-
 
 def get_app_saved_models():
 
@@ -339,22 +335,7 @@ def get_app_saved_models():
 
 
  
-def div_info_loaded_file(filename,fecha_modificacion, n_samples, n_features):
-    return      html.Div(    id = 'div_info_loaded_file',
-                            style=pu.get_css_style_inline_flex(),
-                            children =[
-                                html.H6( dbc.Badge( 'Filename:' ,  pill=True, color="light", className="mr-1")   ),
-                                html.H6( dbc.Badge(filename, pill=True, color="info", className="mr-1")   ),
-                                html.H6( dbc.Badge( 'with' ,  pill=True, color="light", className="mr-1")   ),
 
-                                #html.H6( dbc.Badge(fecha_modificacion, pill=True, color="warning", className="mr-1")   ),
-                                html.H6( dbc.Badge(str(n_samples) , id= 'badge_n_samples', pill=True, color="info", className="mr-1")   ),
-                                html.H6( dbc.Badge( ' samples' , id= 'badge_n_samples', pill=True, color="light", className="mr-1")   ),
-
-                                html.H6( dbc.Badge(str(n_features) , id= 'badge_n_features', pill=True, color="info", className="mr-1")   ),
-                                html.H6( dbc.Badge( ' features' , id= 'badge_n_features', pill=True, color="light", className="mr-1")   )
-
-                ])
     
 
 
@@ -900,8 +881,6 @@ def process_data(input_data , clean_categorical_data, n_clicks, processed_data, 
                 State('upload-data', 'last_modified'), 
                 prevent_initial_call=True
 )
-#TODO
-#@cache.memoize(timeout=60)  # in seconds
 def update_output( contents, filename, last_modified):
     '''Carga el dataset en los elementos adecuados
 
@@ -915,7 +894,7 @@ def update_output( contents, filename, last_modified):
             if 'csv' in filename:
                 content_split = contents.split(',')
                 if(len(content_split) <2):
-                    return dash.no_update,'', False, '', hidden_file_info_style, True,False,'An error occurred processing the file', get_upload_data_component_text()
+                    return dash.no_update,'', False, '', hidden_file_info_style, True,False,'An error occurred processing the file', pu.get_upload_data_component_text()
                 content_type, content_string = content_split
                 decoded = base64.b64decode(content_string)
                 try:
@@ -927,30 +906,21 @@ def update_output( contents, filename, last_modified):
 
 
             else:
-                return dash.no_update,'', False, '',hidden_file_info_style,True,False, 'ERROR: File format not admited', get_upload_data_component_text()
+                return dash.no_update,'', False, '',hidden_file_info_style,True,False, 'ERROR: File format not admited', pu.get_upload_data_component_text()
 
         except Exception as e:
             print(e)
-            return dash.no_update,'', False, '', hidden_file_info_style, True,False,'An error occurred processing the file', get_upload_data_component_text()
+            return dash.no_update,'', False, '', hidden_file_info_style, True,False,'An error occurred processing the file', pu.get_upload_data_component_text()
         
     
         n_samples, n_features=dataframe.shape
-
-        '''
-        if(isinstance(dataframe.columns,pd.DatetimeIndex)):# df.columns DatetimeIndex object, error in dash_table
-                dataframe.columns = ['Feature_' + str(i) for i,_ in enumerate(dataframe.columns)]
-        print('Despues de ver si es datetimeindex----')
-        print('dataframe.columns', dataframe.columns)
-        '''
-
-
         if(n_samples == 0):
-            return dash.no_update,'', False,'', hidden_file_info_style, True,False,'ERROR: The file does not contain any sample', get_upload_data_component_text()
+            return dash.no_update,'', False,'', hidden_file_info_style, True,False,'ERROR: The file does not contain any sample', pu.get_upload_data_component_text()
         elif(n_features<=2):
-            return dash.no_update,'', False, '', hidden_file_info_style, True,False,'ERROR: The file must contain at least 2 features', get_upload_data_component_text()
+            return dash.no_update,'', False, '', hidden_file_info_style, True,False,'ERROR: The file must contain at least 2 features', pu.get_upload_data_component_text()
             
-        div1 = div_info_loaded_file(filename,
-                                    datetime.utcfromtimestamp(last_modified).strftime('%d/%m/%Y %H:%M:%S'),
+        div1 = pu.div_info_loaded_file(filename,
+                                    #datetime.utcfromtimestamp(last_modified).strftime('%d/%m/%Y %H:%M:%S'),
                                     str(n_samples),
                                     str(n_features))
         div2 = div_info_dataset(dataframe,n_samples) 
@@ -959,12 +929,10 @@ def update_output( contents, filename, last_modified):
             os.mkdir(dirpath)
         with open(ORIGINAL_DF_PATH, 'wb') as handle:
             pickle.dump(dataframe, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        return 'OK',div1, True,   div2, show_file_info_style , False,True, '', get_upload_data_component_text()
-        #return dataframe.to_json(date_format='iso',orient = 'split'),div1, True,   div2, show_file_info_style , False,True, ''
-
-                
+        return 'OK',div1, True,   div2, show_file_info_style , False,True, '', pu.get_upload_data_component_text()
+       
     else: 
-        return  None,'' , False,  div_info_dataset( None,0) ,hidden_file_info_style, False,True, '', get_upload_data_component_text()
+        return  None,'' , False,  div_info_dataset( None,0) ,hidden_file_info_style, False,True, '', pu.get_upload_data_component_text()
 
 
 
@@ -1257,7 +1225,6 @@ def enable_load_saved_model_button(filename, n_samples,check, n_train_samples , 
                 State('dataset_nsamples_input', 'max'),
                 prevent_initial_call=True
                 )
-#todo en vez de leer json almacenar en un store
 def sync_slider_input_datasetpercentage(slider_percentage, n_samples_sel, n_samples):
 
     ctx = dash.callback_context
