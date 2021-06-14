@@ -458,7 +458,8 @@ def get_select_target_card():
                                     dcc.Dropdown(id='dropdown_target_selection',
                                                options=[],
                                                multi=False,
-                                               value = []
+                                               value = [],
+                                               placeholder = 'NO TARGET' 
                                     ),
                                 ],
                                 style=pu.get_css_style_center()
@@ -514,7 +515,8 @@ def div_info_dataset( df, n_samples):
                 dcc.Dropdown(id='dropdown_target_selection',
                            options=[],
                            multi=False,
-                           value = []
+                           value = [],
+                           placeholder = 'NO TARGET'
                 ),
                 html.Br(),           
 
@@ -622,6 +624,7 @@ def create_preview_table(df, selected_columns = []):
 
                                             style_cell={'textAlign': 'center',
                                                         'textOverflow': 'ellipsis',
+                                                        #'overflow': 'hidden',
                                                         'overflowX': 'auto'
                                             },
  
@@ -798,7 +801,7 @@ def disable_apply_onehot_button(names):
                 Input('original_dataframe_storage','data'),
                 Input('clean_data_switch', 'value'),    
                 Input('apply_onehot_button', 'n_clicks'),
-                                Input('check_seleccionar_todos_onehot', 'value'),
+                Input('check_seleccionar_todos_onehot', 'value'),
                 State('processed_dataframe_storage','data'),
                 State('notnumeric_dataframe_storage','data'),
                 State('dropdown_features_toonehot','value'),
