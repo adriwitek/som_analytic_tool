@@ -1468,7 +1468,7 @@ def detect_anomalies(n1, min_normality_percentage, data_portion_option):
         qe = np.linalg.norm(np.subtract(d, bmu), axis=-1)
         qes_normal_data.append(qe)
     n = len(qes_normal_data)
-    print('qes_normal_data',qes_normal_data)
+    #print('qes_normal_data',qes_normal_data)
 
     print('\t\t--> Detecting anormal data in loaded dataset...')
     with open(ANOMALY_DF_PATH , 'rb') as handle:

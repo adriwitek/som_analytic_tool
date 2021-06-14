@@ -1,6 +1,5 @@
 from math import ceil
 import numpy as np
-import networkx as nx
 from  views.session_data import session_data
 
 
@@ -60,57 +59,7 @@ class GSOM:
 
 
 
-    #Train used when training single gsom to save progress status
-    def single_train(self, epochs, initial_gaussian_sigma, initial_learning_rate, decay,
-                    dataset_percentage, min_dataset_size, seed, maxiter):
 
-        #PROGRESS BAR
-        session_data.reset_progressbar_value()
-        condicion_parada = self.__t1 * self.__parent_quantization_error
-        session_data.set_pbar_gsom_train_condition(condicion_parada)
-        session_data.reset_error_evolution()
-
-        #Calculo de MQE para la distancia maxima de la progress bar
-        self.__map_data_to_neurons()
-        MQE = 0.0
-        mapped_neurons = 0
-        for neuron in self.neurons.values():
-            if neuron.has_dataset():
-                MQE += neuron.compute_quantization_error()
-                mapped_neurons += 1
-
-        map_mean_MQE = (MQE / mapped_neurons)
-        session_data.error_evolution_add_point(0, map_mean_MQE )
-
-
-        #suponenmos distancia_maxima = MQEinicial*10
-        distancia_maxima= map_mean_MQE
-        distancia_maxima = distancia_maxima *10
-        session_data.set_pbar_gsom_distancia_maxima(distancia_maxima)
-
-      
-        #TRAINING
-        _iter = 0
-        can_grow = True
-        while can_grow and (_iter < maxiter):
-            self.__neurons_training(decay, epochs, initial_learning_rate, initial_gaussian_sigma,
-                                    dataset_percentage, min_dataset_size, seed)
-
-            _iter += 1
-            #print('\t Iteration: ', _iter)
-            #can_grow,_,_ = self.__can_grow_single_train()
-            can_grow,mapa_mean_MQE = self.__can_grow_single_train()
-            session_data.error_evolution_add_point(_iter,mapa_mean_MQE )
-
-            if can_grow:
-                self.grow()
-
-        if can_grow:
-            self.__map_data_to_neurons()
-        
-        #Complte progress bar in case the maxiterations finish the training
-        session_data.update_gsom_progressbar_value(-1)
-        return self
 
     def __neurons_training(self, decay, epochs, learning_rate, sigma, dataset_percentage, min_dataset_size, seed):
         lr = learning_rate
@@ -158,7 +107,6 @@ class GSOM:
                 MQE += neuron.compute_quantization_error()
                 mapped_neurons += 1
 
-        #TODO
         #print('condicion',((MQE / mapped_neurons) >= (self.__t1 * self.__parent_quantization_error)), str((MQE / mapped_neurons)) )
         return ((MQE / mapped_neurons) >= (self.__t1 * self.__parent_quantization_error)) 
         #Quitada esta clausula
@@ -345,8 +293,63 @@ class GSOM:
 
 
     ###############################################################
+    ###                  AUX FUNS FOR DASH                      ###
+    ###############################################################
     ###                 added by adriwitek                      ###
     ###############################################################
+
+
+    #Train used when training single gsom to save progress status
+    def single_train(self, epochs, initial_gaussian_sigma, initial_learning_rate, decay,
+                    dataset_percentage, min_dataset_size, seed, maxiter):
+
+        #PROGRESS BAR
+        session_data.reset_progressbar_value()
+        condicion_parada = self.__t1 * self.__parent_quantization_error
+        session_data.set_pbar_gsom_train_condition(condicion_parada)
+        session_data.reset_error_evolution()
+
+        #Calculo de MQE para la distancia maxima de la progress bar
+        self.__map_data_to_neurons()
+        MQE = 0.0
+        mapped_neurons = 0
+        for neuron in self.neurons.values():
+            if neuron.has_dataset():
+                MQE += neuron.compute_quantization_error()
+                mapped_neurons += 1
+
+        map_mean_MQE = (MQE / mapped_neurons)
+        session_data.error_evolution_add_point(0, map_mean_MQE )
+
+
+        #suponenmos distancia_maxima = MQEinicial*10
+        distancia_maxima= map_mean_MQE
+        distancia_maxima = distancia_maxima *10
+        session_data.set_pbar_gsom_distancia_maxima(distancia_maxima)
+
+      
+        #TRAINING
+        _iter = 0
+        can_grow = True
+        while can_grow and (_iter < maxiter):
+            self.__neurons_training(decay, epochs, initial_learning_rate, initial_gaussian_sigma,
+                                    dataset_percentage, min_dataset_size, seed)
+
+            _iter += 1
+            #print('\t Iteration: ', _iter)
+            #can_grow,_,_ = self.__can_grow_single_train()
+            can_grow,mapa_mean_MQE = self.__can_grow_single_train()
+            session_data.error_evolution_add_point(_iter,mapa_mean_MQE )
+
+            if can_grow:
+                self.grow()
+
+        if can_grow:
+            self.__map_data_to_neurons()
+        
+        #ComplEte progress bar in case the maxiterations finish the training
+        session_data.update_gsom_progressbar_value(-1)
+        return self
 
     def get_weights_map(self):
         return self.weights_map[0]
@@ -357,7 +360,6 @@ class GSOM:
 
     #def get_structure_graph(self,grafo,dataset, level=0):
     def get_structure_graph(self,grafo,data, target_col, level=0):
-
 
         #Indexes of dataset mapped on each neuron
         mapping = [[list() for _ in range(self.map_shape()[1])] for _ in range(self.map_shape()[0])]
@@ -373,31 +375,23 @@ class GSOM:
                 mapping[r][c].append(i)
 
                 if((r,c) in neurons_mapped_targets):
-                    #neurons_mapped_targets[(r,c)].append(dataset[i][-1]) 
                     neurons_mapped_targets[(r,c)].append(target_col[i]) 
 
                 else:
                     neurons_mapped_targets[(r,c)] = []
-                    #neurons_mapped_targets[(r,c)].append(dataset[i][-1]) 
                     neurons_mapped_targets[(r,c)].append(target_col[i]) 
 
         else:#numero de veces que se golpea cada neurona
-
             # Getting winnig neurons for each data element
             for i,d in enumerate(data):
                 winner_neuron = self.winner_neuron(d)[0][0]
                 r, c = winner_neuron.position
                 mapping[r][c].append(i)
-
                 if((r,c) in neurons_mapped_targets):
-                    #neurons_mapped_targets[(r,c)].append(dataset[i][-1]) 
                     neurons_mapped_targets[(r,c)].append(1) 
-
                 else:
                     neurons_mapped_targets[(r,c)] = []
-                    #neurons_mapped_targets[(r,c)].append(dataset[i][-1]) 
                     neurons_mapped_targets[(r,c)].append(1) 
-
 
 
         grafo.add_node(self,nivel =level, neurons_mapped_targets = neurons_mapped_targets )
@@ -406,20 +400,15 @@ class GSOM:
         #Creating the graph itself
         for neuron in self.neurons.values():
             if neuron.child_map is not None:
-
                 grafo.add_node(neuron.child_map ,
                                 nivel=level+1, 
                                 neurona_padre_pos= neuron.position, 
                                 )
                 grafo.add_edge(self,neuron.child_map)
-            
                 r, c = neuron.position
                 index_list= mapping[r][c]
-                #grafo = neuron.child_map.get_structure_graph(grafo,dataset[index_list], level=level+1)
                 if(target_col is not None): # Si hay traget calculamos los winners,si no nada
-                    
                     grafo = neuron.child_map.get_structure_graph(grafo,data[index_list], [ target_col[i] for i in index_list] , level=level+1)
-                    #grafo = neuron.child_map.get_structure_graph(grafo,data[index_list], target_col[index_list], level=level+1)
                 else:
                     grafo = neuron.child_map.get_structure_graph(grafo,data[index_list], None, level=level+1)
 
@@ -432,7 +421,6 @@ class GSOM:
     def get_map_qe_and_mqe(self):
 
         self.__map_data_to_neurons()
-
         MAP_QE = 0.0
         mapped_neurons = 0
 

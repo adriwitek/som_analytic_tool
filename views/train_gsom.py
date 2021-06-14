@@ -234,10 +234,9 @@ def train_gsom(n_clicks, tam_eje_vertical_gsom,tam_eje_horizontal_gsom ,tau_1,ta
         random_weights[position] = random_data_item
 
     parent_quantization_error  = zero_unit.compute_quantization_error()
-    print('parent_quantization_error', parent_quantization_error)
-    print('tau1', tau_1)
-
-    print('Condition:',parent_quantization_error* tau_1)
+    #print('parent_quantization_error', parent_quantization_error)
+    #print('tau1', tau_1)
+    #print('Condition:',parent_quantization_error* tau_1)
 
     zero_unit.child_map = GSOM( initial_map_size,
                                 parent_quantization_error,

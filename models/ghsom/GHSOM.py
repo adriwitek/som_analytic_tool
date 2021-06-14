@@ -6,7 +6,7 @@ import numpy as np
 from queue import Queue
 #import progressbar
 from multiprocessing import Pool
-import networkx as nx
+#import networkx as nx
 from  views.session_data import session_data
 
 
@@ -34,15 +34,6 @@ class GHSOM:
         pool = Pool(processes=None)
 
         active_dataset = len(zero_unit.input_dataset)
-
-
-        #TODO BORRAR ESTO
-        #network
-        #self.structure_graph= nx.Graph()
-        #self.structure_graph.add_node(zero_unit.child_map)
-        #self.structure_graph.add_node(1, nivel = 1, parent = 0 )
-        #self.structure_graph.add_edge(0, 1)
-        #self.node_counter = 2
 
         #Progressbar
         '''
@@ -88,10 +79,6 @@ class GHSOM:
                         self.__new_map_weights(_neuron.position, gmap.weights_map[0])
                     )
                     
-                    #TODO BORRAR ESTO
-                    #self.structure_graph.add_node(_neuron.child_map )
-                    #self.structure_graph.add_edge( gmap , _neuron.child_map)
-
                     neuron_queue.put(_neuron)
 
                     active_dataset += len(_neuron.input_dataset)
@@ -102,8 +89,6 @@ class GHSOM:
         #Complte progress bar in case callback glitches with long datasets
         session_data.update_progressbar_value(maxvalue )
 
-        #TODO BORRAR ESTO si no construyo aqui el grafo
-        #zero_unit.graph = self.structure_graph
 
         return zero_unit
 
