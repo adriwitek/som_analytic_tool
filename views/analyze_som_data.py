@@ -1482,6 +1482,11 @@ def detect_anomalies(n1, min_normality_percentage, data_portion_option):
     columns_names = session_data.get_features_names()
     for col in columns_names:
         columns.append({'id': col        , 'name': col })
+    columns.append({'id': 'Most Anomalous Feature'        , 'name': 'Most Anomalous Feature'  })
+    columns.append({'id': 'Second Most Anomalous Feature'        , 'name': 'Second Most Anomalous Feature'  })
+    columns.append({'id': 'Third Anomalous Feature'        , 'name': 'Third Most Anomalous Feature'  })
+
+
 
     no_std_test_data = dff.to_numpy()
     for d, no_std in zip(test_data, no_std_test_data):
@@ -1489,16 +1494,25 @@ def detect_anomalies(n1, min_normality_percentage, data_portion_option):
         bmu = pesos[v_coord][h_coord]
         qe = np.linalg.norm(np.subtract(d, bmu), axis=-1)
         b = sum(q > qe for q in qes_normal_data)
-        print('qe',qe)
+        #print('qe',qe)
         normality_value = b/n
-        print('normality_value', normality_value)
+        #print('normality_value', normality_value)
         if(normality_value<min_normality_percentage):
+            #Get the top 3 most desviating features
+            diferencias = np.abs(np.subtract(d, bmu))
+            index_order= np.argsort(diferencias)
+            first_f_index = index_order[-1]
+            second_f_index = index_order[-2]
+            third_f_index = index_order[-3]
             #add anomaly to table
             row = {}
             for i,c in enumerate(columns_names):
                 #row[c] = d[i]
                 row[c] = no_std[i] #recovered original data, since d is std
-                
+            row['Most Anomalous Feature'  ] = columns_names[first_f_index]
+            row['Second Most Anomalous Feature' ] = columns_names[second_f_index]
+            row['Third Anomalous Feature'] = columns_names[third_f_index]
+      
             data.append(row)
             #see the top 3 features 
 
