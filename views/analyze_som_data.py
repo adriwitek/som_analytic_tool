@@ -3,7 +3,6 @@ from dash_bootstrap_components._components.Collapse import Collapse
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
-from flask.globals import session
 from views.app import app
 import dash
 import  views.elements as elements
@@ -13,10 +12,8 @@ from dash.exceptions import PreventUpdate
 import numpy as np
 import numpy.ma as ma
 
-
 from  views.session_data import session_data
 from  config.config import *
-#from  config.config import  DIR_SAVED_MODELS, UMATRIX_HEATMAP_COLORSCALE
 import pickle
 from  os.path import normpath 
 from re import search 
@@ -38,9 +35,6 @@ import dash_table
 #############################################################
 #	                  AUX LAYOUT FUNS	                    #
 #############################################################
-
-
-
 
 def create_new_model_row(qe, h_size, v_size, lr, nf, df,gs,mi,wi,t,s, training_time,tpe):
     row = {}
@@ -166,7 +160,7 @@ def create_multi_soms_table():
 
 
 #############################################################
-#	                       LAYOUT	                        #
+#	                  LAYOUT PARTS	                        #
 #############################################################
 
 def get_model_selection_card():
@@ -440,7 +434,51 @@ def get_anomaly_detection_card():
     return dbc.CardBody(children=[
                         html.Div(children=[
                             
-                            html.H5("Anomaly Detection, tutoriall......."),
+                            dbc.Alert(
+                                [
+                                    html.H3("Anomaly Detection Tutorial", className="alert-heading"),
+                                    html.Br(),
+                                    html.Br(),
+                                    html.Div(
+                                        children = [
+                                            html.H6(" 1. TRAIN MODEL ", className="alert-heading"),
+                                            html.P("For optimum results, we train the model with m ='number of total neurons' = Vertical Size x Horizontal Size"),
+                                            html.P("Being m much smaller than n = number of train samples"),
+                                            html.Hr(),
+
+
+                                            html.H6(" 2.ALGORITHM ", className="alert-heading"),
+                                            html.P("Algorithm calculates how good the loaded data fits in the trained model, and calculates a similarity value per sample (based on how good did the train data fitted during training."),
+                                            html.Hr(),
+
+
+                                            html.H6(" 3. USER TIME", className="alert-heading"),
+                                            html.P(  "App detects which loaded data samples have a similarity percentage smaller than selected threshold "
+                                                        "and marks them as Potencial Anomaly. "   ),
+                                            html.P(
+                                                "This threshold effectiveness will depend on how good it's the trained model and the dispersion of the data."
+                                            ),
+                                            html.P( "Take in mind that threshold value may no have sense if it is too high,since all data will be detected as anomaly"
+                                            ),
+                                            html.Hr(),
+
+                                            html.H6(" 4. RESULTS", className="alert-heading"),
+                                            html.P(
+                                                "See potencial anomalous data at table below.\n "
+                                                "You can export this data as .csv file on 'Save' button at the end of the page. "
+                                            ),
+
+                                        ],
+                                        style = pu.get_css_style_left(),
+                                    ),
+                                    
+                            
+                                ],
+                                dismissable=True,
+                                is_open = True,
+                                fade=True,
+                                color = 'light'
+                            ),
                             html.Br(),
                             html.H5('Upload File to Search for Anomalies in Data',className="card-title" , style=pu.get_css_style_center() ),
                             dcc.Upload( id='upload_anomaly_data', 
@@ -471,14 +509,13 @@ def get_anomaly_detection_card():
                             #Normality percentage
                             html.Div(style=pu.get_css_style_inline_flex(),
                                     children = [
-                                        html.H6(children='Minimum Normality percentage\t'),
-                                        #html.H6( dbc.Badge( '1 %',  pill=True, color="warning", className="mr-1",id ='badge_info_normalitypercentage_slider')   )
+                                        html.H6(children='Take as Anomaly, data that has similarity percentage smaller than \t'),
                                         dcc.Input(id="normality_percentage", type="number", value=0.01,step=0.0000001,min=0, max = 1),
                                     ]
                             ),
-                            html.P('Small values increasing from 0 recommended, for an optimum search  ',className="text-secondary" ),
-                            html.P('0  means All Data will be Classified as Normal ',className="text-secondary" ),
-                            html.P('1  means All Data will be Classified as Anomaly ',className="text-secondary" ),
+                            html.P('Small values increasing from 0 recommended, for an optimum search  ',className="text-secondary",style ={'font-size':'small'}),
+                            html.P('0  means All Data will be Classified as Normal ',className="text-secondary", style ={'font-size':'x-small'} ),
+                            html.P('1  means All Data will be Classified as Anomaly ',className="text-secondary",style ={'font-size':'x-small'} ),
 
                             html.Br(),
                             dbc.Collapse(   id = 'collapse_anomaly_result_table',
@@ -488,7 +525,7 @@ def get_anomaly_detection_card():
                             ),
 
                            
-                            
+                            html.Hr(),
                             #Search for anomalies button
                             dcc.Loading(id='loading',
                                     type='dot',
@@ -702,7 +739,6 @@ def toggle_winners_som(info_table,target_value):
 
 
 
-
 #Habilitar boton ver_mapas_componentes_button
 @app.callback(Output('ver_mapas_componentes_button','disabled'),
               Input('dropdown_atrib_names','value'),
@@ -765,27 +801,7 @@ def ver_estadisticas_som(n_clicks,data_portion_option, selected_rows, table_data
         return children, dash.no_update
 
 
-'''
-#deprecated
-#Etiquetar Mapa neuonas ganadoras
-@app.callback(Output('winners_map', 'figure'),
-              Input('check_annotations_winnersmap', 'value'),
-              State('winners_map', 'figure'),
-              State('ver', 'n_clicks'),
-              prevent_initial_call=True )
-def annotate_winners_map_som(check_annotations, fig,n_clicks):
-    
-    if(n_clicks is None):
-        raise PreventUpdate
-   
-    if(check_annotations  ):
-        fig_updated = pu.fig_add_annotations(fig)
-    else:
-        fig_updated = pu.fig_del_annotations(fig)
 
-    return fig_updated
-
-'''
 
 #Toggle log scale option in winners map
 @app.callback(
@@ -820,7 +836,6 @@ def toggle_select_logscale(target_value, option):
               prevent_initial_call=True )
 def update_som_fig(n_clicks, check_annotations ,logscale, data_portion_option):
 
-
     output_alert_too_categorical_targets = False
     params = session_data.get_som_model_info_dict()
     log_scale = False
@@ -841,9 +856,7 @@ def update_som_fig(n_clicks, check_annotations ,logscale, data_portion_option):
 
     if(params['topology']== 'rectangular'):    #RECTANGULAR TOPOLOGY    
 
-    
         if(target_type == 'numerical' ): #numerical data: mean of the mapped values in each neuron
-
             data_to_plot = np.empty([tam_eje_vertical ,tam_eje_horizontal],dtype=np.float64)
             #labeled heatmap does not support nonetypes
             data_to_plot[:] = np.nan
@@ -967,7 +980,6 @@ def update_som_fig(n_clicks, check_annotations ,logscale, data_portion_option):
             raiseExceptions('Unexpected error')
                
 
-
         fig,table_legend = pu.create_hexagonal_figure(xx_list,yy_list,zz_list, hovertext= True,log_scale = log_scale,
                                                      check_annotations =check_annotations, text_list = text_list,
                                                      discrete_values_range= discrete_values_range,
@@ -987,46 +999,6 @@ def update_som_fig(n_clicks, check_annotations ,logscale, data_portion_option):
 
     return children, output_alert_too_categorical_targets
 
-
-
-    
-'''
-#Etiquetar freq map
-@app.callback(Output('frequency_map', 'figure'),
-              Input('check_annotations_freq', 'value'),
-              State('frequency_map', 'figure'),
-              State('frequency_map_button', 'n_clicks'),
-              prevent_initial_call=True )
-def annotate_freq_map_som(check_annotations, fig,n_clicks):
-    
-    if(n_clicks is None):
-        raise PreventUpdate
-
-    layout = fig['layout']
-    data = fig['data']
-    params = session_data.get_som_model_info_dict()
-
-    
-    if(params['topology']== 'rectangular'):    #RECTANGULAR TOPOLOGY   
-
-        if(check_annotations  ): #fig already ploted
-            trace = data[0]
-            data_to_plot = trace['z'] 
-            #To replace None values with NaN values
-            data_to_plot_1 = np.array(data_to_plot, dtype=int)
-            annotations = pu.make_annotations(data_to_plot_1, colorscale = DEFAULT_HEATMAP_COLORSCALE, reversescale= False)
-            layout['annotations'] = annotations
-        else:   
-            layout['annotations'] = []
-
-        fig_updated = dict(data=data, layout=layout)
-        return fig_updated
-    
-    else:
-
-        return dash.no_update
-
-'''
 
 
 #update_selected_min_hit_rate_badge_som
@@ -1156,7 +1128,6 @@ def update_mapa_componentes_fig(n_cliks,slider_value,names,check_annotations, lo
 
     if(params['topology']== 'rectangular'):    #RECTANGULAR TOPOLOGY   
 
-    
         for i in lista_de_indices:
             #pesos[:,:,i].tolist()
             cplan = pesos[:,:,i]
@@ -1244,11 +1215,6 @@ def update_umatrix(n_clicks,check_annotations, log_scale):
     
     return html.Div(pu.get_fig_div_with_info(figure,'graph_u_matrix','U-Matrix',tam_eje_horizontal, tam_eje_vertical)) 
 
-    #return  html.Div(children= dcc.Graph(id='graph_u_matrix',figure=figure))
-
-
-
-
 
 #Save file name
 @app.callback(Output('nombre_de_fichero_a_guardar_som', 'valid'),
@@ -1265,7 +1231,6 @@ def check_savesommodel_name(value):
 
 
 
-
 #Save SOM model
 @app.callback(Output('check_correctly_saved_som', 'children'),
               Input('save_model_som', 'n_clicks'),
@@ -1276,19 +1241,14 @@ def save_som_model(n_clicks,name,isvalid):
 
     if(not isvalid):
         return ''
-
     data = []
-
     params = session_data.get_som_model_info_dict()
     columns_dtypes = session_data.get_features_dtypes()
-
     data.append('som')
     data.append(columns_dtypes)
     data.append(params)
     data.append(session_data.get_modelo())
-
     filename =   name +  '_som.pickle'
-
     with open(DIR_SAVED_MODELS + filename, 'wb') as handle:
         pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
@@ -1298,23 +1258,9 @@ def save_som_model(n_clicks,name,isvalid):
 
 
 
-#TODO DELETE THIS
-'''
-##################ANOMALY DETECTION CALLBACKS
-# Sync slider wit badge info min normality percentage
-@app.callback(  Output("badge_info_normalitypercentage_slider", "children"),
-                #Input("normality_percentage_slider", "value"),
-                Input("normality_percentage", "value"),
-                prevent_initial_call=True
-                )
-def sync_slider_input_datasetpercentage(v):
-
-    if(v is None):
-        return '0 %'
-    else:
-        return (str(v) + ' %')
-   
-'''
+#############################################################
+#	          ANOMALY DETECTION CALLBACKS	                #
+#############################################################
 
 #Carga la info del dataset en el home
 @app.callback( 
@@ -1451,27 +1397,11 @@ def detect_anomalies(n1, min_normality_percentage, data_portion_option):
     frequencies = ma.masked_less(frequencies, 1)
     mask = ma.getmask(frequencies) #we take the musk to apply it to weights map
     pesos = som.get_weights().copy()
-    '''
-    print('pesos shape', pesos.shape)
-    masked_pesos = ma.masked_array(pesos, mask=mask[:,:,np.newaxis])
-    masked_pesos = masked_pesos.filled(np.inf) 
-    print('masked_pesos.shape',masked_pesos.shape, flush = True )
-    '''
+
     print('\t\t--> Deleting neurons that are not BMUs for Normal Data...') #since it is a np array we just put their values to np.inf so they will never be BMU
     _,_, z = pesos.shape
     for i in range(z):
-        #debug
-        #if(i ==0):
-        #    print('debug pesos[:,:,0]', pesos[:,:,i])
-        #working
-
-        #pesos[:,:,i] = ma.masked_array(pesos[:,:,i], mask=mask).filled(np.inf) 
         pesos[:,:,i] = ma.masked_array(pesos[:,:,i], mask=mask)
-
-
-        #if(i ==0):
-        #    print('debug pesos[:,:,0]', pesos[:,:,i])
-        #working
 
     print('\t\t--> Calculating hyperparameters...')
     qes_normal_data = []
@@ -1490,8 +1420,7 @@ def detect_anomalies(n1, min_normality_percentage, data_portion_option):
     with open(ANOMALY_DF_PATH , 'rb') as handle:
         dff = pickle.load(handle)
         test_data = session_data.estandarizar_data( dff, string_info = '', data_splitted = False)
-    #controlar que la distancia no sea np.inf
-
+    
     #Info table
     data = []
     columns = []
@@ -1501,8 +1430,6 @@ def detect_anomalies(n1, min_normality_percentage, data_portion_option):
     columns.append({'id': 'Most Anomalous Feature'        , 'name': 'Most Anomalous Feature'  })
     columns.append({'id': 'Second Most Anomalous Feature'        , 'name': 'Second Most Anomalous Feature'  })
     columns.append({'id': 'Third Anomalous Feature'        , 'name': 'Third Most Anomalous Feature'  })
-
-
 
     no_std_test_data = dff.to_numpy()
     for d, no_std in zip(test_data, no_std_test_data):
@@ -1520,17 +1447,16 @@ def detect_anomalies(n1, min_normality_percentage, data_portion_option):
             first_f_index = index_order[-1]
             second_f_index = index_order[-2]
             third_f_index = index_order[-3]
-            #add anomaly to table
+            #see the top 3 features
             row = {}
             for i,c in enumerate(columns_names):
-                #row[c] = d[i]
                 row[c] = no_std[i] #recovered original data, since d is std
             row['Most Anomalous Feature'  ] = columns_names[first_f_index]
             row['Second Most Anomalous Feature' ] = columns_names[second_f_index]
             row['Third Anomalous Feature'] = columns_names[third_f_index]
       
             data.append(row)
-            #see the top 3 features 
+             
     print('\t\t--> Anomalies Search Finished')
     title = html.H5("Detected Potential Anomalies")
     s_table = pu.create_simple_table(data, columns, 'table_detected_anomalies')
