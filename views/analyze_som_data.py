@@ -447,11 +447,9 @@ def get_anomaly_detection_card():
                                             html.P("Being m much smaller than n = number of train samples"),
                                             html.Hr(),
 
-
                                             html.H6(" 2.ALGORITHM ", className="alert-heading"),
                                             html.P("Algorithm calculates how good the loaded data fits in the trained model, and calculates a similarity value per sample (based on how good did the train data fitted during training."),
                                             html.Hr(),
-
 
                                             html.H6(" 3. USER TIME", className="alert-heading"),
                                             html.P(  "App detects which loaded data samples have a similarity percentage smaller than selected threshold "

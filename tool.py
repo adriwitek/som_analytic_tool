@@ -65,4 +65,5 @@ def display_page(pathname):
 
 #python 3.8.3
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    #app.run_server(debug=True)
+    app.run_server(debug=False)
