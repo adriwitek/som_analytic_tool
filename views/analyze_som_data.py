@@ -9,31 +9,28 @@ import dash
 import  views.elements as elements
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
-#import plotly.graph_objects as go
-#from plotly.subplots import make_subplots
-#from math import ceil
+
 import numpy as np
 import numpy.ma as ma
 
 
 from  views.session_data import session_data
 from  config.config import *
-from  config.config import  DIR_SAVED_MODELS, UMATRIX_HEATMAP_COLORSCALE
+#from  config.config import  DIR_SAVED_MODELS, UMATRIX_HEATMAP_COLORSCALE
 import pickle
 from  os.path import normpath 
 from re import search 
 import views.plot_utils as pu
 from logging import raiseExceptions
 
-#from plotly.colors import validate_colors
 import time
 import base64
 from pathlib import Path
 import pandas as pd
 import os
+from pathlib import Path
 import io
-
-
+import csv
 import dash_table
 
 
@@ -467,11 +464,7 @@ def get_anomaly_detection_card():
                                             children = '',
                                             is_open = False,
                             ),
-                            dbc.Collapse(   id = 'collapse_anomaly_result_table',
-                                            children = '',
-                                            is_open = False,
-                            ),
-
+                            
                             html.Br(),
 
                             
@@ -483,7 +476,7 @@ def get_anomaly_detection_card():
                                         dcc.Input(id="normality_percentage", type="number", value=0.01,step=0.0000001,min=0, max = 1),
                                     ]
                             ),
-                            html.P('Small values increasing from 0 recommended, for an precision  ',className="text-secondary" ),
+                            html.P('Small values increasing from 0 recommended, for an optimum search  ',className="text-secondary" ),
                             html.P('0  means All Data will be Classified as Normal ',className="text-secondary" ),
                             html.P('1  means All Data will be Classified as Anomaly ',className="text-secondary" ),
 
@@ -494,20 +487,46 @@ def get_anomaly_detection_card():
                                             style = pu.get_css_style_center()
                             ),
 
-                            #Slider percentage
+                           
                             
-                            #dcc.Slider(id='normality_percentage_slider', min=0,max=100,value=1,step =0.0001 ,
-                            #            marks={
-                            #                0: {'label': '0 % \n All Data Classified as Normal'},
-                            #                25: {'label':  '25 %'},
-                            #                50: {'label':  '50 %'},
-                            #                75: {'label':  '75 %'},
-                            #                100: {'label': '100 % \n All Data Classified As Anomaly'}
-                            #            }
-                            #),
-                            
+                            #Search for anomalies button
+                            dcc.Loading(id='loading',
+                                    type='dot',
+                                    children=[
+                                        dbc.Button("Search for Anomalies", id="anomaly_button",disabled = True,  className="mr-2", color="warning",),
+                                    ]
+                            ),
                             html.Br(),
-                            dbc.Button("Search for Anomalies", id="anomaly_button",disabled = True,  className="mr-2", color="primary",)
+                            html.Br(),
+                            dbc.Collapse(   id = 'collapse_anomaly_result_table',
+                                            children = pu.create_simple_table([], [], 'table_detected_anomalies'),
+                                            is_open = False,
+                            ),
+                            html.Br(),
+                            #Save to file anomlies menu
+                            dbc.Collapse(   id = 'collapse_show_save_found_anomalies_to_file',
+                                            is_open = False,
+                                            children =[
+                                                dbc.Button("Save Results Menu", id="save_anomalies_showmenu_button",disabled = True,  className="mr-2", color="info",),
+                                            ],
+                                            style= pu.get_css_style_center()
+                            ),
+                            #Filename and save button
+                            dbc.Collapse(   id = 'collapse_filename_save_anomalies',
+                                            is_open =False,
+                                            children = [
+                                                html.H5("Filename"),
+                                                dbc.Input(id='filename_anomaly_rows_input',placeholder="Filename", className="mb-3"),
+                                                dbc.Button("Save", id="filename_anomaly_rows_button", className="mr-2", color="success"),
+                                                html.P('',id="correctly_saved_anomalies_rows")
+
+                                            ],
+                                            style= pu.get_css_style_center()
+
+
+                            ),
+
+
         
                             ],
                             style=pu.get_css_style_center()
@@ -517,14 +536,10 @@ def get_anomaly_detection_card():
 
 #Card: Guardar modelo
 def get_savemodel_som_card():
-
     return dbc.CardBody(children=[
-                  
                         html.Div(children=[
-                            
                             html.H5("Filename"),
                             dbc.Input(id='nombre_de_fichero_a_guardar_som',placeholder="Filename", className="mb-3"),
-
                             dbc.Button("Save Model", id="save_model_som", className="mr-2", color="primary"),
                             html.P('',id="check_correctly_saved_som")
                             ],
@@ -1409,6 +1424,7 @@ def enable_anomaly_button(error_is_open, v):
 # anomaly button click
 @app.callback(  Output('collapse_anomaly_result_table', 'is_open'),
                 Output('collapse_anomaly_result_table', 'children'),
+                Output('anomaly_button','color'),#just for loading animaton
                 Input('anomaly_button','n_clicks'),
                 #State('normality_percentage_slider', 'value'),
                 State('normality_percentage', 'value'),
@@ -1515,8 +1531,90 @@ def detect_anomalies(n1, min_normality_percentage, data_portion_option):
       
             data.append(row)
             #see the top 3 features 
-
-    s_table = pu.create_simple_table(data, columns, 'table_detected_anomalies')
+    print('\t\t--> Anomalies Search Finished')
     title = html.H5("Detected Potential Anomalies")
-    
-    return  True,html.Div([title,html.Br(), s_table]) 
+    s_table = pu.create_simple_table(data, columns, 'table_detected_anomalies')
+    tablediv = html.Div(children=s_table, style = {"overflow": "scroll"})
+
+    return  True,html.Div([title, tablediv]) , 'warning'
+
+
+
+
+# show_save_anomalies_to_file_menu
+@app.callback(  Output('collapse_show_save_found_anomalies_to_file', 'is_open'),
+                Output('save_anomalies_showmenu_button', 'disabled'),
+                Input('table_detected_anomalies', 'data'),
+                prevent_initial_call=True
+)
+def show_save_anomalies_to_file_menu(data):
+    if(data is None or len(data) == 0):
+        return False, True
+    else:
+        return True, False
+
+# show_ filename menu
+@app.callback(  Output('collapse_filename_save_anomalies', 'is_open'),
+                Input('save_anomalies_showmenu_button', 'n_clicks'),
+                State('collapse_filename_save_anomalies', 'is_open'),
+                prevent_initial_call=True
+)
+def open_filename_save_anomalies(n,is_open):
+    return not is_open
+
+
+
+#Anomaly file name valid
+@app.callback(  Output('filename_anomaly_rows_input', 'valid'),
+                Output('filename_anomaly_rows_input', 'invalid'),
+                Output('filename_anomaly_rows_button', 'disabled'),
+                Input('filename_anomaly_rows_input', 'value'),
+                prevent_initial_call=True
+)
+def check_saveanomalies_filename(value):
+    if not normpath(value) or search(r'[^A-Za-z0-9_\-]',value):
+        return False,True, True
+    else:
+        return True,False, False
+
+
+
+#Save csv file with anomalies results
+@app.callback(  Output('correctly_saved_anomalies_rows','children'),
+                Input('filename_anomaly_rows_button', 'n_clicks'),
+                State('filename_anomaly_rows_input', 'valid'),
+                State('filename_anomaly_rows_input', 'value'),
+                State('table_detected_anomalies', 'data'),
+                prevent_initial_call=True
+)
+def save_rows(n, valid, file_name, data):
+
+    if(valid and data is not None and len(data)> 0):
+
+        columns = []
+        columns_names = session_data.get_features_names()
+        for col in columns_names:
+            columns.append(col )
+        columns.append('Most Anomalous Feature'  )
+        columns.append('Second Most Anomalous Feature')      
+        columns.append('Third Anomalous Feature' )   
+
+        dirpath = Path(ANOMALIES_CSV_PATH)
+        if( not dirpath.exists()):
+            os.mkdir(dirpath)
+        filename =   file_name +  '_potencial_anomalies.csv'
+      
+        with open(ANOMALIES_CSV_PATH + filename, 'w', encoding='UTF8') as f:
+            writer = csv.writer(f)
+            writer.writerow(columns)
+            for d in data:
+                row = [ d[feature] for feature in columns_names]
+                row.append(d['Most Anomalous Feature']  )
+                row.append(d['Second Most Anomalous Feature'])      
+                row.append(d['Third Anomalous Feature'] )  
+                writer.writerow(row)
+
+        return 'Results in Table Saved! Filename: ' + filename
+
+    else:
+        return ''
