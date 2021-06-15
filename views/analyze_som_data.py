@@ -1353,7 +1353,6 @@ def update_output( contents, filename):
        
     else: 
         return True,'An error occurred processing the file' , False,'',  pu.get_upload_data_component_text()
-        #return  None,'' , False,  div_info_dataset( None,0) ,hidden_file_info_style, False,True, '', pu.get_upload_data_component_text()
 
 
 #enable anomaly button

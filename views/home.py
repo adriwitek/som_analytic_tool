@@ -10,23 +10,18 @@ from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 import  views.elements as elements
 
-
+from  os.path import normpath 
+from re import search 
 import io
-#from io import BytesIO
-#from datetime import datetime
+
 import base64
 
-
 import pandas as pd
-#import numpy as np
 
 from  views.session_data import session_data
 from  config.config import *
 from  config.config import DEFAULT_DATASET_ROWS_PREVIEW
 import views.plot_utils as pu
-
-
-#import plotly.graph_objects as go
 
 from os import listdir,makedirs
 from os.path import isfile, join
@@ -34,9 +29,6 @@ import pickle
 from math import ceil,floor
 from pathlib import Path
 import os
-
-
-
 
 
 #TODO pasar a pu file
@@ -266,7 +258,7 @@ def Home():
 
                                             #info showed when the dataset its loaded
                                             dbc.Collapse(id='collapse_modify_data_button', is_open = False, children = 
-                                                dbc.Button("Modify Data",id="modify_data_button",className="mb-6",color="primary",block=True)
+                                                dbc.Button("Modify Data/ Save This Data",id="modify_data_button",className="mb-6",color="primary",block=True)
                                             ),
                                             dbc.Collapse(id ='info_dataset_collapse',
                                                 children = [   
@@ -553,6 +545,7 @@ def div_info_dataset( df, n_samples):
                         dbc.Tab(get_select_target_card() ,label = 'Target Selection',tab_id='target_select_tab'),
                         dbc.Tab( get_features_selection_card() ,label = 'Feature Selection',tab_id='feature_selection_card'),
                         dbc.Tab(get_onehot_childrendiv_menu() ,label = 'Apply One Hot Econding',tab_id='onehot_tab'),
+                        dbc.Tab(get_SAVE_TO_CSV_card() ,label = 'Save Processed Data to .csv File',tab_id='csv_tab'),
                     ]
                 ),
 
@@ -700,6 +693,36 @@ def get_onehot_childrendiv_menu():
 
 
 
+
+#CARD SAVE TABLE MODIFIED DATA TO CSV
+def get_SAVE_TO_CSV_card():
+     
+    return  dbc.Card(  color = 'light',
+                        children=[
+                            dbc.CardBody(children=[
+
+                                html.Div(children=[
+                                        #Atrib names
+                                        html.H6('Save Processed Data to .csv File'),
+                                        html.P('If Target is selected it will be also included',className="text-secondary",  style ={'font-size':'small', 'textAlign': 'center'} ),
+                                        html.P('Useful for Anomaly Detector in SOM, since if train data is processed(like having onehot enconding applied), test data at upload needs also to be processed the same way.',className="text-secondary",  style ={'font-size':'x-small', 'textAlign': 'center'} ),
+                                        html.P('If you use this Tab, no additional tool for processing dataset will be needed.',className="text-secondary",  style ={'font-size':'x-small', 'textAlign': 'center'} ),
+
+                                        dbc.Input(id='processed_csv_filename',placeholder="Filename", className="mb-3"),
+                                        dbc.Button("Save Processed Data", id="save_processed_data_button", className="mr-2", color="primary"),
+                                        html.P('',id="check_correctly_saved_processed_data")
+                                       
+                                    ],
+                                    style=pu.get_css_style_center()
+                                ),
+                            ])  
+             ])    
+
+
+
+
+
+
 def getNumericVars(df, clean_categorical_data):
     #Only numeric variables
     df_numeric = df.select_dtypes(['number'])
@@ -836,7 +859,9 @@ def process_data(input_data , clean_categorical_data, n_clicks, check_sel_all_on
 
                 for n in names:
                     # use pd.pd.concat to join the new columns with your original dataframe
-                    processed_df = pd.concat( [pd.get_dummies(notnum_df[n], prefix=str(n), dummy_na=check_nan), processed_df ],axis=1)
+                    prefixx = ''.join(str(n).split())
+                    processed_df = pd.concat( [pd.get_dummies(notnum_df[n], prefix=prefixx,
+                                                 dummy_na=check_nan, dtype ='int64' ), processed_df ],axis=1)
                     notnum_df.drop([n],axis=1, inplace=True)
 
 
@@ -1414,17 +1439,8 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notn
     print('\t -->Shuffling Data...')
 
     if(nsamples_percentage != 100):
-
         df_features = df_features.sample(n=nsamples_selected, replace=False)
         df_targets = df_targets.loc[df_features.index,:]
-
-        '''
-        print('DEBUG:sampling random selection:')
-        print('nsamples_selected',nsamples_selected)
-        print('train_samples_input',train_samples_input)
-        print('df_features',df_features)
-        print('df_targets',df_targets)
-        '''
     else:
         df_features = df_features.sample(frac=1, replace=False)
         df_targets = df_targets.loc[df_features.index,:]
@@ -1462,6 +1478,9 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notn
 
         elif(session_data.get_features_dtypes() != columns_dtypes ):
             #dtypes no coinciden
+            print('\t:::ERROR: Model dimensionality and selected Dataset ones are not the same. Please, edit the number of selected features before continue.')
+            print('\t\t::: Loaded File dtypes\n\n', session_data.get_features_dtypes())
+            print('\t\t::: Trained Model dtypes \n',columns_dtypes)
             return '', True, 'ERROR: Model features-types and selected Dataset ones are not the same. Please, edit the selected features before continue.'
 
         else:
@@ -1500,3 +1519,58 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notn
 
 
 
+#Save processed data filename check
+@app.callback(  Output('processed_csv_filename', 'valid'),
+                Output('processed_csv_filename', 'invalid'),
+                Output('save_processed_data_button', 'disabled'),
+                Input('processed_csv_filename', 'value'),
+                prevent_initial_call=True
+)
+def check_saveprocessedata_name(value):
+    
+    if not normpath(value) or len(value)==0 or search(r'[^A-Za-z0-9_\-]',value):
+        return False,True,True
+    else:
+        return True,False,False
+
+
+#Save processed data filename check
+@app.callback(  Output('check_correctly_saved_processed_data', 'children'),
+                Input('save_processed_data_button', 'n_clicks'),
+                State('processed_csv_filename', 'value'),
+                State('processed_csv_filename', 'valid'),
+                State('dropdown_target_selection','value'),
+                State('dropdown_feature_selection','value'),
+
+                prevent_initial_call=True
+
+)
+def saveprocessed_data(n , name, isvalid, target_selection,feature_selection):
+    if(not isvalid):
+        return ''
+
+    with open(PROCESSED_DF_PATH , 'rb') as handle:
+        dff = pickle.load(handle)
+        if(dff is None):
+            return ''
+        df = dff[feature_selection]
+    
+    #IF selected target, we include it
+    if(target_selection is not None):
+        with open(NOT_NUMERICAL_DF_PATH , 'rb') as handle:
+            notnumeric_df = pickle.load(handle)
+        df_targets =  pd.concat( [notnumeric_df,  dff[dff.columns.difference(feature_selection)] ],axis=1)  
+
+        df = pd.concat( [df, df_targets[target_selection] ],axis=1)  
+
+
+    dirpath = Path(PROCESSED_DATA_CSV_PATH)
+    if( not dirpath.exists()):
+        os.mkdir(dirpath)
+
+    filename =   name +  '_processed_dataset.csv'
+    route = PROCESSED_DATA_CSV_PATH + filename
+    with open(route, 'wb') as f:
+        df.to_csv(f, index = False, header = True)
+
+    return 'Processed Saved! Filename: ' + filename + '  in   ' + PROCESSED_DATA_CSV_PATH

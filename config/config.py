@@ -36,6 +36,8 @@ HEAD_PROCESSED_DF_PATH = DIR_APP_DATA + 'head_processed_df'
 ANOMALY_DF_PATH =  DIR_APP_DATA + 'anomaly_df'
 
 ANOMALIES_CSV_PATH = 'Anomalies_Detected/'
+PROCESSED_DATA_CSV_PATH = 'Processed_Datasets_CSV/'
+
 
 #URLS
 URLS= {
