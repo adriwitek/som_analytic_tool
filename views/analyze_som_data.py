@@ -441,7 +441,8 @@ def get_anomaly_detection_card():
                                     html.Br(),
                                     html.Div(
                                         children = [
-                                            html.H6(" 1. TRAIN MODEL ", className="alert-heading"),
+                                            html.H6(" 1. TRAIN MODEL WITH ONLY NORMAL DATA", className="alert-heading"),
+                                            html.P('Model is training with ONLY normal data. Data that may contain anomalies must be loaded on file below.'),
                                             html.P("For optimum results, we train the model with m ='number of total neurons' = Vertical Size x Horizontal Size"),
                                             html.P("Being m much smaller than n = number of train samples"),
                                             html.Hr(),
