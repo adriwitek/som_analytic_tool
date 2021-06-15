@@ -623,9 +623,9 @@ def create_preview_table(df, selected_columns = []):
                                             data=df.head(DEFAULT_DATASET_ROWS_PREVIEW).to_dict('records'),
 
                                             style_cell={'textAlign': 'center',
-                                                        'textOverflow': 'ellipsis',
+                                                        #'textOverflow': 'ellipsis',
                                                         #'overflow': 'hidden',
-                                                        'overflowX': 'auto'
+                                                        #'overflowX': 'auto'
                                             },
  
 
