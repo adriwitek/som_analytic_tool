@@ -433,50 +433,56 @@ def get_anomaly_detection_card():
 
     return dbc.CardBody(children=[
                         html.Div(children=[
-                            
-                            dbc.Alert(
-                                [
-                                    html.H3("Anomaly Detection Tutorial", className="alert-heading"),
-                                    html.Br(),
-                                    html.Br(),
-                                    html.Div(
-                                        children = [
-                                            html.H6(" 1. TRAIN MODEL WITH ONLY NORMAL DATA", className="alert-heading"),
-                                            html.P('Model is training with ONLY normal data. Data that may contain anomalies must be loaded on file below.'),
-                                            html.P("For optimum results, we train the model with m ='number of total neurons' = Vertical Size x Horizontal Size"),
-                                            html.P("Being m much smaller than n = number of train samples"),
-                                            html.Hr(),
+                            dbc.Button("Show Tutorial",id="button_show_tutorial",className="mb-6",color="info",block=True),
+                            dbc.Collapse(
+                                id='collapse_show_tutorial',
+                                is_open = False,
+                                children = [ 
+                                    dbc.Alert(
+                                        [
+                                            html.H3("Anomaly Detection Tutorial", className="alert-heading"),
+                                            html.Br(),
+                                            html.Br(),
+                                            html.Div(
+                                                children = [
+                                                    html.H6(" 1. TRAIN MODEL WITH ONLY NORMAL DATA", className="alert-heading"),
+                                                    html.P('Model is training with ONLY normal data. Data that may contain anomalies must be loaded on file below.'),
+                                                    html.P("For optimum results, we train the model with m ='number of total neurons' = Vertical Size x Horizontal Size"),
+                                                    html.P("Being m much smaller than n = number of train samples"),
+                                                    html.Hr(),
 
-                                            html.H6(" 2.ALGORITHM ", className="alert-heading"),
-                                            html.P("Algorithm calculates how good the loaded data fits in the trained model, and calculates a similarity value per sample (based on how good did the train data fitted during training."),
-                                            html.Hr(),
+                                                    html.H6(" 2.ALGORITHM ", className="alert-heading"),
+                                                    html.P("Algorithm calculates how good the loaded data fits in the trained model, and calculates a similarity value per sample (based on how good did the train data fitted during training."),
+                                                    html.Hr(),
 
-                                            html.H6(" 3. USER TIME", className="alert-heading"),
-                                            html.P(  "App detects which loaded data samples have a similarity percentage smaller than selected threshold "
-                                                        "and marks them as Potencial Anomaly. "   ),
-                                            html.P(
-                                                "This threshold effectiveness will depend on how good it's the trained model and the dispersion of the data."
-                                            ),
-                                            html.P( "Take in mind that threshold value may no have sense if it is too high,since all data will be detected as anomaly"
-                                            ),
-                                            html.Hr(),
+                                                    html.H6(" 3. USER TIME", className="alert-heading"),
+                                                    html.P(  "App detects which loaded data samples have a similarity percentage smaller than selected threshold "
+                                                                "and marks them as Potencial Anomaly. "   ),
+                                                    html.P(
+                                                        "This threshold effectiveness will depend on how good it's the trained model and the dispersion of the data."
+                                                    ),
+                                                    html.P( "Take in mind that threshold value may no have sense if it is too high,since all data will be detected as anomaly"
+                                                    ),
+                                                    html.Hr(),
 
-                                            html.H6(" 4. RESULTS", className="alert-heading"),
-                                            html.P(
-                                                "See potencial anomalous data at table below.\n "
-                                                "You can export this data as .csv file on 'Save' button at the end of the page. "
+                                                    html.H6(" 4. RESULTS", className="alert-heading"),
+                                                    html.P(
+                                                        "See potencial anomalous data at table below.\n "
+                                                        "You can export this data as .csv file on 'Save' button at the end of the page. "
+                                                    ),
+
+                                                ],
+                                                style = pu.get_css_style_left(),
                                             ),
+
 
                                         ],
-                                        style = pu.get_css_style_left(),
+                                        dismissable=False,
+                                        is_open = True,
+                                        fade=True,
+                                        color = 'light'
                                     ),
-                                    
-                            
-                                ],
-                                dismissable=True,
-                                is_open = True,
-                                fade=True,
-                                color = 'light'
+                                ]
                             ),
                             html.Br(),
                             html.H5('Upload File to Search for Anomalies in Data',className="card-title" , style=pu.get_css_style_center() ),
@@ -1543,3 +1549,14 @@ def save_rows(n, valid, file_name, data):
 
     else:
         return ''
+
+
+#show/hide tutorial
+@app.callback(
+                Output('collapse_show_tutorial', 'is_open'),
+                Input('button_show_tutorial','n_clicks'),
+                State('collapse_show_tutorial', 'is_open'),
+                prevent_initial_call=True
+)
+def show_tuto(n,is_open):
+    return not is_open
