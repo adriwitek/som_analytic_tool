@@ -3,22 +3,21 @@
 Graphic Interactive Tool for Data Analysis and Visualization with Self Organized Maps.
 
 
-## Introdution
+## Introduction
  Self Organized Maps Algortihms are Unsupervised Artificial Neural Networks able to map  high-dimensional relationships in data into a low-dimensional, discretized space.
- Inspired in neurobiology , they change their internal structure in response to stimulus. The results is that similar paterns, are located in the same regions of space(just like human brain, different functions are located on different regions of the cortex).
+ Inspired in neurobiology , they change their internal structure in response to stimulus. Similar paterns are located in the same regions of space(just like human brain, different functions are located on different regions of the cortex).
 
 
 ## About the Tool
 This is a graphic interactive tool for data analysis and visualization with self organized maps algorithms based on Dash.
   3 Algorithms are avaible at this tool:
 
-  * Classic SOM (Self Organized Map), also known as Kohonen Maps.
+  * Classic SOM (Self Organized Map):  Also known as Kohonen Maps.
+  * GSOM(Growing Self-Organizing Map): A som that grows depending on data input.
+  * GHSOM(Growing Hierarchical Self-Organizing Map): A hierarchical tree structure made with GSOMs that can grow  both vertical and horizontal depending on input data dristribution, showing the data relationships.
 
-  * GSOM(Growing Self-Organizing Map). A som that grows depending on data input.
-  * GHSOM(Growing Hierarchical Self-Organizing Map). A hierarchical tree structure made with GSOMs that can grow  both vertical and horizontal depending on input data dristribution, showing the data relationships.
 
-
-### Requirements
+### Requerements
 Versions are important, since different versions on some libraries causes some problems!
 
 | Software  | Version |
