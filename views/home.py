@@ -832,7 +832,6 @@ def disable_apply_onehot_button(names):
                 State('dropdown_features_toonehot', 'options'),
                 prevent_initial_call=True
             )
-#TODO MEMORIZE
 def process_data(input_data , clean_categorical_data, n_clicks, check_sel_all_onehot,processed_data, notnum_data, names,check_nan, onehot_options):
 
 
@@ -1482,8 +1481,9 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notn
                 if(result):#differente dim but file has all necessary keys
                     #print('DEBUG not the same dim but we have all necessary cols')
                     #reorder selected dataframe cols to be the same as trained model
-                    cols = list(columns_dtypes.keys()) 
-                    df_features = df_features[cols]
+                    #cols = list(columns_dtypes.keys()) 
+                    not_missing_cols =  [elem  for elem in model_trained_keys if elem in file_keys ]
+                    df_features = df_features[not_missing_cols]
                     session_data.set_pd_dataframes(df_features,df_targets,split = split, train_samples_number=train_samples_input )
 
                 else:#Fill with 0 missing features and warn the user
@@ -1500,15 +1500,7 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notn
                     warning = True    
 
 
-
             else:
-                #debugg
-                '''
-                print('session_data.get_features_dtypes().keys()', session_data.get_features_dtypes().keys())
-                print('MODELO GUARDADO columns_dtypes.keys()', columns_dtypes.keys())
-                print('len(session_data.get_features_dtypes().keys())', len(session_data.get_features_dtypes().keys()))
-                print('modelo guardado len(columns_dtypes.keys())', len(columns_dtypes.keys()))
-                '''
                 return '', True, 'ERROR: Model dimensionality and selected Dataset ones are not the same. Please, edit the number of selected features before continue.'
 
         elif(session_data.get_features_dtypes() != columns_dtypes ):

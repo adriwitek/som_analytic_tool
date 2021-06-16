@@ -1267,7 +1267,7 @@ def save_som_model(n_clicks,name,isvalid):
 #	          ANOMALY DETECTION CALLBACKS	                #
 #############################################################
 
-#Carga la info del dataset en el home
+#loads anomaly file
 @app.callback( 
                 Output('collapse_error_loaded_file_anomaly', 'is_open'),
                 Output('collapse_error_loaded_file_anomaly', 'children'),
@@ -1318,15 +1318,52 @@ def update_output( contents, filename):
 
         file_features_dtypes = dataframe.dtypes.to_dict()
 
-        if(len(session_data.get_features_dtypes().keys()) != len(file_features_dtypes.keys()) ):
-            #dim no coincide
-            error_div = html.Div(   
-                            children = [
-                                div1,
-                                html.P('ERROR: Model dimensionality and selected Dataset ones are not the same. Please, upload a file with the same feature length') 
-                            ]
-                        ) 
-            return True, error_div, False,'',pu.get_upload_data_component_text()
+        if(len(session_data.get_features_dtypes().keys()) != len(file_features_dtypes.keys()) ): #dim not the same
+            
+            if(len(session_data.get_features_dtypes().keys()) != len(file_features_dtypes.keys()) ):
+  
+                model_trained_keys = session_data.get_features_dtypes().keys()
+                file_keys= file_features_dtypes.keys()
+                result =  all(elem in file_keys  for elem in model_trained_keys)
+                if(result):#differente dim but file has all necessary keys
+                    #reorder selected dataframe cols to be the same as trained model
+                    not_missing_cols =  [elem  for elem in model_trained_keys if elem in file_keys ]
+                    dataframe = dataframe[not_missing_cols]
+
+                    dirpath = Path(DIR_APP_DATA)
+                    if( not dirpath.exists()):
+                        os.mkdir(dirpath)
+                    with open(ANOMALY_DF_PATH, 'wb') as handle:
+                        pickle.dump(dataframe, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                    return False, '', True, div1, pu.get_upload_data_component_text()
+
+                else:#Fill with 0 missing features and warn the user
+                    print('\t\t ::WARNING: Processed File does not have all requiered features (trained models ones). They will be added with 0 value!')
+                    missing_cols =  [elem  for elem in model_trained_keys if elem not in file_keys ]
+                    not_missing_cols =  [elem  for elem in model_trained_keys if elem in file_keys ]
+                    print('\t\t\t ::Missing Features: ', missing_cols)
+                    dataframe = dataframe[not_missing_cols]
+                    for m in missing_cols:
+                        #df_features[m] = 0
+                        dataframe.loc[:, m] = 0
+
+                    dirpath = Path(DIR_APP_DATA)
+                    if( not dirpath.exists()):
+                        os.mkdir(dirpath)
+                    with open(ANOMALY_DF_PATH, 'wb') as handle:
+                        pickle.dump(dataframe, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                    return False, '', True, div1, pu.get_upload_data_component_text()
+
+
+            else:
+                #dim no coincide
+                error_div = html.Div(   
+                                children = [
+                                    div1,
+                                    html.P('ERROR: Model dimensionality and selected Dataset ones are not the same. Please, upload a file with the same feature length') 
+                                ]
+                            ) 
+                return True, error_div, False,'',pu.get_upload_data_component_text()
 
         elif(session_data.get_features_dtypes() != file_features_dtypes ):
             #dtypes no coinciden
