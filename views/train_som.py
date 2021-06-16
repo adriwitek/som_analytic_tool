@@ -392,8 +392,10 @@ def train_som_view():
                 dbc.Collapse(id = 'single_train_collapse',
                     is_open = True,
                     children = [
-                        dbc.Button("Train", id="train_button_som",href=URLS['TRAINING_MODEL'],disabled= True, className="mr-2", color="primary")
-                        #,dbc.Spinner(id='spinner_training',color="primary",fullscreen=False)],
+                        dcc.Loading(id='loading_train_som_button',
+                                    type='dot',
+                                    children=dbc.Button("Train", id="train_button_som",href=URLS['TRAINING_MODEL'],disabled= True, className="mr-2", color="primary")
+                        ),   
                     ],
                     style=pu.get_css_style_center()
                 ),
@@ -1039,6 +1041,7 @@ def train_models_som(n_cliks, table_data, check_qe_evolution_som, input_qe_evolu
 
 
 @app.callback(  Output('som_entrenado', 'children'),
+                Output('train_button_som', 'color'),
                 Input('train_button_som', 'n_clicks'),
                 State('tam_eje_vertical', 'value'),
                 State('tam_eje_horizontal', 'value'),
@@ -1079,11 +1082,14 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
     
     #Weigh init
     if(pesos_init == 'pca'):
+        #data_to_pca_init = data.copy()
+        #data_to_pca_init[~np.isfinite(data_to_pca_init)] = 0
+        #som.pca_weights_init(data_to_pca_init)
         som.pca_weights_init(data)
     elif(pesos_init == 'random'):   
         som.random_weights_init(data)
 
-    print('\t-->Training SOM...')
+    print('\t-->Training SOM...',flush = True)
     #Random order =False due to data alrady shuffled
     if(any(check_qe_evolution_som)):
         session_data.set_show_error_evolution(True)
@@ -1094,13 +1100,13 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
         som.train(data, iteracciones, random_order=False, verbose=True)  
     session_data.set_modelos(som)                                                   
 
-    print('\t-->Training Complete!')
+    print('\t-->Training Complete!',flush = True)
     end = time.time()
     #ojo en numpy: array[ejevertical][ejehorizontal] ,al contratio que en plotly
     session_data.set_som_model_info_dict(eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad,distance,sigma,
                                             iteracciones, pesos_init,topology,check,seed, training_time = end - start)
     print('\t\tElapsed Time:',str(end - start),'seconds')
-    return 'Training Complete'
+    return 'Training Complete', "primary"
 
 
 
