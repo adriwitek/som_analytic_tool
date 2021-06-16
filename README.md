@@ -13,7 +13,7 @@ This is a graphic interactive tool for data analysis and visualization with self
   3 Algorithms are avaible at this tool:
 
   * Classic SOM (Self Organized Map), also known as Kohonen Maps.
-  ** f
+
   * GSOM(Growing Self-Organizing Map). A som that grows depending on data input.
   * GHSOM(Growing Hierarchical Self-Organizing Map). A hierarchical tree structure made with GSOMs that can grow  both vertical and horizontal depending on input data dristribution, showing the data relationships.
 
@@ -21,7 +21,7 @@ This is a graphic interactive tool for data analysis and visualization with self
 ### Requirements
 Versions are important, since different versions on some libraries causes some problems!
 
-| Software  | Version | Necessary |
+| Software  | Version |
 |:--------------------------------------------------------------:|:-------:|
 | [Python](https://www.python.org/downloads/)                    | 3.8.3  | 
 | [Dash](https://dash.plotly.com/installation)                   | 1.19.0 | 
@@ -37,5 +37,14 @@ Versions are important, since different versions on some libraries causes some p
 | [ProgressBar 2](https://pypi.org/project/progressbar2/)        | 3.37.1  | 
                  
 ### Installation
+Recommend using an enviroment like conda for avoid packages versions problems.
+```python
+ pip install -r requirements.txt 
+ ```
+ 
 ## Run
-python tool.py 
+Open a python terminal on app's directory an then run:
+```python
+ python tool.py 
+ ```
+Then just go to http://localhost:8050/ on your Web Browser(You can click on direction on terminal showing after runnig previous command )
