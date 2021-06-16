@@ -1061,6 +1061,8 @@ def train_models_som(n_cliks, table_data, check_qe_evolution_som, input_qe_evolu
 def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, topology, distance,sigma,iteracciones,
                 pesos_init, semilla, check_semilla, check_qe_evolution_som, input_qe_evolution_som):
 
+
+    session_data.reset_som_model_info_dict()
     tasa_aprendizaje=float(tasa_aprendizaje)
     sigma = float(sigma)
     iteracciones = int(iteracciones)
@@ -1070,7 +1072,6 @@ def train_som(n_clicks,eje_vertical,eje_horizontal,tasa_aprendizaje,vecindad, to
     else:
         seed = None
         check = 0
-    session_data.reset_som_model_info_dict()
     data = session_data.get_train_data()
     start = time.time()
     session_data.start_timer()
