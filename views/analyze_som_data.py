@@ -78,7 +78,7 @@ def create_multi_soms_table():
 
 
     data = []
-
+    time.sleep(1)
     for som_params in session_data.get_som_models_info_dict() :
 
 
