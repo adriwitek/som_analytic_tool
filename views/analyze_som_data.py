@@ -78,7 +78,8 @@ def create_multi_soms_table():
 
 
     data = []
-    time.sleep(1)
+    if(session_data.get_som_models_info_dict() is None):
+        return ''
     for som_params in session_data.get_som_models_info_dict() :
 
 
@@ -150,8 +151,12 @@ def create_multi_soms_table():
 
 
     tablediv = html.Div(children=table, style = {"overflow": "scroll"})
+    final_div = html.Div([tablediv, 
+                        html.P('Replot Graps after select a new model',className="text-secondary",  
+                            style= pu.get_css_style_center() )
+                        ])
                                         
-    return tablediv
+    return final_div
 
 
 
@@ -174,8 +179,7 @@ def get_model_selection_card():
                         dbc.Button("Show Model Info/ Change Model Selection",id="show_model_selection_button",
                                 className="mb-6",color="success",block=True),
                         dbc.Collapse(   children =[ create_multi_soms_table(),
-                                                    html.P('Replot Graps after select a new model',className="text-secondary",  style= pu.get_css_style_center() ),
-                                        ] ,
+                                        ],
                                         id= 'collapse_model_selection',
                                         is_open=False,
                         ),
@@ -674,13 +678,17 @@ def analyze_som_data():
 
 
 @app.callback(  Output('collapse_model_selection','is_open'),
+                Output('collapse_model_selection','children'),
                 Input('show_model_selection_button', 'n_clicks'),
                 State('collapse_model_selection','is_open'),
+                State('collapse_model_selection','children'),
                 prevent_initial_call=True 
 )
-
-def open_collapse_model_selection(n_clicks,is_open):
-    return not is_open
+def open_collapse_model_selection(n_clicks,is_open,children):
+    if(children is None or children == '' ):
+        return not is_open,create_multi_soms_table()
+    else:
+        return not is_open, dash.no_update
 
 
 
