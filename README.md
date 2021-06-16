@@ -17,7 +17,7 @@ This is a graphic interactive tool for data analysis and visualization with self
   * GHSOM(Growing Hierarchical Self-Organizing Map): A hierarchical tree structure made with GSOMs that can grow  both vertical and horizontal depending on input data dristribution, showing the data relationships.
 
 
-### Requerements
+## Requeriments
 Versions are important, since different versions on some libraries causes some problems!
 
 | Software  | Version |
@@ -35,7 +35,7 @@ Versions are important, since different versions on some libraries causes some p
 | [NumPy](http://www.numpy.org/)                                 | 1.20.2  | 
 | [ProgressBar 2](https://pypi.org/project/progressbar2/)        | 3.37.1  | 
                  
-### Installation
+## Installation
 Recommend using an enviroment like conda for avoid packages versions problems.
 ```python
  pip install -r requirements.txt 
