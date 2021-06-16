@@ -832,7 +832,6 @@ def disable_apply_onehot_button(names):
                 State('dropdown_features_toonehot', 'options'),
                 prevent_initial_call=True
             )
-#TODO MEMORIZE
 def process_data(input_data , clean_categorical_data, n_clicks, check_sel_all_onehot,processed_data, notnum_data, names,check_nan, onehot_options):
 
 
@@ -1427,7 +1426,7 @@ def enable_train_models_buttons(n_samples,check, n_train_samples , n_test_sample
 def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notnumeric_df, filename,nsamples_percentage, nsamples_selected,
                          target_selection, feature_selection,check_split_dataset,train_samples_input  ):
 
-    #df = pd.read_json(data,orient='split')
+    warning = False    
     with open(PROCESSED_DF_PATH , 'rb') as handle:
         df = pickle.load(handle)
     #notnumeric_df = pd.read_json(notnumeric_df,orient='split')
@@ -1472,9 +1471,37 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notn
             model_info = unserialized_data[2]
             session_data.set_modelos(unserialized_data[3])
 
-        if(len(session_data.get_features_dtypes().keys()) != len(columns_dtypes.keys()) ):
-            #dim no coincide
-            return '', True, 'ERROR: Model dimensionality and selected Dataset ones are not the same. Please, edit the number of selected features before continue.'
+        if(len(session_data.get_features_dtypes().keys()) != len(columns_dtypes.keys()) ):   #dim not the same
+
+            if(len(session_data.get_features_dtypes().keys()) >  len(columns_dtypes.keys()) ):
+                file_keys = session_data.get_features_dtypes().keys()
+                model_trained_keys = columns_dtypes.keys()
+                result =  all(elem in file_keys  for elem in model_trained_keys)
+               
+                if(result):#differente dim but file has all necessary keys
+                    #print('DEBUG not the same dim but we have all necessary cols')
+                    #reorder selected dataframe cols to be the same as trained model
+                    #cols = list(columns_dtypes.keys()) 
+                    not_missing_cols =  [elem  for elem in model_trained_keys if elem in file_keys ]
+                    df_features = df_features[not_missing_cols]
+                    session_data.set_pd_dataframes(df_features,df_targets,split = split, train_samples_number=train_samples_input )
+
+                else:#Fill with 0 missing features and warn the user
+                    print('\t\t ::WARNING: Processed File does not have all requiered features (trained models ones). They will be added with 0 value!')
+                    missing_cols =  [elem  for elem in model_trained_keys if elem not in file_keys ]
+                    not_missing_cols =  [elem  for elem in model_trained_keys if elem in file_keys ]
+                    print('\t\t\t ::Missing Features: ', missing_cols)
+                    cols = list(columns_dtypes.keys()) 
+                    df_features = df_features[not_missing_cols]
+                    for m in missing_cols:
+                        #df_features[m] = 0
+                        df_features.loc[:, m] = 0
+                    session_data.set_pd_dataframes(df_features,df_targets,split = split, train_samples_number=train_samples_input )
+                    warning = True    
+
+
+            else:
+                return '', True, 'ERROR: Model dimensionality and selected Dataset ones are not the same. Please, edit the number of selected features before continue.'
 
         elif(session_data.get_features_dtypes() != columns_dtypes ):
             #dtypes no coinciden
@@ -1489,18 +1516,29 @@ def analizar_datos_home( n_clicks_1,n_clicks_2,n_clicks_3,n_clicks_4, data, notn
             df_features = df_features[cols]
             session_data.set_pd_dataframes(df_features,df_targets,split = split, train_samples_number=train_samples_input )
 
+
+
         if  model_type ==  'som':
             session_data.set_som_model_info_dict_direct(model_info)
             session_data.convert_test_data_tonumpy()
-            return dcc.Location(pathname=URLS['ANALYZE_SOM_URL'], id="redirect"), False, ''
+            if(warning):
+                return dcc.Location(pathname=URLS['ANALYZE_SOM_URL'], id="redirect"), True, 'WARNING: Processed File does not have all requiered features (trained models ones). They will be added with 0 value!'
+            else:
+                return dcc.Location(pathname=URLS['ANALYZE_SOM_URL'], id="redirect"), False, ''
         elif model_type ==   'gsom':
             session_data.set_gsom_model_info_dict_direct(model_info)
             session_data.convert_test_data_tonumpy()
-            return dcc.Location(pathname=URLS['ANALYZE_GSOM_URL'], id="redirect"), False, ''
+            if(warning):
+                return dcc.Location(pathname=URLS['ANALYZE_GSOM_URL'], id="redirect"),  True, 'WARNING: Processed File does not have all requiered features (trained models ones). They will be added with 0 value!'
+            else:
+                return dcc.Location(pathname=URLS['ANALYZE_GSOM_URL'], id="redirect"), False, ''
         elif model_type ==   'ghsom':
             session_data.set_ghsom_model_info_dict_direct(model_info)
             session_data.convert_test_data_tonumpy()
-            return dcc.Location(pathname=URLS['ANALYZE_GHSOM_URL'], id="redirect"), False, ''
+            if(warning):
+                return dcc.Location(pathname=URLS['ANALYZE_GHSOM_URL'], id="redirect"), True, 'WARNING: Processed File does not have all requiered features (trained models ones). They will be added with 0 value!'
+            else:
+                return dcc.Location(pathname=URLS['ANALYZE_GHSOM_URL'], id="redirect"), False, ''
         else:   #if something goes worng 
             return dcc.Location(pathname="/", id="redirect"), False, ''
 
