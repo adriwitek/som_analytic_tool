@@ -53,3 +53,12 @@ Open a python terminal on app's directory an then run:
  ```
 Then just go to http://localhost:8050/ on your Web Browser(You can click on direction on terminal showing after runnig previous command )
 Remember to have activated your enviroment before runnign
+
+
+
+## Save/Load Trained Models
+Trained models will be under **'/Trained_Models'** path. It's necessary to locate there trained models so they can be loaded by the app
+
+## Anomaly Detector
+Potencial anomalous detected data on SOM's models can be saved as a .csv to be examined later or under other tools. 
+This .csv files will be located on **'/Anomalies_Detected'** path , where it can be moved, since app wont use them directly.
