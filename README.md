@@ -36,7 +36,12 @@ Versions are important, since different versions on some libraries causes some p
 | [ProgressBar 2](https://pypi.org/project/progressbar2/)        | 3.37.1  | 
                  
 ## Installation
-Recommend using an enviroment like conda for avoid packages versions problems.
+I recommend creating first an enviroment like conda for avoid packages version problems:
+```python
+ conda create --name som_app_env
+ conda activate som_app_env
+ ```
+And then install the dependencies:
 ```python
  pip install -r requirements.txt 
  ```
@@ -47,3 +52,4 @@ Open a python terminal on app's directory an then run:
  python tool.py 
  ```
 Then just go to http://localhost:8050/ on your Web Browser(You can click on direction on terminal showing after runnig previous command )
+Remember to have activated your enviroment before runnign
