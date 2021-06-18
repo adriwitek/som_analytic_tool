@@ -18,7 +18,7 @@ This is a graphic interactive tool for data analysis and visualization with self
 
 
 ## Requeriments
-Versions are important, since different versions on some libraries causes some problems!
+Versions are important, since different packege versions in some libraries cause some problems!
 
 | Software  | Version |
 |:--------------------------------------------------------------:|:-------:|
