@@ -36,7 +36,7 @@ Versions are important, since different versions on some libraries causes some p
 | [ProgressBar 2](https://pypi.org/project/progressbar2/)        | 3.37.1  | 
                  
 ## Installation
-I recommend creating first an enviroment like conda for avoid packages version problems:
+I recommend creating first an enviroment like conda to avoid package version problems:
 ```python
  conda create --name som_app_env
  conda activate som_app_env
