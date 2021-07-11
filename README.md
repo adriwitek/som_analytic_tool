@@ -16,7 +16,7 @@ This is a graphic interactive tool for data analysis and visualization with self
   * GSOM(Growing Self-Organizing Map): A som that grows depending on data input.
   * GHSOM(Growing Hierarchical Self-Organizing Map): A hierarchical tree structure made with GSOMs that can grow  both vertical and horizontal depending on input data dristribution, showing the data relationships.
 
-![alt text](https://github.com/adriwitek/readme_test/blob/main/Screenshots/cargar.gif "App Home Screen")
+![alt text](https://github.com/adriwitek/som_analytic_tool/blob/master/Screenshots/cargar.gif "App Home Screen")
 
 
 
@@ -63,14 +63,14 @@ Remember to have activated your enviroment before runnign
 ## Some Functionalities Included...
 #### Save/Load Trained Models
 Trained models will be under **'/Trained_Models'** path. It's necessary to locate there trained models so they can be loaded by the app
-![alt text](https://github.com/adriwitek/readme_test/blob/main/Screenshots/load.gif "App Load Screenshot")
+![alt text](https://github.com/adriwitek/som_analytic_tool/blob/master/Screenshots/load.gif "App Load Screenshot")
 
 
 #### Anomaly Detector
 Potencial anomalous detected data on SOM's models can be saved as a .csv to be examined later or under other tools. 
 This .csv files will be located on **'/Anomalies_Detected'** path , where it can be moved, since app wont use them directly.
 
-![alt text](https://github.com/adriwitek/readme_test/blob/main/Screenshots/anomalies.gif "App Anomaly Detector Screenshot")
+![alt text](https://github.com/adriwitek/som_analytic_tool/blob/master/Screenshots/anomalies.gif "App Anomaly Detector Screenshot")
 
 
 
@@ -81,20 +81,20 @@ This .csv files will be located on **'/Anomalies_Detected'** path , where it can
 
 
 #### Error Progress
-![alt text](https://github.com/adriwitek/readme_test/blob/main/Screenshots/training%20animation.gif "App Screenshot")
+![alt text](https://github.com/adriwitek/som_analytic_tool/blob/master/Screenshots/training%20animation.gif "App Screenshot")
 
 #### SOM Multi-Train
-![alt text](https://github.com/adriwitek/readme_test/blob/main/Screenshots/som_multi_train.png "App Screenshot")
+![alt text](https://github.com/adriwitek/som_analytic_tool/blob/master/Screenshots/som_multi_train.png "App Screenshot")
 
 #### Component Plans Minimum Hit Filter 
-![alt text](https://github.com/adriwitek/readme_test/blob/main/Screenshots/slider.gif "App Screenshot")
+![alt text](https://github.com/adriwitek/som_analytic_tool/blob/master/Screenshots/slider.gif "App Screenshot")
 
 #### Auto Hyperparameters Tuning
 Searching optimus Hyperparameters:
-![alt text](https://github.com/adriwitek/readme_test/blob/main/Screenshots/rand_search.gif "App Screenshot")
+![alt text](https://github.com/adriwitek/som_analytic_tool/blob/master/Screenshots/rand_search.gif "App Screenshot")
 
 Search Result:
-![alt text](https://github.com/adriwitek/readme_test/blob/main/Screenshots/rand_search_result.png "App Screenshot")
+![alt text](https://github.com/adriwitek/som_analytic_tool/blob/master/Screenshots/rand_search_result.png "App Screenshot")
 
 
 
